@@ -1,15 +1,14 @@
 node_modules
+.devcontainer.json
 
 # Agents
 TODO*
 
 # Output
 .devenv*
+devenv.local.nix
+devenv.local.yaml
 .output
-.vercel
-.netlify
-.wrangler
-/.svelte-kit
 /build
 
 # OS
@@ -22,11 +21,7 @@ Thumbs.db
 !.env.example
 !.env.test
 
-# Vite
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
-
-# Generated
+# Generated static files
 static/kalenteri.json
 static/kalenteri.geo.json
 static/*.ics
@@ -35,3 +30,13 @@ static/*.atom
 static/*.html
 static/images/
 static/events/
+
+# Elm
+elm-app/elm-stuff/
+elm-app/node_modules/
+elm-stuff/
+.pnpm-store/
+
+# Haskell
+dist-newstyle/
+.cabal/

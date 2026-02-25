@@ -1,0 +1,8 @@
+[formatter.haskell]
+command = "fourmolu"
+options = [
+  "--mode",
+  "inplace",
+  "--check-idempotence"
+]
+includes = ["*.hs"]
