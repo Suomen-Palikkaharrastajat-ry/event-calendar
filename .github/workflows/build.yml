@@ -25,19 +25,41 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Install Elm
+        run: npm install -g elm@0.19.1
 
-      - name: Build
-        run: make clean dist
+      - name: Setup GHC and Cabal
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.10'
+          cabal-version: 'latest'
 
-      - name: Cache build directory
+      - name: Cache Cabal dependencies
         uses: actions/cache@v4
         with:
-          path: ./build
-          key: build-${{ github.sha }}
+          path: |
+            ~/.cabal/store
+            dist-newstyle
+          key: cabal-${{ runner.os }}-${{ hashFiles('statics/statics.cabal', 'cabal.project') }}
+          restore-keys: |
+            cabal-${{ runner.os }}-
+
+      - name: Install Elm app dependencies
+        run: pnpm install
+        working-directory: elm-app
+
+      - name: Update Cabal package index
+        run: cabal update
+
+      - name: Run Elm tests
+        run: make elm-test
+
+      - name: Run Haskell tests
+        run: make statics-test
+
+      - name: Build
+        run: make dist
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

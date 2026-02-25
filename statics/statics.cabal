@@ -1,0 +1,82 @@
+cabal-version: 2.2
+name:          statics
+version:       0.1.0.0
+synopsis:      Static file generator for the Suomen Palikkayhteisö event calendar
+description:
+  Fetches published events from PocketBase and generates:
+  iCal feeds, RSS/Atom/JSON feeds, GeoJSON, printable HTML,
+  per-event landing pages, and event images.
+license:       BSD-2-Clause
+build-type:    Simple
+
+-- Shared options for library and test suite (no RTS flags)
+common lib-opts
+  ghc-options: -Wall
+  default-extensions: OverloadedStrings
+
+-- Shared options for executables (threaded RTS)
+common exe-opts
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+
+library
+  import:           lib-opts
+  hs-source-dirs:   src
+  exposed-modules:
+    PocketBase
+    DateUtils
+    ICalGen
+    FeedGen
+    GeoJsonGen
+    HtmlGen
+    ImageFetcher
+  build-depends:
+    base          >=4.7 && <5,
+    text,
+    bytestring,
+    aeson,
+    http-conduit,
+    http-client,
+    http-client-tls,
+    time,
+    tz,
+    tzdata,
+    blaze-html,
+    blaze-markup,
+    feed,
+    -- iCalendar omitted: package unmaintained; ICalGen.hs uses manual RFC 5545 text generation
+    async,
+    directory,
+    filepath,
+    base64-bytestring,
+    containers,
+    JuicyPixels,
+    qrcode-core,
+    qrcode-juicypixels
+  default-language: Haskell2010
+
+executable statics
+  import:           exe-opts
+  main-is:          Main.hs
+  hs-source-dirs:   app
+  build-depends:
+    base      >=4.7 && <5,
+    directory,
+    statics
+  default-language: Haskell2010
+
+test-suite statics-test
+  import:           lib-opts
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  hs-source-dirs:   tests
+  build-depends:
+    base            >=4.7 && <5,
+    statics,
+    tasty,
+    tasty-hunit,
+    tasty-quickcheck,
+    aeson,
+    bytestring,
+    time,
+    text
+  default-language: Haskell2010

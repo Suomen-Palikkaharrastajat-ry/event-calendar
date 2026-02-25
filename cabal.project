@@ -1,0 +1,10 @@
+-- Cabal project for the statics/ Haskell package.
+-- Note: planet/ uses Stack (see planet/stack.yaml), not Cabal.
+--
+-- Usage:
+--   cabal build statics       -- build the static generator library + executable
+--   cabal run exe:statics     -- generate static files
+--   cabal test statics-test   -- run statics tests
+
+packages:
+  statics/
