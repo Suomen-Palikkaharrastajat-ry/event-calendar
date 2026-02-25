@@ -1,3 +1,11 @@
+{- Events management page — owns the EventsPage state type and init.
+
+   Page/View split: this module handles state and init; all rendering lives in
+   View.Events.  The update logic for EventsPage messages is in Main.elm
+   (search for `PageEvents`).
+-}
+
+
 module Page.Events exposing (init, view)
 
 import Api

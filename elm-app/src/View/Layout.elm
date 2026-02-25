@@ -1,12 +1,12 @@
-module View.Layout exposing (viewHeader, viewFooter, viewToasts)
+module View.Layout exposing (viewFooter, viewHeader, viewToasts)
 
 import Html exposing (Html, a, button, div, footer, h3, header, nav, p, span, text)
 import Html.Attributes exposing (attribute, class, href)
 import Html.Events exposing (onClick)
-import Svg
-import Svg.Attributes as SvgA
 import I18n exposing (MsgKey(..), t)
 import Route exposing (toHref)
+import Svg
+import Svg.Attributes as SvgA
 import Types exposing (AuthState(..), Msg(..), Toast, ToastKind(..))
 
 

@@ -1,4 +1,9 @@
-module Geocoding exposing (geocode, reverseGeocode)
+module Geocoding exposing
+    ( decodeGeocodeResponse
+    , decodeReverseGeocode
+    , geocode
+    , reverseGeocode
+    )
 
 import Http
 import Json.Decode as Json exposing (Decoder)
@@ -16,7 +21,8 @@ userAgent =
     Http.header "User-Agent" "SuomenPalikkayhteiso-Kalenteri/1.0"
 
 
-{-| Geocode a location name to coordinates via Nominatim. -}
+{-| Geocode a location name to coordinates via Nominatim.
+-}
 geocode : String -> (Result Http.Error (Maybe GeoPoint) -> Msg) -> Cmd Msg
 geocode locationName toMsg =
     Http.request
@@ -35,7 +41,8 @@ geocode locationName toMsg =
         }
 
 
-{-| Reverse geocode coordinates to a place name via Nominatim. -}
+{-| Reverse geocode coordinates to a place name via Nominatim.
+-}
 reverseGeocode : Float -> Float -> (Result Http.Error String -> Msg) -> Cmd Msg
 reverseGeocode lat lon toMsg =
     Http.request
@@ -54,6 +61,7 @@ reverseGeocode lat lon toMsg =
         , timeout = Just 10000
         , tracker = Nothing
         }
+
 
 
 -- DECODERS
@@ -83,7 +91,8 @@ decodeGeocodingResult =
         (Json.field "display_name" Json.string)
 
 
-{-| Nominatim returns lat/lon as strings, not numbers. -}
+{-| Nominatim returns lat/lon as strings, not numbers.
+-}
 decodeStringFloat : Decoder Float
 decodeStringFloat =
     Json.string

@@ -1,32 +1,32 @@
 module Types exposing
-    ( Model
-    , Msg(..)
-    , Page(..)
-    , Flags
-    , AuthState(..)
+    ( AuthState(..)
     , AuthUser
-    , Event
-    , EventState(..)
-    , GeoPoint
-    , EventFormData
-    , emptyEventFormData
-    , emptyPbList
     , CalendarPage
     , CalendarViewMode(..)
-    , EventsPage
+    , Event
     , EventDetailPage
     , EventEditPage
+    , EventFormData
+    , EventListPage
+    , EventState(..)
+    , EventsPage
+    , Flags
     , FormStatus(..)
+    , GeoPoint
     , KmlImportStatus(..)
     , KmlPlacemark
+    , Model
+    , Msg(..)
+    , Page(..)
+    , PbList
     , Toast
     , ToastKind(..)
-    , PbList
+    , emptyEventFormData
+    , emptyPbList
     , eventStateFromString
     , eventStateToString
-    , isAuthenticated
     , getToken
-    , EventListPage
+    , isAuthenticated
     )
 
 import Browser
@@ -35,9 +35,10 @@ import File exposing (File)
 import Http
 import Json.Decode as Json
 import RemoteData exposing (RemoteData)
+import Route exposing (Route)
 import Time
 import Url exposing (Url)
-import Route exposing (Route)
+
 
 
 -- FLAGS
@@ -48,6 +49,7 @@ type alias Flags =
     , authModel : Maybe String
     , now : Int
     }
+
 
 
 -- AUTH
@@ -84,6 +86,7 @@ getToken authState =
 
         NotAuthenticated ->
             Nothing
+
 
 
 -- DOMAIN TYPES
@@ -155,6 +158,7 @@ type alias Event =
     }
 
 
+
 -- POCKETBASE LIST
 
 
@@ -165,6 +169,7 @@ type alias PbList a =
     , page : Int
     , perPage : Int
     }
+
 
 
 -- FORM DATA
@@ -225,6 +230,7 @@ emptyEventFormData =
     }
 
 
+
 -- FORM STATUS
 
 
@@ -241,6 +247,7 @@ type KmlImportStatus
     | KmlImporting Int Int
     | KmlDone Int
     | KmlError String
+
 
 
 -- PAGE MODELS
@@ -300,6 +307,7 @@ type alias EventListPage =
     }
 
 
+
 -- TOP-LEVEL PAGE
 
 
@@ -312,6 +320,7 @@ type Page
     | PageAuthCallback
     | PageNotFound
     | PageLoading
+
 
 
 -- TOASTS
@@ -330,6 +339,7 @@ type alias Toast =
     }
 
 
+
 -- MODEL
 
 
@@ -344,10 +354,30 @@ type alias Model =
     }
 
 
+
 -- MSG
+--
+-- Naming convention
+-- ─────────────────
+-- Page-scoped messages are prefixed with the page name:
+--   Calendar*   → CalendarPage
+--   Events*     → EventsPage
+--   Detail*     → EventDetailPage
+--   Edit*       → EventEditPage
+--   EventList*  → EventListPage
+--
+-- App-wide messages have no page prefix:
+--   AddToast, DismissToast, Tick, NavigateTo, LoginClicked, LogOut, …
+--
+-- RemoteData initialisation convention
+-- ─────────────────────────────────────
+-- Use `NotAsked` when the data is intentionally not yet requested
+-- (e.g. EventsPage when the user is not authenticated).
+-- Use `Loading` when the request is kicked off immediately on page init.
 
 
-type Msg
+type
+    Msg
     -- Navigation
     = UrlChanged Url
     | LinkClicked Browser.UrlRequest

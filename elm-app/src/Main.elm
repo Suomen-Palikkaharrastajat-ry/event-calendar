@@ -1,3 +1,24 @@
+{- Application entry point.
+
+   Pages, routes, and the modules that handle them:
+
+       Route               Page type          State/init module    View module
+       ──────────────────  ─────────────────  ───────────────────  ──────────────────
+       /                   PageCalendar       Page.Calendar        View.Calendar
+       /#/events           PageEventList      (inline in Main)     View.EventList
+       /#/events/new       PageEvents         Page.Events          View.Events
+       /#/events/:id       PageEventDetail    Page.EventDetail     View.EventDetail
+       /#/events/:id/edit  PageEventEdit      Page.EventEdit       View.EventForm
+       /#/callback         PageAuthCallback   (inline in Main)     (inline in Main)
+       (not found)         PageNotFound       —                    (inline in Main)
+
+   Update logic lives in this file's `update` function.  Page-specific helpers
+   (updateCalendarPage, updateEventsForm, updateEditForm) delegate to the relevant
+   Page module or modify the model directly.
+
+-}
+
+
 module Main exposing (main)
 
 import Api
@@ -50,6 +71,25 @@ pbBaseUrl =
     "https://data.suomenpalikkayhteiso.fi"
 
 
+{-| Helsinki Railway Square — default map centre when no event coordinates are available.
+-}
+helsinkiLat : Float
+helsinkiLat =
+    60.1699
+
+
+helsinkiLon : Float
+helsinkiLon =
+    24.9384
+
+
+{-| Default map zoom level for the "whole Helsinki area" view.
+-}
+defaultMapZoom : Int
+defaultMapZoom =
+    10
+
+
 main : Program Flags Model Msg
 main =
     Browser.application
@@ -60,6 +100,7 @@ main =
         , onUrlChange = UrlChanged
         , onUrlRequest = LinkClicked
         }
+
 
 
 -- INIT
@@ -121,9 +162,9 @@ initPage key route authState url now =
                         }
                     , Ports.initMap
                         { containerId = "create-map"
-                        , lat = 60.1699
-                        , lon = 24.9384
-                        , zoom = 10
+                        , lat = helsinkiLat
+                        , lon = helsinkiLon
+                        , zoom = defaultMapZoom
                         , markerLat = Nothing
                         , markerLon = Nothing
                         , draggable = True
@@ -167,6 +208,7 @@ initPage key route authState url now =
 
         RouteNotFound ->
             ( PageNotFound, Cmd.none )
+
 
 
 -- UPDATE
@@ -400,53 +442,10 @@ update msg model =
                     ( model, Cmd.none )
 
         EventsFormFieldChanged field val ->
-            updateEventsForm model
-                (\form ->
-                    case field of
-                        "title" ->
-                            { form | title = val }
-
-                        "description" ->
-                            { form | description = val }
-
-                        "location" ->
-                            { form | location = val }
-
-                        "url" ->
-                            { form | url = val }
-
-                        "imageDescription" ->
-                            { form | imageDescription = val }
-
-                        "lat" ->
-                            { form | lat = val }
-
-                        "lon" ->
-                            { form | lon = val }
-
-                        _ ->
-                            form
-                )
+            updateEventsForm model (applyFormField field val)
 
         EventsFormDateChanged field val ->
-            updateEventsForm model
-                (\form ->
-                    case field of
-                        "startDate" ->
-                            { form | startDate = val }
-
-                        "startTime" ->
-                            { form | startTime = val }
-
-                        "endDate" ->
-                            { form | endDate = val }
-
-                        "endTime" ->
-                            { form | endTime = val }
-
-                        _ ->
-                            form
-                )
+            updateEventsForm model (applyFormDate field val)
 
         EventsFormFileSelected file ->
             let
@@ -821,10 +820,10 @@ update msg model =
                                     eventToForm event
 
                                 mapLat =
-                                    Maybe.map .lat event.point |> Maybe.withDefault 60.1699
+                                    Maybe.map .lat event.point |> Maybe.withDefault helsinkiLat
 
                                 mapLon =
-                                    Maybe.map .lon event.point |> Maybe.withDefault 24.9384
+                                    Maybe.map .lon event.point |> Maybe.withDefault helsinkiLon
                             in
                             ( { model | page = PageEventEdit id { editPage | event = Success event, form = form } }
                             , Ports.initMap
@@ -851,53 +850,10 @@ update msg model =
                     ( model, Cmd.none )
 
         EditFormFieldChanged field val ->
-            updateEditForm model
-                (\form ->
-                    case field of
-                        "title" ->
-                            { form | title = val }
-
-                        "description" ->
-                            { form | description = val }
-
-                        "location" ->
-                            { form | location = val }
-
-                        "url" ->
-                            { form | url = val }
-
-                        "imageDescription" ->
-                            { form | imageDescription = val }
-
-                        "lat" ->
-                            { form | lat = val }
-
-                        "lon" ->
-                            { form | lon = val }
-
-                        _ ->
-                            form
-                )
+            updateEditForm model (applyFormField field val)
 
         EditFormDateChanged field val ->
-            updateEditForm model
-                (\form ->
-                    case field of
-                        "startDate" ->
-                            { form | startDate = val }
-
-                        "startTime" ->
-                            { form | startTime = val }
-
-                        "endDate" ->
-                            { form | endDate = val }
-
-                        "endTime" ->
-                            { form | endTime = val }
-
-                        _ ->
-                            form
-                )
+            updateEditForm model (applyFormDate field val)
 
         EditFormFileSelected file ->
             let
@@ -1084,6 +1040,7 @@ update msg model =
             ( model, Cmd.none )
 
 
+
 -- PAGE-SPECIFIC UPDATE HELPERS
 
 
@@ -1121,6 +1078,69 @@ updateEditForm model f =
             ( model, Cmd.none )
 
 
+{-| Apply a text-field update to an EventFormData record.
+Shared by EventsFormFieldChanged and EditFormFieldChanged to avoid duplicating
+the string→record-field dispatch four times.
+-}
+applyFormField : String -> String -> EventFormData -> EventFormData
+applyFormField field val form =
+    case field of
+        "title" ->
+            { form | title = val }
+
+        "description" ->
+            { form | description = val }
+
+        "location" ->
+            { form | location = val }
+
+        "url" ->
+            { form | url = val }
+
+        "imageDescription" ->
+            { form | imageDescription = val }
+
+        "lat" ->
+            { form | lat = val }
+
+        "lon" ->
+            { form | lon = val }
+
+        "state" ->
+            case Types.eventStateFromString val of
+                Just s ->
+                    { form | state = s }
+
+                Nothing ->
+                    form
+
+        _ ->
+            form
+
+
+{-| Apply a date/time-field update to an EventFormData record.
+Shared by EventsFormDateChanged and EditFormDateChanged.
+-}
+applyFormDate : String -> String -> EventFormData -> EventFormData
+applyFormDate field val form =
+    case field of
+        "startDate" ->
+            { form | startDate = val }
+
+        "startTime" ->
+            { form | startTime = val }
+
+        "endDate" ->
+            { form | endDate = val }
+
+        "endTime" ->
+            { form | endTime = val }
+
+        _ ->
+            form
+
+
+
 -- TOAST HELPERS
 
 
@@ -1144,6 +1164,7 @@ addToast model kind message =
       }
     , dismissCmd
     )
+
 
 
 -- URL HELPERS
@@ -1175,6 +1196,7 @@ extractCode url =
                         Nothing
             )
         |> List.head
+
 
 
 -- DATA HELPERS
@@ -1245,6 +1267,7 @@ placemarkToForm pm =
         , geocodingEnabled = pm.lat /= Nothing
         , state = Types.Draft
     }
+
 
 
 -- VIEW
@@ -1328,6 +1351,7 @@ pageTitle page =
 
         PageEventEdit _ _ ->
             "Muokkaa tapahtumaa — Suomen Palikkayhteisö"
+
 
 
 -- SUBSCRIPTIONS

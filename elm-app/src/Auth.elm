@@ -1,7 +1,7 @@
 module Auth exposing
-    ( restoreAuthFromFlags
-    , decodeAuthUser
+    ( decodeAuthUser
     , fetchOAuthToken
+    , restoreAuthFromFlags
     )
 
 import Http
@@ -13,6 +13,7 @@ import Types exposing (AuthState(..), AuthUser, Msg(..))
 pbBaseUrl : String
 pbBaseUrl =
     "https://data.suomenpalikkayhteiso.fi"
+
 
 
 -- DECODERS
@@ -45,10 +46,12 @@ restoreAuthFromFlags maybeToken maybeModelJson =
             NotAuthenticated
 
 
+
 -- OAUTH
 
 
-{-| Exchange OAuth2 code + codeVerifier for a PocketBase auth token. -}
+{-| Exchange OAuth2 code + codeVerifier for a PocketBase auth token.
+-}
 fetchOAuthToken : String -> String -> String -> Cmd Msg
 fetchOAuthToken code codeVerifier state =
     Http.post

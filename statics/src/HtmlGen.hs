@@ -9,9 +9,11 @@ module HtmlGen (
 
 import qualified Codec.QRCode as QR
 import qualified Codec.QRCode.JuicyPixels as QRJP
+import qualified Config
 import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Char8 as BSC
 import Data.List (groupBy, sortBy)
+import Data.Maybe (fromMaybe)
 import Data.Ord (comparing)
 import qualified Data.Text as T
 import Data.Time (LocalTime (..), ZonedTime (..), getCurrentTime, toGregorian)
@@ -25,18 +27,12 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 
 -- ---------------------------------------------------------------------------
--- Constants
--- ---------------------------------------------------------------------------
-
-siteUrl :: String
-siteUrl = "https://kalenteri.suomenpalikkayhteiso.fi"
-
--- ---------------------------------------------------------------------------
 -- QR code and ICS helpers
 -- ---------------------------------------------------------------------------
 
--- | Generate a QR code PNG as a base64 data URI, or Nothing if encoding fails.
--- Uses toPngDataUrlS which returns the complete data: URL string.
+{- | Generate a QR code PNG as a base64 data URI, or Nothing if encoding fails.
+Uses toPngDataUrlS which returns the complete data: URL string.
+-}
 qrCodeDataUri :: String -> Maybe String
 qrCodeDataUri url = do
     code <-
@@ -56,8 +52,9 @@ icsDataUri icsText =
 -- CSS
 -- ---------------------------------------------------------------------------
 
--- | URL-encoded SVG data URI for the calendar icon overlay on QR codes.
--- Encoding: only <, >, " are percent-encoded; works in CSS url("...").
+{- | URL-encoded SVG data URI for the calendar icon overlay on QR codes.
+Encoding: only <, >, " are percent-encoded; works in CSS url("...").
+-}
 calendarIconDataUri :: String
 calendarIconDataUri =
     "data:image/svg+xml,"
@@ -149,8 +146,8 @@ renderQrCode eventPageUrl =
 -- | Render a single event row in the embeddable calendar.
 renderCalendarEvent :: [(String, String)] -> PB.Event -> H.Html
 renderCalendarEvent icsList ev = do
-    let ics = maybe "" id (lookup (PB.eventId ev) icsList)
-    let eventPageUrl = siteUrl ++ "/events/" ++ PB.eventId ev ++ ".html"
+    let ics = fromMaybe "" (lookup (PB.eventId ev) icsList)
+    let eventPageUrl = Config.siteBaseUrl ++ "/events/" ++ PB.eventId ev ++ ".html"
     H.div ! A.class_ "event" $ do
         H.div ! A.class_ "date-column" $ H.toHtml (DU.formatEventDate ev)
         H.div ! A.class_ "details-column" $ do
@@ -207,32 +204,35 @@ renderFooter =
                     H.div ! A.class_ "footer-icon-row" $ do
                         svgIcon "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                         H.h3 "iCalendar"
-                    H.p "Kalenterivienti (ICS) tilaa tai integroi koko kalenterin helposti. Klikkaa kalenteri puhelimeesi!"
+                    H.p
+                        "Kalenterivienti (ICS) tilaa tai integroi koko kalenterin helposti. Klikkaa kalenteri puhelimeesi!"
             -- HTML | PDF
             H.a
                 ! A.class_ "footer-card"
-                ! A.href (H.toValue (siteUrl ++ "/kalenteri.html"))
+                ! A.href (H.toValue (Config.siteBaseUrl ++ "/kalenteri.html"))
                 ! A.target "_blank"
                 $ do
                     H.div ! A.class_ "footer-icon-row" $ do
-                        svgIcon "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        svgIcon
+                            "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                         H.h3 "HTML | PDF"
                     H.p "Upota tai tulosta valmis tapahtumalistaus. Sisältää kalenterilinkit yksittäisiin tapahtumiin."
             -- Feeds
             H.div ! A.class_ "footer-feeds" $ do
                 H.div ! A.class_ "footer-icon-row" $ do
-                    svgIcon "M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0m6 0a1 1 0 11-2 0 1 1 0 012 0m6 0a1 1 0 11-2 0 1 1 0 012 0"
+                    svgIcon
+                        "M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0m6 0a1 1 0 11-2 0 1 1 0 012 0m6 0a1 1 0 11-2 0 1 1 0 012 0"
                     H.h3 "Syötteet"
                 H.p "Syötteet integroivat uudet tapahtumat verkkosivuille. Nämäkin sisältävät kalenterilinkit."
                 H.div ! A.class_ "footer-feed-links" $ do
-                    H.a ! A.href (H.toValue (siteUrl ++ "/kalenteri.atom")) ! A.target "_blank" $ "ATOM"
+                    H.a ! A.href (H.toValue (Config.siteBaseUrl ++ "/kalenteri.atom")) ! A.target "_blank" $ "ATOM"
                     H.toHtml (" | " :: String)
-                    H.a ! A.href (H.toValue (siteUrl ++ "/kalenteri.rss")) ! A.target "_blank" $ "RSS"
+                    H.a ! A.href (H.toValue (Config.siteBaseUrl ++ "/kalenteri.rss")) ! A.target "_blank" $ "RSS"
                     H.toHtml (" | " :: String)
-                    H.a ! A.href (H.toValue (siteUrl ++ "/kalenteri.json")) ! A.target "_blank" $ "JSON"
+                    H.a ! A.href (H.toValue (Config.siteBaseUrl ++ "/kalenteri.json")) ! A.target "_blank" $ "JSON"
                     H.toHtml (" | " :: String)
-                    H.a ! A.href (H.toValue (siteUrl ++ "/kalenteri.geo.json")) ! A.target "_blank" $ "GeoJSON"
-
+                    H.a ! A.href (H.toValue (Config.siteBaseUrl ++ "/kalenteri.geo.json")) ! A.target "_blank" $
+                        "GeoJSON"
 
 -- | Render a month section.
 renderMonth :: [(String, String)] -> String -> [PB.Event] -> H.Html
@@ -270,7 +270,7 @@ generateEventHtml :: PB.Event -> IO String
 generateEventHtml ev = do
     ics <- ICalGen.generateEventIcs ev
     let dateStr = DU.formatEventDate ev
-    let eventPageUrl = siteUrl ++ "/events/" ++ PB.eventId ev ++ ".html"
+    let eventPageUrl = Config.siteBaseUrl ++ "/events/" ++ PB.eventId ev ++ ".html"
     return $ renderHtml $ H.docTypeHtml ! A.lang "fi" $ do
         H.head $ do
             H.meta ! A.charset "UTF-8"
@@ -286,34 +286,34 @@ generateEventHtml ev = do
             case PB.eventDescription ev of
                 Nothing -> return ()
                 Just d -> H.p $ H.toHtml d
-            H.p $
-                H.a
+            H.p
+                $ H.a
                     ! A.href (H.toValue (icsDataUri ics))
                     ! A.target "_blank"
-                    $ "Lisää kalenteriin"
+                $ "Lisää kalenteriin"
             case PB.eventUrl ev of
                 Nothing -> return ()
                 Just u ->
-                    H.p $
-                        H.a
+                    H.p
+                        $ H.a
                             ! A.href (H.toValue (T.unpack u))
                             ! A.target "_blank"
-                            $ "Lue lisää\x2026"
+                        $ "Lue lisää\x2026"
             -- QR code linking back to this page
             case qrCodeDataUri eventPageUrl of
                 Nothing -> return ()
                 Just uri ->
-                    H.div ! A.style "margin-top: 1em;" $
-                        H.div
+                    H.div ! A.style "margin-top: 1em;"
+                        $ H.div
                             ! A.style
                                 "position: relative; display: inline-block;\
                                 \ width: 100px; height: 100px;"
-                            $ do
-                                H.img
-                                    ! A.src (H.toValue uri)
-                                    ! A.alt "QR-koodi sivulle"
-                                    ! A.style "width: 100px; height: 100px;"
-                                H.div ! A.class_ "cal-icon" $ mempty
+                        $ do
+                            H.img
+                                ! A.src (H.toValue uri)
+                                ! A.alt "QR-koodi sivulle"
+                                ! A.style "width: 100px; height: 100px;"
+                            H.div ! A.class_ "cal-icon" $ mempty
 
 -- ---------------------------------------------------------------------------
 -- Grouping helper

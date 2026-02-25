@@ -58,7 +58,7 @@ statics-check: ## Lint Haskell source (hlint)
 	hlint statics/src/ statics/app/
 
 statics-format: ## Auto-format Haskell source (fourmolu)
-	fourmolu --mode inplace statics/src/**/*.hs statics/app/*.hs
+	find statics/src statics/app -name '*.hs' | xargs fourmolu --mode inplace
 
 # ── Combined targets ─────────────────────────────────────────────────────────
 

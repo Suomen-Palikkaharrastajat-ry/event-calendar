@@ -1,14 +1,14 @@
 module Api exposing
-    ( fetchPublishedEvents
+    ( createEvent
+    , decodeEvent
+    , deleteEvent
     , fetchAllEvents
     , fetchEvent
-    , createEvent
+    , fetchPublishedEvents
+    , httpErrorToString
+    , imageUrl
     , updateEvent
     , updateEventState
-    , deleteEvent
-    , decodeEvent
-    , imageUrl
-    , httpErrorToString
     )
 
 import File exposing (File)
@@ -37,6 +37,7 @@ authHeader authState =
 
         Authenticated user ->
             [ Http.header "Authorization" user.token ]
+
 
 
 -- DECODERS
@@ -126,6 +127,7 @@ decodePbList itemDecoder =
         (Json.field "perPage" Json.int)
 
 
+
 -- FETCH
 
 
@@ -176,6 +178,7 @@ fetchEvent maybeToken id toMsg =
         , timeout = Nothing
         , tracker = Nothing
         }
+
 
 
 -- WRITE
@@ -235,6 +238,7 @@ deleteEvent token eventId toMsg =
         }
 
 
+
 -- MULTIPART FORM
 
 
@@ -283,6 +287,7 @@ encodePointForPb formData =
 
     else
         ""
+
 
 
 -- ERROR

@@ -1,6 +1,15 @@
+{- Calendar page — owns the CalendarPage state type and init.
+
+   Page/View split: this module handles state and init; all rendering lives in
+   View.Calendar.  Reading Page.Calendar without knowing about View.Calendar gives
+   an incomplete picture of the calendar feature.
+-}
+
+
 module Page.Calendar exposing (init, update, view)
 
 import Api
+import DateUtils
 import Html exposing (Html)
 import RemoteData
 import Time
@@ -11,25 +20,30 @@ import View.Calendar
 init : Maybe String -> Time.Posix -> ( CalendarPage, Cmd Msg )
 init maybeDate now =
     let
-        -- Parse ?date=YYYY-MM-DD or default to current month
+        -- Use Helsinki timezone so the calendar opens on the correct month
+        -- near midnight instead of the UTC date, which can differ by ±1 day.
+        helsinkiOffsetMin =
+            DateUtils.helsinkiOffset now
+
+        helsinkiZone =
+            Time.customZone helsinkiOffsetMin []
+
         ( year, month ) =
             case maybeDate of
                 Just dateStr ->
                     parseYearMonth dateStr
 
                 Nothing ->
-                    -- Use current UTC date as a rough approximation
-                    -- TODO: use Helsinki TZ
-                    ( Time.toYear Time.utc now
-                    , monthToInt (Time.toMonth Time.utc now)
+                    ( Time.toYear helsinkiZone now
+                    , DateUtils.monthToInt (Time.toMonth helsinkiZone now)
                     )
     in
     ( { events = RemoteData.Loading
       , year = year
       , month = month
-      , todayYear = Time.toYear Time.utc now
-      , todayMonth = monthToInt (Time.toMonth Time.utc now)
-      , todayDay = Time.toDay Time.utc now
+      , todayYear = Time.toYear helsinkiZone now
+      , todayMonth = DateUtils.monthToInt (Time.toMonth helsinkiZone now)
+      , todayDay = Time.toDay helsinkiZone now
       , viewMode = MonthGrid
       }
     , Api.fetchPublishedEvents CalendarGotEvents
@@ -60,6 +74,7 @@ view =
     View.Calendar.view
 
 
+
 -- HELPERS
 
 
@@ -73,20 +88,3 @@ parseYearMonth dateStr =
 
         _ ->
             ( 2025, 1 )
-
-
-monthToInt : Time.Month -> Int
-monthToInt m =
-    case m of
-        Time.Jan -> 1
-        Time.Feb -> 2
-        Time.Mar -> 3
-        Time.Apr -> 4
-        Time.May -> 5
-        Time.Jun -> 6
-        Time.Jul -> 7
-        Time.Aug -> 8
-        Time.Sep -> 9
-        Time.Oct -> 10
-        Time.Nov -> 11
-        Time.Dec -> 12

@@ -1,3 +1,11 @@
+{- Event detail page — owns the EventDetailPage state type and init.
+
+   Page/View split: this module handles state and init; all rendering lives in
+   View.EventDetail.  The update logic for Detail* messages is in Main.elm
+   (search for `PageEventDetail`).
+-}
+
+
 module Page.EventDetail exposing (init, view)
 
 import Api

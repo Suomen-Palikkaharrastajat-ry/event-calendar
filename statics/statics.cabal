@@ -22,6 +22,7 @@ library
   import:           lib-opts
   hs-source-dirs:   src
   exposed-modules:
+    Config
     PocketBase
     DateUtils
     ICalGen
@@ -77,6 +78,7 @@ test-suite statics-test
     tasty-quickcheck,
     aeson,
     bytestring,
+    containers,
     time,
     text
   default-language: Haskell2010

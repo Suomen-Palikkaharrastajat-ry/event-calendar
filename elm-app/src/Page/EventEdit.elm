@@ -1,3 +1,11 @@
+{- Event edit page — owns the EventEditPage state type and init.
+
+   Page/View split: this module handles state and init; all rendering lives in
+   View.EventForm (viewEdit).  The update logic for EditForm* messages is in
+   Main.elm (search for `PageEventEdit`).
+-}
+
+
 module Page.EventEdit exposing (init, view)
 
 import Api
