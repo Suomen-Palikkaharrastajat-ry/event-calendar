@@ -49,6 +49,7 @@ view authState evPage =
         ]
 
 
+
 -- ── KML IMPORT SECTION ───────────────────────────────────────────────────────
 
 
@@ -90,6 +91,7 @@ viewKmlStatus status =
 
         Types.KmlError err ->
             span [ class "text-sm text-red-600" ] [ text (t I18n.KmlError ++ ": " ++ err) ]
+
 
 
 -- ── EVENTS TABLE ─────────────────────────────────────────────────────────────
@@ -137,9 +139,15 @@ viewEventRow event =
                 [ href (toHref (RouteEventDetail event.id))
                 , class "hover:underline font-medium"
                 ]
-                [ text (String.left 40 event.title
-                    ++ (if String.length event.title > 40 then "…" else "")
-                  )
+                [ text
+                    (String.left 40 event.title
+                        ++ (if String.length event.title > 40 then
+                                "…"
+
+                            else
+                                ""
+                           )
+                    )
                 ]
             ]
         , td [ class "p-2 border text-gray-600" ]
@@ -227,6 +235,7 @@ viewPagination pbList currentPage =
                 ]
                 [ text "Seuraava ›" ]
             ]
+
 
 
 -- ── FILE DECODER ─────────────────────────────────────────────────────────────

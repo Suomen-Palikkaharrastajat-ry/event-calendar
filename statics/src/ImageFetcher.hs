@@ -5,6 +5,7 @@ module ImageFetcher (
 ) where
 
 import Control.Concurrent.Async (mapConcurrently)
+import Control.Exception (SomeException, try)
 import qualified Data.ByteString.Lazy as BL
 import Data.Maybe (catMaybes)
 import qualified Data.Text as T
@@ -27,16 +28,13 @@ downloadImage :: PB.Event -> String -> IO (Maybe (String, FilePath))
 downloadImage ev filename = do
     let url = PB.imageUrl ev (T.pack filename)
         dest = "static/images/" ++ PB.eventId ev ++ "_" ++ filename
-    result <- try' (fetchAndWrite url dest)
+    result <- try (fetchAndWrite url dest) :: IO (Either SomeException ())
     case result of
         Left err -> do
-            putStrLn $ "Warning: Failed to download image for " ++ PB.eventId ev ++ ": " ++ err
+            putStrLn $ "Warning: Failed to download image for " ++ PB.eventId ev ++ ": " ++ show err
             return Nothing
         Right () ->
             return (Just (PB.eventId ev, dest))
-  where
-    try' :: IO () -> IO (Either String ())
-    try' action = fmap Right action
 
 fetchAndWrite :: String -> FilePath -> IO ()
 fetchAndWrite url dest = do

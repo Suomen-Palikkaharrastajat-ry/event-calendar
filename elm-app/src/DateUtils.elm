@@ -1,22 +1,23 @@
 module DateUtils exposing
-    ( helsinkiOffset
-    , isDst
-    , toHelsinkiParts
-    , parseUtcString
+    ( daysInMonth
+    , finnishMonthName
+    , finnishWeekdayAbbr
+    , firstDayOfWeek
+    , formDateTimeToUtc
+    , formatEventDateDisplay
+    , formatFullDate
     , formatShortDate
     , formatTime
-    , formatFullDate
-    , formatEventDateDisplay
-    , formDateTimeToUtc
+    , helsinkiOffset
+    , isDst
+    , monthGrid
+    , monthToInt
+    , nextMonth
+    , parseUtcString
+    , prevMonth
+    , toHelsinkiParts
     , utcStringToHelsinkiDateInput
     , utcStringToHelsinkiTimeInput
-    , finnishWeekdayAbbr
-    , finnishMonthName
-    , daysInMonth
-    , firstDayOfWeek
-    , monthGrid
-    , prevMonth
-    , nextMonth
     )
 
 import Iso8601
@@ -24,6 +25,22 @@ import Time exposing (Month(..), Posix, Weekday(..), Zone)
 import Types exposing (Event)
 
 
+
+-- DATE FORMAT BOUNDARIES
+--
+-- Four date/time formats are in use across this application:
+--
+--   HTML form inputs  : "YYYY-MM-DD" (date), "HH:MM" (time)
+--   PocketBase storage: "YYYY-MM-DD HH:MM:SS.mmmZ"  (space, not T)
+--   Internal Elm      : POSIX milliseconds (Time.Posix)
+--   iCal output       : "YYYYMMDDTHHMMSSZ" (UTC) or "YYYYMMDD" (all-day)
+--
+-- Conversion helpers in this module:
+--   formDateTimeToUtc        : form inputs  → PocketBase string
+--   utcStringToHelsinkiDateInput / utcStringToHelsinkiTimeInput
+--                            : PocketBase string → form inputs (via Helsinki TZ)
+--   parseUtcString           : PocketBase string → Time.Posix
+--   formatICalDate (Haskell) : UTCTime → iCal string  (see ICalGen.hs)
 -- HELSINKI TIMEZONE
 
 
@@ -55,11 +72,14 @@ isDst posix =
         dstEnd =
             lastSundayOfAt year 10 1
     in
-    Time.posixToMillis posix >= Time.posixToMillis dstStart
-        && Time.posixToMillis posix < Time.posixToMillis dstEnd
+    Time.posixToMillis posix
+        >= Time.posixToMillis dstStart
+        && Time.posixToMillis posix
+        < Time.posixToMillis dstEnd
 
 
-{-| Milliseconds timestamp of the last Sunday of month at the given UTC hour. -}
+{-| Milliseconds timestamp of the last Sunday of month at the given UTC hour.
+-}
 lastSundayOfAt : Int -> Int -> Int -> Posix
 lastSundayOfAt year month hourUtc =
     let
@@ -83,16 +103,30 @@ lastSundayOfAt year month hourUtc =
                         else
                             offset
                    )
+
         -- Actually: find how many days back to last Sunday
         sundayBack =
             case lastDayWeekday of
-                Sun -> 0
-                Mon -> 1
-                Tue -> 2
-                Wed -> 3
-                Thu -> 4
-                Fri -> 5
-                Sat -> 6
+                Sun ->
+                    0
+
+                Mon ->
+                    1
+
+                Tue ->
+                    2
+
+                Wed ->
+                    3
+
+                Thu ->
+                    4
+
+                Fri ->
+                    5
+
+                Sat ->
+                    6
     in
     Time.millisToPosix (lastDayMs - sundayBack * 86400000 + hourUtc * 3600000)
 
@@ -100,13 +134,26 @@ lastSundayOfAt year month hourUtc =
 weekdayToMondayOffset : Weekday -> Int
 weekdayToMondayOffset w =
     case w of
-        Mon -> 0
-        Tue -> 1
-        Wed -> 2
-        Thu -> 3
-        Fri -> 4
-        Sat -> 5
-        Sun -> 6
+        Mon ->
+            0
+
+        Tue ->
+            1
+
+        Wed ->
+            2
+
+        Thu ->
+            3
+
+        Fri ->
+            4
+
+        Sat ->
+            5
+
+        Sun ->
+            6
 
 
 {-| Convert year/month/day/hour/minute to UTC milliseconds.
@@ -148,10 +195,12 @@ isLeapYear y =
     (modBy 4 y == 0 && modBy 100 y /= 0) || modBy 400 y == 0
 
 
-{-| Helsinki timezone as a Time.Zone for a given Posix instant. -}
+{-| Helsinki timezone as a Time.Zone for a given Posix instant.
+-}
 helsinkiZone : Posix -> Zone
 helsinkiZone posix =
     Time.customZone (helsinkiOffset posix) []
+
 
 
 -- DATE PARTS
@@ -167,7 +216,8 @@ type alias DateParts =
     }
 
 
-{-| Extract Helsinki-local date/time parts from a UTC Posix. -}
+{-| Extract Helsinki-local date/time parts from a UTC Posix.
+-}
 toHelsinkiParts : Posix -> DateParts
 toHelsinkiParts posix =
     let
@@ -186,24 +236,49 @@ toHelsinkiParts posix =
 monthToInt : Month -> Int
 monthToInt m =
     case m of
-        Jan -> 1
-        Feb -> 2
-        Mar -> 3
-        Apr -> 4
-        May -> 5
-        Jun -> 6
-        Jul -> 7
-        Aug -> 8
-        Sep -> 9
-        Oct -> 10
-        Nov -> 11
-        Dec -> 12
+        Jan ->
+            1
+
+        Feb ->
+            2
+
+        Mar ->
+            3
+
+        Apr ->
+            4
+
+        May ->
+            5
+
+        Jun ->
+            6
+
+        Jul ->
+            7
+
+        Aug ->
+            8
+
+        Sep ->
+            9
+
+        Oct ->
+            10
+
+        Nov ->
+            11
+
+        Dec ->
+            12
+
 
 
 -- PARSING
 
 
-{-| Parse a UTC ISO 8601 string to a Posix time. -}
+{-| Parse a UTC ISO 8601 string to a Posix time.
+-}
 parseUtcString : String -> Maybe Posix
 parseUtcString s =
     -- PocketBase returns dates with a space separator ("2025-05-05 14:00:00.000Z").
@@ -216,19 +291,33 @@ parseUtcString s =
             Nothing
 
 
+
 -- FORMATTING
 
 
 finnishWeekdayAbbr : Weekday -> String
 finnishWeekdayAbbr w =
     case w of
-        Mon -> "ma"
-        Tue -> "ti"
-        Wed -> "ke"
-        Thu -> "to"
-        Fri -> "pe"
-        Sat -> "la"
-        Sun -> "su"
+        Mon ->
+            "ma"
+
+        Tue ->
+            "ti"
+
+        Wed ->
+            "ke"
+
+        Thu ->
+            "to"
+
+        Fri ->
+            "pe"
+
+        Sat ->
+            "la"
+
+        Sun ->
+            "su"
 
 
 finnishMonthName : Int -> String
@@ -236,13 +325,23 @@ finnishMonthName m =
     Maybe.withDefault "" <|
         List.head <|
             List.drop (m - 1)
-                [ "Tammikuu", "Helmikuu", "Maaliskuu", "Huhtikuu"
-                , "Toukokuu", "Kesäkuu", "Heinäkuu", "Elokuu"
-                , "Syyskuu", "Lokakuu", "Marraskuu", "Joulukuu"
+                [ "Tammikuu"
+                , "Helmikuu"
+                , "Maaliskuu"
+                , "Huhtikuu"
+                , "Toukokuu"
+                , "Kesäkuu"
+                , "Heinäkuu"
+                , "Elokuu"
+                , "Syyskuu"
+                , "Lokakuu"
+                , "Marraskuu"
+                , "Joulukuu"
                 ]
 
 
-{-| Format a Posix as "D.M." in Helsinki time. -}
+{-| Format a Posix as "D.M." in Helsinki time.
+-}
 formatShortDate : Posix -> String
 formatShortDate posix =
     let
@@ -252,7 +351,8 @@ formatShortDate posix =
     String.fromInt parts.day ++ "." ++ String.fromInt parts.month ++ "."
 
 
-{-| Format a Posix as "H.MM" (Finnish time, dot separator) in Helsinki time. -}
+{-| Format a Posix as "H.MM" (Finnish time, dot separator) in Helsinki time.
+-}
 formatTime : Posix -> String
 formatTime posix =
     let
@@ -269,7 +369,8 @@ formatTime posix =
     String.fromInt parts.hour ++ "." ++ paddedMin
 
 
-{-| Format a Posix as "ma 5.5.2025" in Helsinki time. -}
+{-| Format a Posix as "ma 5.5.2025" in Helsinki time.
+-}
 formatFullDate : Posix -> String
 formatFullDate posix =
     let
@@ -285,7 +386,8 @@ formatFullDate posix =
         ++ String.fromInt parts.year
 
 
-{-| Format an event's date/time for display. Implements the 6 format variants. -}
+{-| Format an event's date/time for display. Implements the 6 format variants.
+-}
 formatEventDateDisplay : Event -> String
 formatEventDateDisplay event =
     case parseUtcString event.startDate of
@@ -364,6 +466,7 @@ Returns Nothing if the date string is malformed.
 Properly converts from Europe/Helsinki (EET/EEST) to UTC using a two-pass
 approach: estimate UTC with EET offset, check DST at that UTC time, then
 subtract the correct offset (120 min EET or 180 min EEST).
+
 -}
 formDateTimeToUtc : String -> String -> Bool -> Maybe String
 formDateTimeToUtc dateStr timeStr allDay =
@@ -411,7 +514,8 @@ formDateTimeToUtc dateStr timeStr allDay =
             Nothing
 
 
-{-| Convert a UTC ISO string to a "YYYY-MM-DD" string in Helsinki time. -}
+{-| Convert a UTC ISO string to a "YYYY-MM-DD" string in Helsinki time.
+-}
 utcStringToHelsinkiDateInput : String -> String
 utcStringToHelsinkiDateInput utcStr =
     case parseUtcString utcStr of
@@ -430,7 +534,8 @@ utcStringToHelsinkiDateInput utcStr =
                 ++ pad2 parts.day
 
 
-{-| Convert a UTC ISO string to a "HH:MM" string in Helsinki time. -}
+{-| Convert a UTC ISO string to a "HH:MM" string in Helsinki time.
+-}
 utcStringToHelsinkiTimeInput : String -> String
 utcStringToHelsinkiTimeInput utcStr =
     case parseUtcString utcStr of
@@ -454,10 +559,12 @@ pad2 n =
         String.fromInt n
 
 
+
 -- CALENDAR GRID UTILITIES
 
 
-{-| Number of days in a given month (1-indexed). Handles leap years. -}
+{-| Number of days in a given month (1-indexed). Handles leap years.
+-}
 daysInMonth : Int -> Int -> Int
 daysInMonth year month =
     case month of
@@ -476,7 +583,8 @@ daysInMonth year month =
                 31
 
 
-{-| Day of week of the 1st of the month, where 0=Monday, 6=Sunday (Finnish calendar). -}
+{-| Day of week of the 1st of the month, where 0=Monday, 6=Sunday (Finnish calendar).
+-}
 firstDayOfWeek : Int -> Int -> Int
 firstDayOfWeek year month =
     let
@@ -527,7 +635,8 @@ chunk n list =
         List.take n list :: chunk n (List.drop n list)
 
 
-{-| Previous month as (year, month). -}
+{-| Previous month as (year, month).
+-}
 prevMonth : Int -> Int -> ( Int, Int )
 prevMonth year month =
     if month == 1 then
@@ -537,7 +646,8 @@ prevMonth year month =
         ( year, month - 1 )
 
 
-{-| Next month as (year, month). -}
+{-| Next month as (year, month).
+-}
 nextMonth : Int -> Int -> ( Int, Int )
 nextMonth year month =
     if month == 12 then

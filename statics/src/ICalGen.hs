@@ -1,21 +1,22 @@
 {- | iCalendar (.ics) generation using manual RFC 5545 text generation.
-The iCalendar Hackage package is unmaintained; text generation is sufficient.
+
+Note: the @iCalendar@ Hackage package is intentionally NOT used here — it is
+unmaintained and does not cover all RFC 5545 edge cases we need (all-day events,
+Microsoft CDO markers, VTIMEZONE).  Manual text generation gives us full control
+and zero unmaintained dependencies.  Do not add the @iCalendar@ package back.
 -}
 module ICalGen (
     generateMasterIcs,
     generateEventIcs,
 ) where
 
+import qualified Config
 import qualified Data.Text as T
 import Data.Time (LocalTime (..), UTCTime, ZonedTime (..), getCurrentTime)
 import Data.Time.Calendar (addDays, toGregorian)
 import Data.Time.Format (defaultTimeLocale, formatTime)
 import qualified DateUtils as DU
 import qualified PocketBase as PB
-
--- | Site base URL used for VEVENT UIDs (consistent with RSS/Atom GUIDs).
-siteBaseUrl :: String
-siteBaseUrl = "https://kalenteri.suomenpalikkayhteiso.fi"
 
 {- | Wrap a long iCal property line at 75 octets (RFC 5545 §3.1).
 Continuation lines are prefixed with a single space.
@@ -30,7 +31,7 @@ foldLine s =
 
 -- | Render a list of property lines as CRLF-terminated, line-folded text.
 renderLines :: [String] -> String
-renderLines = concatMap (\l -> concatMap (\f -> f ++ "\r\n") (foldLine l))
+renderLines = concatMap (concatMap (++ "\r\n") . foldLine)
 
 -- | Escape special iCal characters in text values (RFC 5545 §3.3.11).
 escapeIcal :: String -> String
@@ -63,7 +64,7 @@ formatDtStamp = formatTime defaultTimeLocale "%Y%m%dT%H%M%SZ"
 eventToVEventLines :: UTCTime -> PB.Event -> [String]
 eventToVEventLines now ev =
     [ "BEGIN:VEVENT"
-    , "UID:" ++ siteBaseUrl ++ "/#/events/" ++ PB.eventId ev
+    , "UID:" ++ Config.siteBaseUrl ++ "/#/events/" ++ PB.eventId ev
     , "SEQUENCE:0"
     , "SUMMARY:" ++ escapeIcal (T.unpack (PB.eventTitle ev))
     , dtstart

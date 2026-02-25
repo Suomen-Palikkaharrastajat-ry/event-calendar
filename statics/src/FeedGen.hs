@@ -3,13 +3,18 @@ RSS and Atom are generated as raw XML strings.
 JSON Feed is generated using aeson.
 -}
 module FeedGen (
+    GeneratorContext (..),
     generateRss,
     generateAtom,
     generateJsonFeed,
 ) where
 
+import qualified Config
 import Control.Exception (SomeException, try)
 import Data.Aeson (Value, encode, object, (.=))
+import Data.Either (fromRight)
+import qualified Data.Map.Strict as Map
+import Data.Maybe (maybeToList)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
@@ -39,10 +44,17 @@ feedId :: String
 feedId = "https://kalenteri.suomenpalikkayhteiso.fi/"
 
 feedLogoUrl :: String
-feedLogoUrl = "https://kalenteri.suomenpalikkayhteiso.fi/logo.png"
+feedLogoUrl = Config.siteBaseUrl ++ "/logo.png"
 
-siteBaseUrl :: String
-siteBaseUrl = "https://kalenteri.suomenpalikkayhteiso.fi"
+{- | Context passed to per-event item/entry builders.
+Using 'Map.Map' for O(log n) lookup instead of the O(n) list-of-tuples pattern.
+-}
+data GeneratorContext = GeneratorContext
+    { icsMap :: Map.Map String String
+    -- ^ Maps event ID → per-event ICS text (for enclosure length calculation).
+    , imageMap :: Map.Map String FilePath
+    -- ^ Maps event ID → local downloaded image path (for enclosure file size).
+    }
 
 -- | Build the full image URL for an event, if it has an image.
 eventImageUrl :: PB.Event -> Maybe String
@@ -106,13 +118,11 @@ rssItemDescription ev =
      in if null desc then date else desc ++ "\n\n" ++ date
 
 -- | Build a single RSS item.
--- icsMap maps eventId to per-event ICS content string (for enclosure length).
--- imageMap maps eventId to local image file path (for enclosure length).
-buildRssItem :: [(String, String)] -> [(String, FilePath)] -> PB.Event -> IO String
-buildRssItem icsMap imageMap ev = do
+buildRssItem :: GeneratorContext -> PB.Event -> IO String
+buildRssItem ctx ev = do
     -- ICS enclosure (primary, present for every event)
-    let icsUrl = siteBaseUrl ++ "/events/" ++ PB.eventId ev ++ ".ics"
-    let icsLen = maybe 0 length (lookup (PB.eventId ev) icsMap)
+    let icsUrl = Config.siteBaseUrl ++ "/events/" ++ PB.eventId ev ++ ".ics"
+    let icsLen = maybe 0 length (Map.lookup (PB.eventId ev) (icsMap ctx))
     let icsEncl =
             "      <enclosure url=\""
                 ++ xmlEscape icsUrl
@@ -123,12 +133,12 @@ buildRssItem icsMap imageMap ev = do
     imgEncl <- case eventImageUrl ev of
         Nothing -> return Nothing
         Just imgUrl -> do
-            let maybeLocalPath = lookup (PB.eventId ev) imageMap
+            let maybeLocalPath = Map.lookup (PB.eventId ev) (imageMap ctx)
             fileSize <- case maybeLocalPath of
                 Nothing -> return (0 :: Integer)
                 Just fp -> do
                     result <- try (getFileSize fp) :: IO (Either SomeException Integer)
-                    return (either (const 0) id result)
+                    return (fromRight 0 result)
             return $
                 Just $
                     "      <enclosure url=\""
@@ -142,7 +152,7 @@ buildRssItem icsMap imageMap ev = do
             , "      " ++ xmlCdata "title" (rssItemTitle ev)
             , "      " ++ xmlCdata "description" (rssItemDescription ev)
             , "      <guid isPermaLink=\"false\">"
-                ++ siteBaseUrl
+                ++ Config.siteBaseUrl
                 ++ "/#/events/"
                 ++ PB.eventId ev
                 ++ "</guid>"
@@ -153,16 +163,14 @@ buildRssItem icsMap imageMap ev = do
                     (\u -> ["      " ++ xmlEl "link" (xmlEscape (T.unpack u))])
                     (PB.eventUrl ev)
                 ++ [icsEncl]
-                ++ maybe [] (: []) imgEncl
+                ++ maybeToList imgEncl
                 ++ ["    </item>"]
 
 -- | Generate an RSS 2.0 feed.
--- icsMap maps eventId to per-event ICS content string (for enclosure length).
--- imageMap maps eventId to local downloaded file path (for enclosure length).
-generateRss :: [(String, String)] -> [(String, FilePath)] -> [PB.Event] -> IO String
-generateRss icsMap imageMap events = do
+generateRss :: GeneratorContext -> [PB.Event] -> IO String
+generateRss ctx events = do
     now <- getCurrentTime
-    items <- mapM (buildRssItem icsMap imageMap) events
+    items <- mapM (buildRssItem ctx) events
     return $
         unlines
             [ "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -193,11 +201,11 @@ generateRss icsMap imageMap events = do
 -- Atom 1.0
 -- ---------------------------------------------------------------------------
 
-buildAtomEntry :: [(String, String)] -> [(String, FilePath)] -> PB.Event -> IO String
-buildAtomEntry icsMap imageMap ev = do
+buildAtomEntry :: GeneratorContext -> PB.Event -> IO String
+buildAtomEntry ctx ev = do
     -- ICS enclosure link
-    let icsUrl = siteBaseUrl ++ "/events/" ++ PB.eventId ev ++ ".ics"
-    let icsLen = maybe 0 length (lookup (PB.eventId ev) icsMap)
+    let icsUrl = Config.siteBaseUrl ++ "/events/" ++ PB.eventId ev ++ ".ics"
+    let icsLen = maybe 0 length (Map.lookup (PB.eventId ev) (icsMap ctx))
     let icsLink =
             "    <link rel=\"enclosure\" type=\"text/calendar\" href=\""
                 ++ xmlEscape icsUrl
@@ -208,12 +216,12 @@ buildAtomEntry icsMap imageMap ev = do
     imgLink <- case eventImageUrl ev of
         Nothing -> return Nothing
         Just imgUrl -> do
-            let maybeLocalPath = lookup (PB.eventId ev) imageMap
+            let maybeLocalPath = Map.lookup (PB.eventId ev) (imageMap ctx)
             fileSize <- case maybeLocalPath of
                 Nothing -> return (0 :: Integer)
                 Just fp -> do
                     result <- try (getFileSize fp) :: IO (Either SomeException Integer)
-                    return (either (const 0) id result)
+                    return (fromRight 0 result)
             return $
                 Just $
                     "    <link rel=\"enclosure\" type=\"image/jpg\" href=\""
@@ -224,7 +232,7 @@ buildAtomEntry icsMap imageMap ev = do
     return $
         unlines $
             [ "  <entry>"
-            , "    " ++ xmlText "id" (siteBaseUrl ++ "/#/events/" ++ PB.eventId ev)
+            , "    " ++ xmlText "id" (Config.siteBaseUrl ++ "/#/events/" ++ PB.eventId ev)
             , "    <title type=\"html\">" ++ xmlEscape (T.unpack (PB.eventTitle ev)) ++ "</title>"
             , "    " ++ xmlText "published" (formatRfc3339 (PB.eventCreated ev))
             , "    " ++ xmlText "updated" (formatRfc3339 (PB.eventUpdated ev))
@@ -234,7 +242,7 @@ buildAtomEntry icsMap imageMap ev = do
                 ++ "\"/>"
             , icsLink
             ]
-                ++ maybe [] (: []) imgLink
+                ++ maybeToList imgLink
                 ++ maybe
                     []
                     (\d -> ["    <summary type=\"html\">" ++ xmlEscape (T.unpack d) ++ "</summary>"])
@@ -242,12 +250,10 @@ buildAtomEntry icsMap imageMap ev = do
                 ++ ["  </entry>"]
 
 -- | Generate an Atom 1.0 feed.
--- icsMap maps eventId to per-event ICS content string (for enclosure length).
--- imageMap maps eventId to local downloaded file path (for enclosure length).
-generateAtom :: [(String, String)] -> [(String, FilePath)] -> [PB.Event] -> IO String
-generateAtom icsMap imageMap events = do
+generateAtom :: GeneratorContext -> [PB.Event] -> IO String
+generateAtom ctx events = do
     now <- getCurrentTime
-    entries <- mapM (buildAtomEntry icsMap imageMap) events
+    entries <- mapM (buildAtomEntry ctx) events
     return $
         unlines
             [ "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -278,7 +284,7 @@ jsonFeedItem ev =
                 date = DU.formatEventDate ev
              in if null desc then date else desc ++ "\n\n" ++ date
         baseFields =
-            [ "id" .= (siteBaseUrl ++ "/#/events/" ++ PB.eventId ev)
+            [ "id" .= (Config.siteBaseUrl ++ "/#/events/" ++ PB.eventId ev)
             , "title" .= T.unpack (PB.eventTitle ev)
             , "content_html" .= contentHtml
             , "date_published" .= formatRfc3339 (PB.eventCreated ev)

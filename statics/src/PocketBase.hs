@@ -6,30 +6,30 @@ module PocketBase (
     imageUrl,
 ) where
 
+import qualified Config
 import Data.Aeson (FromJSON (..), eitherDecode, withObject, (.:), (.:?))
+import Data.Char (isAsciiLower, isAsciiUpper, isDigit)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time (UTCTime)
 import Network.HTTP.Simple (getResponseBody, getResponseStatusCode, httpLBS, parseRequest)
 import System.Environment (lookupEnv)
 
--- | Production base URL for the PocketBase instance.
--- Used for image URLs in generated output (always points to production).
-pbBaseUrl :: String
-pbBaseUrl = "https://data.suomenpalikkayhteiso.fi"
+{- | Resolve the effective PocketBase base URL for fetching events.
+Honours the POCKETBASE_URL environment variable when set, so the statics
+generator can target a local devenv PocketBase without source changes:
 
--- | Resolve the effective PocketBase base URL for fetching events.
--- Honours the POCKETBASE_URL environment variable when set, so the statics
--- generator can target a local devenv PocketBase without source changes:
---
---   POCKETBASE_URL=http://127.0.0.1:8090 make statics   -- local devenv
---   make statics                                          -- production (default)
+  POCKETBASE_URL=http://127.0.0.1:8090 make statics   -- local devenv
+  make statics                                          -- production (default)
+
+The production fallback is 'Config.pbDefaultUrl'.
+-}
 getPbBaseUrl :: IO String
 getPbBaseUrl = do
     mUrl <- lookupEnv "POCKETBASE_URL"
     return $ case mUrl of
         Just url | not (null url) -> url
-        _ -> pbBaseUrl
+        _ -> Config.pbDefaultUrl
 
 -- | A geographic point (latitude/longitude).
 data GeoPoint = GeoPoint
@@ -146,10 +146,13 @@ fetchPublishedEvents = do
                             then fetchPage baseUrl (page + 1) events
                             else return events
 
--- | Build the full URL for an event image.
+{- | Build the full URL for an event image.
+Always uses the production PocketBase URL (Config.pbDefaultUrl),
+even when POCKETBASE_URL is overridden for local fetching.
+-}
 imageUrl :: Event -> Text -> String
 imageUrl ev filename =
-    pbBaseUrl
+    Config.pbDefaultUrl
         ++ "/api/files/events/"
         ++ eventId ev
         ++ "/"
@@ -169,6 +172,6 @@ urlEncode = concatMap encodeChar
         | n < 10 = toEnum (fromEnum '0' + n)
         | otherwise = toEnum (fromEnum 'A' + n - 10)
     isAlphaNum c =
-        (c >= 'a' && c <= 'z')
-            || (c >= 'A' && c <= 'Z')
-            || (c >= '0' && c <= '9')
+        isAsciiLower c
+            || isAsciiUpper c
+            || isDigit c

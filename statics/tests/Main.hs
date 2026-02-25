@@ -8,6 +8,7 @@ import qualified Data.ByteString.Lazy.Char8 as BLC
 import Data.List (isInfixOf)
 import Data.Time (UTCTime (..), ZonedTime, fromGregorian, secondsToDiffTime)
 
+import qualified Data.Map.Strict as Map
 import qualified DateUtils as DU
 import qualified FeedGen
 import qualified GeoJsonGen
@@ -323,55 +324,62 @@ geoJsonTests =
 -- FeedGen tests
 -- ---------------------------------------------------------------------------
 
+emptyCtx :: FeedGen.GeneratorContext
+emptyCtx =
+    FeedGen.GeneratorContext
+        { FeedGen.icsMap = Map.empty
+        , FeedGen.imageMap = Map.empty
+        }
+
 feedGenTests :: [TestTree]
 feedGenTests =
     -- RSS 2.0
     [ testCase "RSS has <?xml declaration" $ do
-        rss <- FeedGen.generateRss [] [] [timedEvent]
+        rss <- FeedGen.generateRss emptyCtx [timedEvent]
         assertBool "<?xml" ("<?xml" `isInfixOf` rss)
     , testCase "RSS has <rss version=\"2.0\"" $ do
-        rss <- FeedGen.generateRss [] [] [timedEvent]
+        rss <- FeedGen.generateRss emptyCtx [timedEvent]
         assertBool "<rss version" ("<rss version=\"2.0\"" `isInfixOf` rss)
     , testCase "RSS has <channel>" $ do
-        rss <- FeedGen.generateRss [] [] [timedEvent]
+        rss <- FeedGen.generateRss emptyCtx [timedEvent]
         assertBool "<channel>" ("<channel>" `isInfixOf` rss)
     , testCase "RSS has <item>" $ do
-        rss <- FeedGen.generateRss [] [] [timedEvent]
+        rss <- FeedGen.generateRss emptyCtx [timedEvent]
         assertBool "<item>" ("<item>" `isInfixOf` rss)
     , testCase "RSS item title contains event title" $ do
-        rss <- FeedGen.generateRss [] [] [timedEvent]
+        rss <- FeedGen.generateRss emptyCtx [timedEvent]
         assertBool "Parkour Jam in RSS" ("Parkour Jam" `isInfixOf` rss)
     , testCase "RSS item has guid element" $ do
-        rss <- FeedGen.generateRss [] [] [timedEvent]
+        rss <- FeedGen.generateRss emptyCtx [timedEvent]
         assertBool "guid isPermaLink" ("<guid isPermaLink=\"false\">" `isInfixOf` rss)
     , testCase "RSS guid contains event id" $ do
-        rss <- FeedGen.generateRss [] [] [timedEvent]
+        rss <- FeedGen.generateRss emptyCtx [timedEvent]
         assertBool "abc123 in guid" ("abc123" `isInfixOf` rss)
     , testCase "RSS empty events produces no <item>" $ do
-        rss <- FeedGen.generateRss [] [] []
+        rss <- FeedGen.generateRss emptyCtx []
         assertBool "no <item>" (not ("<item>" `isInfixOf` rss))
     , -- Atom 1.0
       testCase "Atom has <?xml declaration" $ do
-        atom <- FeedGen.generateAtom [] [] [timedEvent]
+        atom <- FeedGen.generateAtom emptyCtx [timedEvent]
         assertBool "<?xml" ("<?xml" `isInfixOf` atom)
     , testCase "Atom has Atom namespace" $ do
-        atom <- FeedGen.generateAtom [] [] [timedEvent]
+        atom <- FeedGen.generateAtom emptyCtx [timedEvent]
         assertBool "Atom xmlns" ("xmlns=\"http://www.w3.org/2005/Atom\"" `isInfixOf` atom)
     , testCase "Atom has <entry>" $ do
-        atom <- FeedGen.generateAtom [] [] [timedEvent]
+        atom <- FeedGen.generateAtom emptyCtx [timedEvent]
         assertBool "<entry>" ("<entry>" `isInfixOf` atom)
     , testCase "Atom entry title contains event title" $ do
-        atom <- FeedGen.generateAtom [] [] [timedEvent]
+        atom <- FeedGen.generateAtom emptyCtx [timedEvent]
         assertBool "Parkour Jam" ("Parkour Jam" `isInfixOf` atom)
     , testCase "Atom entry has <updated> with RFC3339 format" $ do
-        atom <- FeedGen.generateAtom [] [] [timedEvent]
+        atom <- FeedGen.generateAtom emptyCtx [timedEvent]
         -- RFC3339 ends with Z
         assertBool "<updated> with Z" ("<updated>" `isInfixOf` atom)
     , testCase "Atom entry id contains event id" $ do
-        atom <- FeedGen.generateAtom [] [] [timedEvent]
+        atom <- FeedGen.generateAtom emptyCtx [timedEvent]
         assertBool "abc123 in atom entry" ("abc123" `isInfixOf` atom)
     , testCase "Atom empty events produces no <entry>" $ do
-        atom <- FeedGen.generateAtom [] [] []
+        atom <- FeedGen.generateAtom emptyCtx []
         assertBool "no <entry>" (not ("<entry>" `isInfixOf` atom))
     , -- JSON Feed 1.0
       testCase "JSON Feed has version field" $ do

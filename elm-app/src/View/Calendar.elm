@@ -252,6 +252,7 @@ viewListEvent event =
         ]
 
 
+
 -- HELPERS
 
 
@@ -277,7 +278,8 @@ eventOnDay year month day event =
             helsinkiDateStr event.startDate
     in
     -- A multi-day event occupies every day from startDate through endDate.
-    dayStr >= startStr
+    dayStr
+        >= startStr
         && (case event.endDate of
                 Nothing ->
                     dayStr == startStr
@@ -308,7 +310,8 @@ eventInMonth year month event =
     -- Event overlaps with this month if it starts on or before the last day
     -- of the month AND (no end date: it must start in this month; OR end date:
     -- the end must reach into or past this month's first day).
-    startStr <= lastDay
+    startStr
+        <= lastDay
         && (case event.endDate of
                 Nothing ->
                     startStr >= firstDay

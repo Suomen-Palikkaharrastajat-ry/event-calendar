@@ -27,6 +27,12 @@ button[disabled] {
   cursor: not-allowed;
 }
 
+/* Primary action button / link — uses the brand primary colour.
+   Works on both <button> and <a> elements (inline-block for the latter). */
+.btn-primary {
+  @apply inline-block px-4 py-2 bg-primary text-white rounded hover:opacity-90;
+}
+
 /* Calendar event chips — rounded/padding applied per-chip in Elm for multi-day continuity */
 .event-all-day {
   @apply bg-primary text-white text-xs truncate cursor-pointer;

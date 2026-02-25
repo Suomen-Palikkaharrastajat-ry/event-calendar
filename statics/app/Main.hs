@@ -8,6 +8,7 @@ import qualified ImageFetcher
 import qualified PocketBase
 
 import Control.Exception (SomeException, try)
+import qualified Data.Map.Strict as Map
 import GHC.IO.Encoding (setLocaleEncoding, utf8)
 import System.Directory (createDirectoryIfMissing)
 import System.Exit (ExitCode (..), exitWith)
@@ -43,18 +44,26 @@ run = do
     putStrLn "Generating iCal feeds..."
     masterIcs <- ICalGen.generateMasterIcs events
     writeStaticFile "static/kalenteri.ics" masterIcs
-    icsContentList <- mapM
-        ( \ev -> do
-            ics <- ICalGen.generateEventIcs ev
-            writeStaticFile ("static/events/" ++ PocketBase.eventId ev ++ ".ics") ics
-            return (PocketBase.eventId ev, ics)
-        )
-        events
+    icsContentList <-
+        mapM
+            ( \ev -> do
+                ics <- ICalGen.generateEventIcs ev
+                writeStaticFile ("static/events/" ++ PocketBase.eventId ev ++ ".ics") ics
+                return (PocketBase.eventId ev, ics)
+            )
+            events
+
+    -- Build generator context (Map lookups are O(log n) vs O(n) for list-of-tuples)
+    let genCtx =
+            FeedGen.GeneratorContext
+                { FeedGen.icsMap = Map.fromList icsContentList
+                , FeedGen.imageMap = Map.fromList imageMap
+                }
 
     -- Generate RSS / Atom / JSON feeds
     putStrLn "Generating feeds..."
-    rss <- FeedGen.generateRss icsContentList imageMap events
-    atom <- FeedGen.generateAtom icsContentList imageMap events
+    rss <- FeedGen.generateRss genCtx events
+    atom <- FeedGen.generateAtom genCtx events
     json <- FeedGen.generateJsonFeed events
     writeStaticFile "static/kalenteri.rss" rss
     writeStaticFile "static/kalenteri.atom" atom

@@ -1,7 +1,7 @@
 module Route exposing (Route(..), parseUrl, toHref)
 
 import Url exposing (Url)
-import Url.Parser exposing (Parser, (</>), (<?>) )
+import Url.Parser exposing ((</>), (<?>), Parser)
 import Url.Parser.Query as Query
 
 
@@ -22,7 +22,8 @@ routeParser =
             (Url.Parser.top <?> Query.string "date")
         , Url.Parser.map RouteEvents
             (Url.Parser.s "events")
-          -- RouteEventNew must come before RouteEventDetail to avoid "new" parsed as ID
+
+        -- RouteEventNew must come before RouteEventDetail to avoid "new" parsed as ID
         , Url.Parser.map RouteEventNew
             (Url.Parser.s "events" </> Url.Parser.s "new")
         , Url.Parser.map RouteEventEdit
@@ -38,9 +39,10 @@ routeParser =
 
 The app uses hash routing: the URL fragment is the "path" the app cares about.
 Example: <https://example.com/#/events/abc123>
-  → url.fragment = Just "/events/abc123"
+→ url.fragment = Just "/events/abc123"
 
 We extract the fragment and split it into path + query before parsing.
+
 -}
 parseUrl : Url -> Route
 parseUrl url =
