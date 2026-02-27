@@ -2,6 +2,7 @@ node_modules
 .devcontainer.json
 
 # Agents
+.claude/
 TODO*
 
 # Output
