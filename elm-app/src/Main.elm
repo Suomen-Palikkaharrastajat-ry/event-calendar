@@ -19,7 +19,7 @@
 -}
 
 
-module Main exposing (main)
+module Main exposing (applyFormDate, applyFormField, main)
 
 import Api
 import Auth
