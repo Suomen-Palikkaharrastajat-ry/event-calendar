@@ -103,6 +103,39 @@ All commands are defined in the `Makefile`. Run them from the repo root:
 - **GHC version**: 9.10.3 (via devenv/Nix). CI uses `haskell-actions/setup` with `ghc-version: '9.10'`.
 - **JSON decoders in Elm tests**: `Json.Decode.decodeString` returns `Result Json.Error a`, not `Result String a`.
 
+## Manual E2E Test Checklist
+
+Run these checks in a real browser before releasing. Automated Elm/Haskell unit tests do not cover these scenarios.
+
+### Mobile responsive
+- [ ] Calendar month grid renders without horizontal overflow on a 375 px wide viewport
+- [ ] Event detail page is readable on mobile (no clipped text, tap targets ≥ 44 px)
+- [ ] Events management page (create form, KML import) usable on mobile
+
+### Accessibility (keyboard navigation)
+- [ ] Calendar is fully navigable with Tab / Enter (month nav, event links)
+- [ ] Event detail page: pressing `e` opens the edit page (when authenticated); `Escape` goes back
+- [ ] Create/edit forms: all inputs reachable via Tab; dropdowns operable with keyboard
+
+### Event CRUD flow (requires login)
+- [ ] Login via OAuth popup → redirected to events management page → toast "Kirjautuminen onnistui"
+- [ ] Create event: fill all fields including image → save → event appears in list → detail page correct
+- [ ] Edit event: change title and date → save → detail page shows updated values
+- [ ] Delete event: detail page → "Poista" → confirm → toast "Tapahtuma poistettu" → redirected to events list
+- [ ] Logout → trying to navigate to `/#/events/new` redirects to calendar with info toast
+
+### KML import (requires login)
+- [ ] Upload a valid KML file → placemarks parsed → import runs → N events created → KmlDone toast
+- [ ] Upload a KML with zero placemarks → KmlDone 0 (no crash)
+- [ ] Upload an invalid (non-KML) file → no import started or graceful error
+
+### Feeds and static output (`make statics`)
+- [ ] `build/kalenteri.ics` opens in a calendar app and shows all published events
+- [ ] `build/kalenteri.rss` validates at https://validator.w3.org/feed/
+- [ ] `build/kalenteri.atom` validates at https://validator.w3.org/feed/
+- [ ] `build/kalenteri.html` renders correctly in a browser; QR codes visible when printing
+- [ ] A per-event `.html` page (e.g. `build/events/<id>.html`) renders with title, date, and QR code
+
 ## Security
 
 - PocketBase is at `https://data.suomenpalikkayhteiso.fi`. Ensure collection rules remain properly configured.
