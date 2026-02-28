@@ -1,14 +1,11 @@
 @import "tailwindcss";
 @import "./public/fonts/outfit.css";
-@plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/forms";
 
 @theme {
   --color-primary: #38419d;
-  --color-secondary: #3887be;
   --color-accent: #52d3d8;
   --color-dark: #200e3a;
-  --color-highlight: #f2f597;
   --font-family-sans: 'Outfit', system-ui, sans-serif;
 }
 
