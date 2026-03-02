@@ -164,9 +164,14 @@ suite =
         , describe "imageUrl"
             [ test "builds correct URL" <|
                 \_ ->
-                    imageUrl "abc123" "photo.jpg"
+                    imageUrl "https://data.suomenpalikkayhteiso.fi" "abc123" "photo.jpg"
                         |> Expect.equal
                             "https://data.suomenpalikkayhteiso.fi/api/files/events/abc123/photo.jpg"
+            , test "builds correct URL for local instance" <|
+                \_ ->
+                    imageUrl "http://127.0.0.1:8090" "abc123" "photo.jpg"
+                        |> Expect.equal
+                            "http://127.0.0.1:8090/api/files/events/abc123/photo.jpg"
             ]
         , describe "httpErrorToString"
             [ test "BadUrl returns Finnish message" <|

@@ -11,8 +11,8 @@ import Route exposing (Route(..), toHref)
 import Types exposing (AuthState(..), EventDetailPage, Msg(..), isAuthenticated)
 
 
-view : AuthState -> String -> EventDetailPage -> Html Msg
-view authState _ detPage =
+view : String -> AuthState -> String -> EventDetailPage -> Html Msg
+view pbBaseUrl authState _ detPage =
     div [ class "max-w-2xl mx-auto p-4" ]
         [ button
             [ onClick (NavigateTo (RouteCalendar Nothing))
@@ -106,7 +106,7 @@ view authState _ detPage =
                         Just filename ->
                             div [ class "mb-4" ]
                                 [ img
-                                    [ src (Api.imageUrl event.id filename)
+                                    [ src (Api.imageUrl pbBaseUrl event.id filename)
                                     , alt (Maybe.withDefault "" event.imageDescription)
                                     , class "max-w-full rounded shadow"
                                     ]

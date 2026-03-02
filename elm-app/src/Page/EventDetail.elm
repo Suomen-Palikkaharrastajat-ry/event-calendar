@@ -15,15 +15,15 @@ import Types exposing (AuthState, EventDetailPage, Msg(..))
 import View.EventDetail
 
 
-init : Maybe String -> String -> ( EventDetailPage, Cmd Msg )
-init maybeToken id =
+init : String -> Maybe String -> String -> ( EventDetailPage, Cmd Msg )
+init pbBaseUrl maybeToken id =
     ( { event = RemoteData.Loading
       , deleteConfirm = False
       }
-    , Api.fetchEvent maybeToken id DetailGotEvent
+    , Api.fetchEvent pbBaseUrl maybeToken id DetailGotEvent
     )
 
 
-view : AuthState -> String -> EventDetailPage -> Html Msg
+view : String -> AuthState -> String -> EventDetailPage -> Html Msg
 view =
     View.EventDetail.view

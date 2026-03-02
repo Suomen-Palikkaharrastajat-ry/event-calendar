@@ -19,13 +19,8 @@ import Types exposing (AuthState(..), Event, EventFormData, EventState, GeoPoint
 import Url
 
 
-pbBaseUrl : String
-pbBaseUrl =
-    "https://data.suomenpalikkayhteiso.fi"
-
-
-imageUrl : String -> String -> String
-imageUrl eventId filename =
+imageUrl : String -> String -> String -> String
+imageUrl pbBaseUrl eventId filename =
     pbBaseUrl ++ "/api/files/events/" ++ eventId ++ "/" ++ filename
 
 
@@ -131,8 +126,8 @@ decodePbList itemDecoder =
 -- FETCH
 
 
-fetchPublishedEvents : (Result Http.Error (List Event) -> Msg) -> Cmd Msg
-fetchPublishedEvents toMsg =
+fetchPublishedEvents : String -> (Result Http.Error (List Event) -> Msg) -> Cmd Msg
+fetchPublishedEvents pbBaseUrl toMsg =
     Http.get
         { url =
             pbBaseUrl
@@ -144,8 +139,8 @@ fetchPublishedEvents toMsg =
         }
 
 
-fetchAllEvents : String -> Int -> (Result Http.Error (PbList Event) -> Msg) -> Cmd Msg
-fetchAllEvents token page toMsg =
+fetchAllEvents : String -> String -> Int -> (Result Http.Error (PbList Event) -> Msg) -> Cmd Msg
+fetchAllEvents pbBaseUrl token page toMsg =
     Http.request
         { method = "GET"
         , headers = [ Http.header "Authorization" token ]
@@ -161,8 +156,8 @@ fetchAllEvents token page toMsg =
         }
 
 
-fetchEvent : Maybe String -> String -> (Result Http.Error Event -> Msg) -> Cmd Msg
-fetchEvent maybeToken id toMsg =
+fetchEvent : String -> Maybe String -> String -> (Result Http.Error Event -> Msg) -> Cmd Msg
+fetchEvent pbBaseUrl maybeToken id toMsg =
     Http.request
         { method = "GET"
         , headers =
@@ -184,8 +179,8 @@ fetchEvent maybeToken id toMsg =
 -- WRITE
 
 
-createEvent : String -> EventFormData -> (Result Http.Error Event -> Msg) -> Cmd Msg
-createEvent token formData toMsg =
+createEvent : String -> String -> EventFormData -> (Result Http.Error Event -> Msg) -> Cmd Msg
+createEvent pbBaseUrl token formData toMsg =
     Http.request
         { method = "POST"
         , headers = [ Http.header "Authorization" token ]
@@ -197,8 +192,8 @@ createEvent token formData toMsg =
         }
 
 
-updateEvent : String -> String -> EventFormData -> (Result Http.Error Event -> Msg) -> Cmd Msg
-updateEvent token eventId formData toMsg =
+updateEvent : String -> String -> String -> EventFormData -> (Result Http.Error Event -> Msg) -> Cmd Msg
+updateEvent pbBaseUrl token eventId formData toMsg =
     Http.request
         { method = "PATCH"
         , headers = [ Http.header "Authorization" token ]
@@ -210,8 +205,8 @@ updateEvent token eventId formData toMsg =
         }
 
 
-updateEventState : String -> String -> EventState -> (Result Http.Error Event -> Msg) -> Cmd Msg
-updateEventState token eventId newState toMsg =
+updateEventState : String -> String -> String -> EventState -> (Result Http.Error Event -> Msg) -> Cmd Msg
+updateEventState pbBaseUrl token eventId newState toMsg =
     Http.request
         { method = "PATCH"
         , headers = [ Http.header "Authorization" token ]
@@ -225,8 +220,8 @@ updateEventState token eventId newState toMsg =
         }
 
 
-deleteEvent : String -> String -> (Result Http.Error () -> Msg) -> Cmd Msg
-deleteEvent token eventId toMsg =
+deleteEvent : String -> String -> String -> (Result Http.Error () -> Msg) -> Cmd Msg
+deleteEvent pbBaseUrl token eventId toMsg =
     Http.request
         { method = "DELETE"
         , headers = [ Http.header "Authorization" token ]
