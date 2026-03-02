@@ -22,6 +22,7 @@ const flags = {
   authToken: localStorage.getItem('pb_auth_token') || null,
   authModel: localStorage.getItem('pb_auth_model') || null,
   now: Date.now(),
+  pbBaseUrl: import.meta.env.VITE_POCKETBASE_URL || 'https://data.suomenpalikkayhteiso.fi',
 }
 
 const app = Elm.Main.init({

@@ -66,11 +66,6 @@ import View.Events
 import View.Layout
 
 
-pbBaseUrl : String
-pbBaseUrl =
-    "https://data.suomenpalikkayhteiso.fi"
-
-
 {-| Helsinki Railway Square — default map centre when no event coordinates are available.
 -}
 helsinkiLat : Float
@@ -119,7 +114,7 @@ init flags url key =
             Time.millisToPosix flags.now
 
         ( page, cmd ) =
-            initPage key route authState url now
+            initPage flags.pbBaseUrl key route authState url now
     in
     ( { key = key
       , url = url
@@ -128,24 +123,25 @@ init flags url key =
       , toasts = []
       , nextToastId = 0
       , now = now
+      , pbBaseUrl = flags.pbBaseUrl
       }
     , cmd
     )
 
 
-initPage : Nav.Key -> Route -> Types.AuthState -> Url -> Time.Posix -> ( Page, Cmd Msg )
-initPage key route authState url now =
+initPage : String -> Nav.Key -> Route -> Types.AuthState -> Url -> Time.Posix -> ( Page, Cmd Msg )
+initPage pbBaseUrl key route authState url now =
     case route of
         RouteCalendar maybeDate ->
             let
                 ( calPage, calCmd ) =
-                    Page.Calendar.init maybeDate now
+                    Page.Calendar.init pbBaseUrl maybeDate now
             in
             ( PageCalendar calPage, calCmd )
 
         RouteEvents ->
             ( PageEventList { events = RemoteData.Loading }
-            , Api.fetchPublishedEvents EventListGotEvents
+            , Api.fetchPublishedEvents pbBaseUrl EventListGotEvents
             )
 
         RouteEventNew ->
@@ -182,7 +178,7 @@ initPage key route authState url now =
         RouteEventDetail id ->
             let
                 ( detPage, detCmd ) =
-                    Page.EventDetail.init (getToken authState) id
+                    Page.EventDetail.init pbBaseUrl (getToken authState) id
             in
             ( PageEventDetail id detPage, detCmd )
 
@@ -191,7 +187,7 @@ initPage key route authState url now =
                 Authenticated _ ->
                     let
                         ( editPage, editCmd ) =
-                            Page.EventEdit.init (getToken authState) id
+                            Page.EventEdit.init pbBaseUrl (getToken authState) id
                     in
                     ( PageEventEdit id editPage, editCmd )
 
@@ -255,14 +251,14 @@ update msg model =
                     else
                         let
                             ( page, cmd ) =
-                                initPage model.key route model.authState url model.now
+                                initPage model.pbBaseUrl model.key route model.authState url model.now
                         in
                         ( { model | url = url, page = page }, cmd )
 
                 _ ->
                     let
                         ( page, cmd ) =
-                            initPage model.key route model.authState url model.now
+                            initPage model.pbBaseUrl model.key route model.authState url model.now
                     in
                     ( { model | url = url, page = page }, Cmd.batch [ mapCleanupCmd, cmd ] )
 
@@ -279,7 +275,7 @@ update msg model =
 
         -- ── Auth ────────────────────────────────────────────────────────────────
         LoginClicked ->
-            ( model, Ports.initiateOAuth pbBaseUrl )
+            ( model, Ports.initiateOAuth model.pbBaseUrl )
 
         LogOut ->
             ( { model | authState = NotAuthenticated }
@@ -302,7 +298,7 @@ update msg model =
             in
             case code of
                 Just c ->
-                    ( model, Auth.fetchOAuthToken c codeVerifier "" )
+                    ( model, Auth.fetchOAuthToken model.pbBaseUrl c codeVerifier "" )
 
                 Nothing ->
                     ( model, Nav.pushUrl model.key (toHref (RouteCalendar Nothing)) )
@@ -435,7 +431,7 @@ update msg model =
             case ( model.page, getToken model.authState ) of
                 ( PageEvents evPage, Just token ) ->
                     ( { model | page = PageEvents { evPage | currentPage = n, events = Loading } }
-                    , Api.fetchAllEvents token n EventsGotEvents
+                    , Api.fetchAllEvents model.pbBaseUrl token n EventsGotEvents
                     )
 
                 _ ->
@@ -506,7 +502,7 @@ update msg model =
 
                     else
                         ( { model | page = PageEvents { evPage | formStatus = Types.FormSubmitting } }
-                        , Api.createEvent token evPage.form EventsFormGotSave
+                        , Api.createEvent model.pbBaseUrl token evPage.form EventsFormGotSave
                         )
 
                 _ ->
@@ -538,7 +534,7 @@ update msg model =
                                 [ toastCmd
                                 , case getToken model.authState of
                                     Just token ->
-                                        Api.fetchAllEvents token evPage.currentPage EventsGotEvents
+                                        Api.fetchAllEvents model.pbBaseUrl token evPage.currentPage EventsGotEvents
 
                                     Nothing ->
                                         Cmd.none
@@ -561,7 +557,7 @@ update msg model =
         EventsStatusChanged eventId newState ->
             case getToken model.authState of
                 Just token ->
-                    ( model, Api.updateEventState token eventId newState EventsGotStatusChange )
+                    ( model, Api.updateEventState model.pbBaseUrl token eventId newState EventsGotStatusChange )
 
                 Nothing ->
                     ( model, Cmd.none )
@@ -680,7 +676,7 @@ update msg model =
                                     placemarkToForm placemark
                             in
                             ( { model | page = PageEvents { evPage | kmlQueue = rest } }
-                            , Api.createEvent token form EventsKmlGotImport
+                            , Api.createEvent model.pbBaseUrl token form EventsKmlGotImport
                             )
 
                 _ ->
@@ -763,7 +759,7 @@ update msg model =
                 ( PageEventDetail _ detPage, Just token ) ->
                     case detPage.event of
                         Success event ->
-                            ( model, Api.deleteEvent token event.id DetailGotDelete )
+                            ( model, Api.deleteEvent model.pbBaseUrl token event.id DetailGotDelete )
 
                         _ ->
                             ( model, Cmd.none )
@@ -817,7 +813,7 @@ update msg model =
                         Ok event ->
                             let
                                 form =
-                                    eventToForm event
+                                    eventToForm model.pbBaseUrl event
 
                                 mapLat =
                                     Maybe.map .lat event.point |> Maybe.withDefault helsinkiLat
@@ -914,7 +910,7 @@ update msg model =
 
                     else
                         ( { model | page = PageEventEdit id { editPage | formStatus = Types.FormSubmitting } }
-                        , Api.updateEvent token id editPage.form EditFormGotSave
+                        , Api.updateEvent model.pbBaseUrl token id editPage.form EditFormGotSave
                         )
 
                 _ ->
@@ -1202,8 +1198,8 @@ extractCode url =
 -- DATA HELPERS
 
 
-eventToForm : Types.Event -> EventFormData
-eventToForm event =
+eventToForm : String -> Types.Event -> EventFormData
+eventToForm pbBaseUrl event =
     let
         ( startDate, startTime ) =
             splitDateTime event.startDate
@@ -1236,7 +1232,7 @@ eventToForm event =
     , imageFile = Nothing
     , imageDescription = Maybe.withDefault "" event.imageDescription
     , hasExistingImage = event.image /= Nothing
-    , existingImageUrl = Maybe.map (Api.imageUrl event.id) event.image
+    , existingImageUrl = Maybe.map (Api.imageUrl pbBaseUrl event.id) event.image
     , imagePreviewUrl = Nothing
     }
 
@@ -1314,7 +1310,7 @@ viewPage model =
             View.Events.view model.authState evPage
 
         PageEventDetail id detPage ->
-            View.EventDetail.view model.authState id detPage
+            View.EventDetail.view model.pbBaseUrl model.authState id detPage
 
         PageEventEdit _ editPage ->
             View.EventForm.viewEdit editPage

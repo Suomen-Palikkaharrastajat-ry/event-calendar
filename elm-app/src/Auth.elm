@@ -10,12 +10,6 @@ import Json.Encode as Encode
 import Types exposing (AuthState(..), AuthUser, Msg(..))
 
 
-pbBaseUrl : String
-pbBaseUrl =
-    "https://data.suomenpalikkayhteiso.fi"
-
-
-
 -- DECODERS
 
 
@@ -52,8 +46,8 @@ restoreAuthFromFlags maybeToken maybeModelJson =
 
 {-| Exchange OAuth2 code + codeVerifier for a PocketBase auth token.
 -}
-fetchOAuthToken : String -> String -> String -> Cmd Msg
-fetchOAuthToken code codeVerifier state =
+fetchOAuthToken : String -> String -> String -> String -> Cmd Msg
+fetchOAuthToken pbBaseUrl code codeVerifier state =
     Http.post
         { url = pbBaseUrl ++ "/api/collections/users/auth-with-oauth2"
         , body =

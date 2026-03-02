@@ -17,8 +17,8 @@ import Types exposing (AuthState, CalendarPage, CalendarViewMode(..), Msg(..))
 import View.Calendar
 
 
-init : Maybe String -> Time.Posix -> ( CalendarPage, Cmd Msg )
-init maybeDate now =
+init : String -> Maybe String -> Time.Posix -> ( CalendarPage, Cmd Msg )
+init pbBaseUrl maybeDate now =
     let
         -- Use Helsinki timezone so the calendar opens on the correct month
         -- near midnight instead of the UTC date, which can differ by ±1 day.
@@ -46,7 +46,7 @@ init maybeDate now =
       , todayDay = Time.toDay helsinkiZone now
       , viewMode = MonthGrid
       }
-    , Api.fetchPublishedEvents CalendarGotEvents
+    , Api.fetchPublishedEvents pbBaseUrl CalendarGotEvents
     )
 
 

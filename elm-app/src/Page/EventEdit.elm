@@ -15,13 +15,13 @@ import Types exposing (AuthState, EventEditPage, FormStatus(..), Msg(..), emptyE
 import View.EventForm
 
 
-init : Maybe String -> String -> ( EventEditPage, Cmd Msg )
-init maybeToken id =
+init : String -> Maybe String -> String -> ( EventEditPage, Cmd Msg )
+init pbBaseUrl maybeToken id =
     ( { event = RemoteData.Loading
       , form = emptyEventFormData
       , formStatus = FormIdle
       }
-    , Api.fetchEvent maybeToken id EditGotEvent
+    , Api.fetchEvent pbBaseUrl maybeToken id EditGotEvent
     )
 
 

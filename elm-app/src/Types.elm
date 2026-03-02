@@ -48,6 +48,7 @@ type alias Flags =
     { authToken : Maybe String
     , authModel : Maybe String
     , now : Int
+    , pbBaseUrl : String
     }
 
 
@@ -351,6 +352,7 @@ type alias Model =
     , toasts : List Toast
     , nextToastId : Int
     , now : Time.Posix
+    , pbBaseUrl : String
     }
 
 

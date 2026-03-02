@@ -15,8 +15,8 @@ import Types exposing (AuthState, EventsPage, FormStatus(..), KmlImportStatus(..
 import View.Events
 
 
-init : Maybe String -> ( EventsPage, Cmd Msg )
-init maybeToken =
+init : String -> Maybe String -> ( EventsPage, Cmd Msg )
+init pbBaseUrl maybeToken =
     case maybeToken of
         Just token ->
             ( { events = RemoteData.Loading
@@ -27,7 +27,7 @@ init maybeToken =
               , kmlQueue = []
               , showNewForm = False
               }
-            , Api.fetchAllEvents token 1 Types.EventsGotEvents
+            , Api.fetchAllEvents pbBaseUrl token 1 Types.EventsGotEvents
             )
 
         Nothing ->

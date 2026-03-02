@@ -1,7 +1,10 @@
 .PHONY: help clean watch format check statics dist \
         elm-dev elm-build elm-test elm-check elm-format \
-        statics-build statics-test statics-check statics-format \
-        build test
+        elm-dev-local elm-build-local \
+        statics-build statics-test statics-check statics-format statics-local \
+        dist-local build test
+
+LOCAL_PB_URL = http://127.0.0.1:8090
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -27,8 +30,14 @@ devenv.local.yaml:
 elm-dev: ## Start Elm + Vite dev server (hot reload)
 	cd elm-app && pnpm dev
 
+elm-dev-local: ## Start Elm + Vite dev server against local PocketBase
+	cd elm-app && VITE_POCKETBASE_URL=$(LOCAL_PB_URL) pnpm dev
+
 elm-build: ## Production build of Elm SPA → build/
 	cd elm-app && pnpm build
+
+elm-build-local: ## Production build of Elm SPA targeting local PocketBase
+	cd elm-app && VITE_POCKETBASE_URL=$(LOCAL_PB_URL) pnpm build
 
 elm-test: ## Run Elm unit tests
 	# pnpm wraps the elm binary through node (breaks on ELF); use system elm directly
@@ -51,6 +60,9 @@ statics-build: ## Build Haskell static generator
 statics: ## Generate static files (ics, rss, atom, html, geojson, images)
 	cabal run statics
 
+statics-local: ## Generate static files against local PocketBase
+	POCKETBASE_URL=$(LOCAL_PB_URL) cabal run statics
+
 statics-test: ## Run Haskell tests
 	cabal test statics-test
 
@@ -67,6 +79,9 @@ watch: elm-dev ## Start development server
 build: elm-build ## Production build of Elm SPA
 
 dist: elm-build statics ## Full production build: Elm SPA + static files
+	cp -r static/. build/
+
+dist-local: elm-build-local statics-local ## Full local build: Elm SPA + static files against local PocketBase
 	cp -r static/. build/
 
 test: elm-test statics-test ## Run all tests (Elm + Haskell)
