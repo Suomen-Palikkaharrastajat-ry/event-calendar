@@ -14,7 +14,7 @@ import {
 	pocketBaseUrl
 } from './generate-utils.js';
 
-const baseUrl = 'https://kalenteri.suomenpalikkayhteiso.fi';
+const baseUrl = 'https://kalenteri.palikkaharrastajat.fi';
 
 const monthNames = [
 	'Tammikuu',
@@ -112,7 +112,7 @@ body { font-family: Arial, sans-serif; margin: 20px; }
 			}
 			const description = event.description || event.title;
 			const eventUrl =
-				event.url || `https://kalenteri.suomenpalikkayhteiso.fi/#/events/${event.id}`;
+				event.url || `https://kalenteri.palikkaharrastajat.fi/#/events/${event.id}`;
 
 			const eventData = {
 				id: `${baseUrl}/#/events/${event.id}`,
@@ -282,22 +282,22 @@ a:hover { background-color: #0056b3; }
 	const feed = new Feed({
 		title: 'Palikkakalenteri',
 		description: 'Suomen Palikkayhteisö ry:n Palikkakalenteri',
-		id: 'https://kalenteri.suomenpalikkayhteiso.fi/',
-		link: 'https://kalenteri.suomenpalikkayhteiso.fi/',
+		id: 'https://kalenteri.palikkaharrastajat.fi/',
+		link: 'https://kalenteri.palikkaharrastajat.fi/',
 		language: 'fi',
-		image: 'https://kalenteri.suomenpalikkayhteiso.fi/logo.png',
-		favicon: 'https://kalenteri.suomenpalikkayhteiso.fi/favicon.ico',
+		image: 'https://kalenteri.palikkaharrastajat.fi/logo.png',
+		favicon: 'https://kalenteri.palikkaharrastajat.fi/favicon.ico',
 		copyright: 'Suomen Palikkayhteisö ry',
 		updated: new Date(),
 		generator: 'Emmet',
 		feedLinks: {
-			rss: 'https://kalenteri.suomenpalikkayhteiso.fi/kalenteri.rss',
-			atom: 'https://kalenteri.suomenpalikkayhteiso.fi/kalenteri.atom'
+			rss: 'https://kalenteri.palikkaharrastajat.fi/kalenteri.rss',
+			atom: 'https://kalenteri.palikkaharrastajat.fi/kalenteri.atom'
 		},
 		author: {
 			name: 'Suomen Palikkayhteisö ry',
-			email: 'suomenpalikkayhteisory@outlook.com',
-			link: 'https://suomenpalikkayhteiso.fi/'
+			email: 'palikkaharrastajatry@outlook.com',
+			link: 'https://palikkaharrastajat.fi/'
 		}
 	});
 
@@ -325,7 +325,7 @@ a:hover { background-color: #0056b3; }
 
 		const imageUrl = imageUrls.get(event.id);
 		if (imageUrl) {
-			feedItem.image = `https://kalenteri.suomenpalikkayhteiso.fi${imageUrl}`;
+			feedItem.image = `https://kalenteri.palikkaharrastajat.fi${imageUrl}`;
 		}
 
 		// Add ICS enclosure

@@ -55,6 +55,6 @@ To add new colors that generate utility classes:
 
 ## Security Considerations
 
-- The application uses PocketBase for the backend, which is hosted at `https://data.suomenpalikkayhteiso.fi`. Ensure that the PocketBase security rules are properly configured to prevent unauthorized access to data.
+- The application uses PocketBase for the backend, which is hosted at `https://data.palikkaharrastajat.fi`. Ensure that the PocketBase security rules are properly configured to prevent unauthorized access to data.
 - Authentication is handled via OAuth2 with an OIDC provider. The authentication logic is in `src/lib/auth.ts`.
 - When making changes to the authentication or data access logic, be sure to test thoroughly to prevent security vulnerabilities.

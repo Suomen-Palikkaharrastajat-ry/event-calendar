@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import PocketBase from 'pocketbase';
 
-export const pocketBaseUrl = 'https://data.suomenpalikkayhteiso.fi';
+export const pocketBaseUrl = 'https://data.palikkaharrastajat.fi';
 
 const dayAbbr = ['su', 'ma', 'ti', 'ke', 'to', 'pe', 'la'];
 
