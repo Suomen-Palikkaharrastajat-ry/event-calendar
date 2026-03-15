@@ -3,6 +3,7 @@ name: Hourly update
 on:
   schedule:
     - cron: '0 0,6,12,18 * * *' # Four times per day
+  workflow_dispatch:
 permissions:
   contents: read
   pages: write
