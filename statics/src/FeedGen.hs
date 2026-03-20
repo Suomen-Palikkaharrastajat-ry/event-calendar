@@ -32,16 +32,16 @@ feedTitle :: String
 feedTitle = "Palikkakalenteri"
 
 feedLink :: String
-feedLink = "https://kalenteri.suomenpalikkayhteiso.fi/"
+feedLink = "https://kalenteri.palikkaharrastajat.fi/"
 
 feedSelf :: String
-feedSelf = "https://kalenteri.suomenpalikkayhteiso.fi/"
+feedSelf = "https://kalenteri.palikkaharrastajat.fi/"
 
 feedDescription :: String
 feedDescription = "Suomen Palikkayhteisö ry:n Palikkakalenteri"
 
 feedId :: String
-feedId = "https://kalenteri.suomenpalikkayhteiso.fi/"
+feedId = "https://kalenteri.palikkaharrastajat.fi/"
 
 feedLogoUrl :: String
 feedLogoUrl = Config.siteBaseUrl ++ "/logo.png"
@@ -56,9 +56,24 @@ data GeneratorContext = GeneratorContext
     -- ^ Maps event ID → local downloaded image path (for enclosure file size).
     }
 
--- | Build the full image URL for an event, if it has an image.
+-- | Build the local static image URL for an event, if it has an image.
+-- Images are served from the site itself under /images/{eventId}_{filename}.
 eventImageUrl :: PB.Event -> Maybe String
-eventImageUrl ev = PB.imageUrl ev <$> PB.eventImage ev
+eventImageUrl ev = case PB.eventImage ev of
+    Nothing -> Nothing
+    Just fname -> Just $ Config.siteBaseUrl ++ "/images/" ++ PB.eventId ev ++ "_" ++ T.unpack fname
+
+-- | Build the feed item title: date prefix + event title + location.
+-- All-day events use the full date range (with weekday abbr); timed events
+-- use just "D.M." (no weekday, no clock time) to match upstream format.
+feedItemTitle :: PB.Event -> String
+feedItemTitle ev =
+    let title = T.unpack (PB.eventTitle ev)
+        loc = maybe "" (\l -> " | " ++ T.unpack l) (PB.eventLocation ev)
+        dateStr
+            | PB.eventAllDay ev = DU.formatEventDate ev
+            | otherwise = DU.formatDate (DU.toHelsinki (PB.eventStartDate ev))
+     in dateStr ++ " " ++ title ++ loc
 
 -- ---------------------------------------------------------------------------
 -- XML helpers
@@ -93,22 +108,22 @@ xmlCdata tag content = "<" ++ tag ++ "><![CDATA[" ++ content ++ "]]></" ++ tag +
 
 -- | Format a UTCTime as RFC 822 (for RSS pubDate).
 formatRfc822 :: UTCTime -> String
-formatRfc822 = formatTime defaultTimeLocale "%a, %d %b %Y %H:%M:%S +0000"
+formatRfc822 = formatTime defaultTimeLocale "%a, %d %b %Y %H:%M:%S GMT"
 
 -- | Format a UTCTime as RFC 3339 (for Atom updated).
 formatRfc3339 :: UTCTime -> String
 formatRfc3339 = formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%SZ"
+
+-- | Format a UTCTime as RFC 3339 with milliseconds (for JSON Feed).
+formatRfc3339Ms :: UTCTime -> String
+formatRfc3339Ms = formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S.000Z"
 
 -- ---------------------------------------------------------------------------
 -- RSS 2.0
 -- ---------------------------------------------------------------------------
 
 rssItemTitle :: PB.Event -> String
-rssItemTitle ev =
-    let date = DU.formatEventDate ev
-        title = T.unpack (PB.eventTitle ev)
-        loc = maybe "" (\l -> " | " ++ T.unpack l) (PB.eventLocation ev)
-     in date ++ " " ++ title ++ loc
+rssItemTitle = feedItemTitle
 
 -- | Description: body text first, formatted date appended on a new paragraph.
 rssItemDescription :: PB.Event -> String
@@ -181,7 +196,7 @@ generateRss ctx events = do
             , "    " ++ xmlText "description" feedDescription
             , "    " ++ xmlText "lastBuildDate" (formatRfc822 now)
             , "    " ++ xmlEl "docs" "https://validator.w3.org/feed/docs/rss2.html"
-            , "    " ++ xmlText "generator" "Haskell statics"
+            , "    " ++ xmlText "generator" "Emmet"
             , "    " ++ xmlText "language" "fi"
             , "    <image>"
             , "      " ++ xmlText "title" feedTitle
@@ -224,16 +239,20 @@ buildAtomEntry ctx ev = do
                     return (fromRight 0 result)
             return $
                 Just $
-                    "    <link rel=\"enclosure\" type=\"image/jpg\" href=\""
+                    "    <link rel=\"enclosure\" type=\"image/jpeg\" href=\""
                         ++ xmlEscape imgUrl
                         ++ "\" length=\""
                         ++ show fileSize
                         ++ "\"/>"
+    let summaryContent =
+            let desc = maybe "" T.unpack (PB.eventDescription ev)
+                date = DU.formatEventDate ev
+             in if null desc then date else desc ++ "\n\n" ++ date
     return $
         unlines $
             [ "  <entry>"
             , "    " ++ xmlText "id" (Config.siteBaseUrl ++ "/#/events/" ++ PB.eventId ev)
-            , "    <title type=\"html\">" ++ xmlEscape (T.unpack (PB.eventTitle ev)) ++ "</title>"
+            , "    <title type=\"html\">" ++ xmlEscape (feedItemTitle ev) ++ "</title>"
             , "    " ++ xmlText "published" (formatRfc3339 (PB.eventCreated ev))
             , "    " ++ xmlText "updated" (formatRfc3339 (PB.eventUpdated ev))
             , "    <author><name>Suomen Palikkayhteisö ry</name></author>"
@@ -243,11 +262,9 @@ buildAtomEntry ctx ev = do
             , icsLink
             ]
                 ++ maybeToList imgLink
-                ++ maybe
-                    []
-                    (\d -> ["    <summary type=\"html\">" ++ xmlEscape (T.unpack d) ++ "</summary>"])
-                    (PB.eventDescription ev)
-                ++ ["  </entry>"]
+                ++ [ "    <summary type=\"html\"><![CDATA[" ++ summaryContent ++ "]]></summary>"
+                   , "  </entry>"
+                   ]
 
 -- | Generate an Atom 1.0 feed.
 generateAtom :: GeneratorContext -> [PB.Event] -> IO String
@@ -266,9 +283,9 @@ generateAtom ctx events = do
             , "  " ++ xmlText "updated" (formatRfc3339 now)
             , "  " ++ xmlText "rights" "Suomen Palikkayhteisö ry"
             , "  " ++ xmlEl "logo" feedLogoUrl
-            , "  " ++ xmlEl "icon" feedLogoUrl
-            , "  " ++ xmlText "generator" "Haskell statics"
-            , "  <author><name>Suomen Palikkayhteisö ry</name><uri>https://suomenpalikkayhteiso.fi/</uri></author>"
+            , "  " ++ xmlEl "icon" (Config.siteBaseUrl ++ "/favicon.ico")
+            , "  " ++ xmlText "generator" "Emmet"
+            , "  <author><name>Suomen Palikkayhteisö ry</name><email>palikkaharrastajatry@outlook.com</email><uri>https://palikkaharrastajat.fi/</uri></author>"
             , concat entries
             , "</feed>"
             ]
@@ -285,10 +302,10 @@ jsonFeedItem ev =
              in if null desc then date else desc ++ "\n\n" ++ date
         baseFields =
             [ "id" .= (Config.siteBaseUrl ++ "/#/events/" ++ PB.eventId ev)
-            , "title" .= T.unpack (PB.eventTitle ev)
+            , "title" .= feedItemTitle ev
             , "content_html" .= contentHtml
-            , "date_published" .= formatRfc3339 (PB.eventCreated ev)
-            , "date_modified" .= formatRfc3339 (PB.eventUpdated ev)
+            , "date_published" .= formatRfc3339Ms (PB.eventCreated ev)
+            , "date_modified" .= formatRfc3339Ms (PB.eventUpdated ev)
             , "author" .= object ["name" .= ("Suomen Palikkayhteisö ry" :: String)]
             ]
         urlField = case PB.eventUrl ev of
@@ -310,13 +327,12 @@ generateJsonFeed events =
                         [ "version" .= ("https://jsonfeed.org/version/1" :: String)
                         , "title" .= feedTitle
                         , "home_page_url" .= feedLink
-                        , "feed_url" .= (feedSelf ++ "kalenteri.json")
                         , "description" .= feedDescription
                         , "icon" .= feedLogoUrl
                         , "author"
                             .= object
                                 [ "name" .= ("Suomen Palikkayhteisö ry" :: String)
-                                , "url" .= ("https://suomenpalikkayhteiso.fi/" :: String)
+                                , "url" .= ("https://palikkaharrastajat.fi/" :: String)
                                 ]
                         , "items" .= map jsonFeedItem events
                         ]

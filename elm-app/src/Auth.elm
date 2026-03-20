@@ -10,6 +10,7 @@ import Json.Encode as Encode
 import Types exposing (AuthState(..), AuthUser, Msg(..))
 
 
+
 -- DECODERS
 
 

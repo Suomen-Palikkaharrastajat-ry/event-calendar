@@ -16,7 +16,7 @@ view pbBaseUrl authState _ detPage =
     div [ class "max-w-2xl mx-auto p-4" ]
         [ button
             [ onClick (NavigateTo (RouteCalendar Nothing))
-            , class "text-sm text-blue-600 hover:underline mb-4 inline-block"
+            , class "text-sm text-brand hover:underline mb-4 inline-block"
             ]
             [ text (t DetailBack) ]
         , case detPage.event of
@@ -37,12 +37,12 @@ view pbBaseUrl authState _ detPage =
                             div [ class "flex gap-2 ml-4 shrink-0" ]
                                 [ button
                                     [ onClick (NavigateTo (RouteEventEdit event.id))
-                                    , class "px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                                    , class "px-3 py-1 bg-brand text-white rounded hover:opacity-90 text-sm"
                                     ]
                                     [ text (t DetailEdit) ]
                                 , button
                                     [ onClick DetailRequestDelete
-                                    , class "px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                                    , class "px-3 py-1 bg-red-700 text-white rounded hover:opacity-90 text-sm"
                                     ]
                                     [ text (t DetailDelete) ]
                                 ]
@@ -55,7 +55,7 @@ view pbBaseUrl authState _ detPage =
                             [ span [ class "text-red-700 font-medium" ] [ text "Poistetaanko tapahtuma?" ]
                             , button
                                 [ onClick DetailConfirmDelete
-                                , class "px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                                , class "px-3 py-1 bg-red-700 text-white rounded hover:opacity-90 text-sm"
                                 ]
                                 [ text (t DetailDeleteConfirm) ]
                             , button
@@ -86,7 +86,7 @@ view pbBaseUrl authState _ detPage =
                                                     ++ "&zoom=15"
                                                 )
                                             , target "_blank"
-                                            , class "text-blue-600 hover:underline"
+                                            , class "text-brand hover:underline"
                                             ]
                                             [ text loc ]
 
@@ -121,7 +121,7 @@ view pbBaseUrl authState _ detPage =
                                 [ a
                                     [ href url
                                     , target "_blank"
-                                    , class "text-blue-600 hover:underline"
+                                    , class "text-brand hover:underline"
                                     ]
                                     [ text (t DetailMoreInfo) ]
                                 ]
