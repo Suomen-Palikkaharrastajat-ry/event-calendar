@@ -132,7 +132,7 @@ viewGeocodeSection msgs form =
             , if form.geocodingEnabled && not (String.isEmpty form.location) then
                 button
                     [ onClick msgs.onGeocode
-                    , class "text-sm px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                    , class "text-sm px-2 py-1 bg-brand-yellow text-brand rounded hover:opacity-90"
                     ]
                     [ text (t FormGeocode) ]
 
@@ -312,7 +312,7 @@ viewFormButtons formStatus isEdit =
                     EventsFormSubmit
                 )
             , disabled (formStatus == FormSubmitting)
-            , class "px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            , class "px-4 py-2 bg-brand text-white rounded hover:opacity-90 disabled:opacity-50"
             ]
             [ text
                 (if formStatus == FormSubmitting then

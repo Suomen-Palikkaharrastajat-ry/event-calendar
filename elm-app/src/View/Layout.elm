@@ -1,7 +1,7 @@
 module View.Layout exposing (viewFooter, viewHeader, viewToasts)
 
-import Html exposing (Html, a, button, div, footer, h3, header, nav, p, span, text)
-import Html.Attributes exposing (attribute, class, href)
+import Html exposing (Html, a, button, div, footer, h3, header, img, nav, p, span, text)
+import Html.Attributes exposing (alt, attribute, class, href, src, style, type_)
 import Html.Events exposing (onClick)
 import I18n exposing (MsgKey(..), t)
 import Route exposing (toHref)
@@ -12,8 +12,30 @@ import Types exposing (AuthState(..), Msg(..), Toast, ToastKind(..))
 
 viewHeader : AuthState -> Html Msg
 viewHeader authState =
-    header [ class "bg-primary text-white p-4 flex items-center justify-between" ]
-        [ nav [ class "flex gap-4" ]
+    header [ class "bg-brand text-white p-4 flex items-center justify-between" ]
+        [ Html.node "picture"
+            [ class "shrink-0"
+            , style "min-width" "200px"
+            , style "padding" "0 25%"
+            ]
+            [ Html.node "source"
+                [ type_ "image/svg+xml"
+                , attribute "srcset" "/logos/horizontal-full-dark.svg"
+                ]
+                []
+            , Html.node "source"
+                [ type_ "image/webp"
+                , attribute "srcset" "/logos/horizontal-full-dark.webp"
+                ]
+                []
+            , img
+                [ src "/logos/horizontal-full-dark.png"
+                , alt "Suomen Palikkaharrastajat"
+                , class "h-10 w-auto"
+                ]
+                []
+            ]
+        , nav [ class "flex gap-4" ]
             [ a [ href (toHref (Route.RouteCalendar Nothing)), class "hover:underline" ]
                 [ text (t NavHome) ]
             , a [ href (toHref Route.RouteEvents), class "hover:underline" ]
@@ -53,7 +75,7 @@ viewFooter =
             "https://kalenteri.suomenpalikkayhteiso.fi"
     in
     footer [ class "mt-auto border-t border-gray-200 bg-gray-50 p-4" ]
-        [ div [ class "mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-3" ]
+        [ div [ class "mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3" ]
             [ -- iCalendar
               a
                 [ href "webcal://kalenteri.suomenpalikkayhteiso.fi/kalenteri.ics"
@@ -62,7 +84,7 @@ viewFooter =
                 ]
                 [ div [ class "mb-3 flex items-center" ]
                     [ footerIcon "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    , h3 [ class "text-lg font-semibold" ] [ text "iCalendar" ]
+                    , h3 [ class "type-h3" ] [ text "iCalendar" ]
                     ]
                 , p [ class "text-sm text-gray-600" ]
                     [ text "Kalenterivienti (ICS) tilaa tai integroi koko kalenterin helposti. Klikkaa kalenteri puhelimeesi!" ]
@@ -75,7 +97,7 @@ viewFooter =
                 ]
                 [ div [ class "mb-3 flex items-center" ]
                     [ footerIcon "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    , h3 [ class "text-lg font-semibold" ] [ text "HTML | PDF" ]
+                    , h3 [ class "type-h3" ] [ text "HTML | PDF" ]
                     ]
                 , p [ class "text-sm text-gray-600" ]
                     [ text "Upota tai tulosta valmis tapahtumalistaus. Sisältää kalenterilinkit yksittäisiin tapahtumiin." ]
@@ -84,7 +106,7 @@ viewFooter =
               div [ class "p-4 text-left" ]
                 [ div [ class "mb-3 flex items-center" ]
                     [ footerIcon "M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0m6 0a1 1 0 11-2 0 1 1 0 012 0m6 0a1 1 0 11-2 0 1 1 0 012 0"
-                    , h3 [ class "text-lg font-semibold" ] [ text "Syötteet" ]
+                    , h3 [ class "type-h3" ] [ text "Syötteet" ]
                     ]
                 , p [ class "mb-3 text-sm text-gray-600" ]
                     [ text "Syötteet integroivat uudet tapahtumat verkkosivuille. Nämäkin sisältävät kalenterilinkit." ]
@@ -105,7 +127,7 @@ viewFooter =
 footerIcon : String -> Html Msg
 footerIcon d =
     Svg.svg
-        [ SvgA.class "mr-2 h-8 w-8 text-primary flex-shrink-0"
+        [ SvgA.class "mr-2 h-8 w-8 text-brand flex-shrink-0"
         , SvgA.fill "none"
         , SvgA.stroke "currentColor"
         , SvgA.viewBox "0 0 24 24"
@@ -125,7 +147,7 @@ feedLink url label =
     a
         [ href url
         , attribute "target" "_blank"
-        , class "mx-1 text-primary no-underline hover:underline"
+        , class "mx-1 text-brand no-underline hover:underline"
         ]
         [ text label ]
 
@@ -142,13 +164,13 @@ viewToast toast =
         colorClass =
             case toast.kind of
                 ToastSuccess ->
-                    "bg-green-600"
+                    "bg-green-700"
 
                 ToastError ->
-                    "bg-red-600"
+                    "bg-red"
 
                 ToastInfo ->
-                    "bg-blue-600"
+                    "bg-brand"
     in
     div
         [ class ("flex items-center gap-2 px-4 py-2 rounded text-white shadow-lg " ++ colorClass)

@@ -87,7 +87,7 @@ eventToVEventLines now ev =
     dtend = case PB.eventEndDate ev of
         Just end ->
             if allDay
-                then "DTEND;VALUE=DATE:" ++ DU.formatICalDate end True
+                then "DTEND;VALUE=DATE:" ++ nextICalDay end
                 else "DTEND;TZID=Europe/Helsinki:" ++ DU.formatICalDate end False
         Nothing ->
             if allDay
@@ -142,10 +142,8 @@ wrapCalendar innerLines =
     renderLines $
         [ "BEGIN:VCALENDAR"
         , "VERSION:2.0"
-        , "PRODID:-//Suomen Palikkayhteisö ry//Tapahtumat//FI"
-        , "CALSCALE:GREGORIAN"
-        , "METHOD:PUBLISH"
-        , "X-WR-CALNAME:Suomen Palikkayhteisö \x2014 Tapahtumat"
+        , "PRODID:-//Suomen Palikkaharrastajat ry//Palikkakalenteri//FI"
+        , "X-WR-CALNAME:Suomen Palikkaharrastajat ry:n Palikkakalenteri"
         , "X-WR-TIMEZONE:Europe/Helsinki"
         ]
             ++ helsinkiVTimezone

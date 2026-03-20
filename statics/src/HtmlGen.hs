@@ -52,6 +52,20 @@ icsDataUri icsText =
 -- CSS
 -- ---------------------------------------------------------------------------
 
+-- | '<picture>' element for the site logo (SVG → WebP → PNG fallback, self-hosted).
+siteLogo :: H.Html
+siteLogo =
+    H.div ! A.class_ "site-logo" $
+        H.preEscapedToMarkup
+            ( "<picture>"
+                ++ "<source type=\"image/svg+xml\" srcset=\"logos/horizontal-full.svg\">"
+                ++ "<source type=\"image/webp\" srcset=\"logos/horizontal-full.webp\">"
+                ++ "<img src=\"logos/horizontal-full.png\""
+                ++ " alt=\"Suomen Palikkaharrastajat\" style=\"max-width:200px;height:auto;\">"
+                ++ "</picture>"
+                :: String
+            )
+
 {- | URL-encoded SVG data URI for the calendar icon overlay on QR codes.
 Encoding: only <, >, " are percent-encoded; works in CSS url("...").
 -}
@@ -69,8 +83,11 @@ calendarIconDataUri =
 calendarCss :: String
 calendarCss =
     unlines
-        [ ":root { --color-brand-primary: #000000; --color-brand-accent: #000000; }"
-        , "body { font-family: Arial, sans-serif; margin: 20px; }"
+        [ "@font-face { font-family: 'Outfit'; font-style: normal; font-weight: 100 900;"
+            ++ " font-display: swap;"
+            ++ " src: url('fonts/Outfit-VariableFont_wght.ttf') format('truetype'); }"
+        , ":root { --color-brand-primary: #05131D; --color-brand-accent: #FAC80A; }"
+        , "body { font-family: 'Outfit', system-ui, sans-serif; margin: 20px; }"
         , ".month { page-break-inside: avoid; break-inside: avoid; }"
         , ".month-header { font-size: 1.5em; font-weight: bold;"
             ++ " color: var(--color-brand-primary);"
@@ -93,28 +110,42 @@ calendarCss =
             ++ " background: white url(\""
             ++ calendarIconDataUri
             ++ "\") no-repeat center/contain; }"
-        , ".footer { margin-top: auto; border-top: 1px solid #e5e7eb;"
-            ++ " background: #f9fafb; padding: 1rem; }"
-        , ".footer-content { max-width: 56rem; margin: 0 auto; display: grid;"
+        , ":root { --color-border-default: #E5E7EB; --color-bg-subtle: #F9FAFB;"
+            ++ " --color-bg-hover: #F3F4F6; --color-text-muted: #6B7280; }"
+        , ".footer { margin-top: auto; border-top: 1px solid var(--color-border-default);"
+            ++ " background: var(--color-bg-subtle); padding: 1rem; }"
+        , ".footer-content { max-width: 64rem; margin: 0 auto; display: grid;"
             ++ " grid-template-columns: repeat(3,1fr); gap: 1.5rem; }"
         , ".footer-card { display: block; border-radius: 0.5rem; padding: 1rem;"
             ++ " text-decoration: none; color: inherit; text-align: left;"
             ++ " transition: background-color 0.15s; }"
-        , ".footer-card:hover { background: #f3f4f6; }"
+        , ".footer-card:hover { background: var(--color-bg-hover); }"
         , ".footer-icon-row { margin-bottom: 0.75rem; display: flex; align-items: center; }"
         , ".footer-icon { margin-right: 0.5rem; width: 2rem; height: 2rem;"
             ++ " color: var(--color-brand-primary); flex-shrink: 0; }"
         , ".footer-card h3 { font-size: 1.125rem; font-weight: 600; margin: 0; }"
-        , ".footer-card p { font-size: 0.875rem; color: #4b5563; margin: 0.75rem 0 0 0; }"
+        , ".footer-card p { font-size: 0.875rem; color: var(--color-text-muted); margin: 0.75rem 0 0 0; }"
         , ".footer-feeds { padding: 1rem; text-align: left; }"
         , ".footer-feed-links { margin-top: 0.75rem; text-align: center; }"
         , ".footer-feed-links a { margin: 0 0.25rem; color: var(--color-brand-primary);"
             ++ " text-decoration: none; }"
         , ".footer-feed-links a:hover { text-decoration: underline; }"
+        , ".site-logo { display: block; margin-bottom: 1rem; }"
+        , ".site-logo img { max-width: 200px; height: auto; }"
+        , "@media (prefers-reduced-motion: reduce) { .logo-animated { display: none; } }"
         ]
 
 eventPageCss :: String
-eventPageCss = "body { font-family: Arial, sans-serif; margin: 20px; max-width: 800px; }"
+eventPageCss =
+    "@font-face { font-family: 'Outfit'; font-style: normal; font-weight: 100 900;"
+        ++ " font-display: swap;"
+        ++ " src: url('../fonts/Outfit-VariableFont_wght.ttf') format('truetype'); }"
+        ++ " :root { --color-brand-primary: #05131D; }"
+        ++ " body { font-family: 'Outfit', system-ui, sans-serif; margin: 20px; max-width: 800px;"
+        ++ " color: var(--color-brand-primary); }"
+        ++ " .site-logo { display: block; margin-bottom: 1rem; }"
+        ++ " .site-logo img { max-width: 200px; height: auto; }"
+        ++ " @media (prefers-reduced-motion: reduce) { .logo-animated { display: none; } }"
 
 -- ---------------------------------------------------------------------------
 -- Calendar HTML rendering
@@ -256,6 +287,7 @@ generateCalendarHtml events = do
             H.meta ! A.name "build-date" ! A.content (H.toValue buildDate)
             H.style $ H.toHtml calendarCss
         H.body $ do
+            siteLogo
             H.h1 "Palikkakalenteri"
             H.div ! A.class_ "events" $
                 mapM_ (uncurry (renderMonth icsList)) grouped
@@ -278,6 +310,7 @@ generateEventHtml ev = do
             H.title $ H.toHtml (PB.eventTitle ev)
             H.style $ H.toHtml eventPageCss
         H.body $ do
+            siteLogo
             H.h1 $ H.toHtml (PB.eventTitle ev)
             H.p $ H.toHtml dateStr
             case PB.eventLocation ev of

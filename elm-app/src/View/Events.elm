@@ -39,7 +39,7 @@ view authState evPage =
           else if isAuthenticated authState then
             button
                 [ onClick (NavigateTo RouteEventNew)
-                , class "mb-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                , class "mb-4 px-4 py-2 bg-brand text-white rounded hover:opacity-90"
                 ]
                 [ text ("+ " ++ t EventListNewEvent) ]
 
@@ -166,7 +166,7 @@ viewEventRow event =
                                         ++ String.fromFloat pt.lon
                                         ++ "&zoom=15"
                                     )
-                                , class "hover:underline text-blue-600"
+                                , class "hover:underline text-brand"
                                 ]
                                 [ text (String.left 30 loc) ]
 
@@ -197,7 +197,7 @@ viewEventRow event =
         , td [ class "p-2 border" ]
             [ a
                 [ href (toHref (RouteEventEdit event.id))
-                , class "text-blue-600 hover:underline text-xs"
+                , class "text-brand hover:underline text-xs"
                 ]
                 [ text (t EventListEdit) ]
             ]

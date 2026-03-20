@@ -9,6 +9,8 @@ import qualified PocketBase
 
 import Control.Exception (SomeException, try)
 import qualified Data.Map.Strict as Map
+import Data.Maybe (fromMaybe)
+import Data.Time (UTCTime (..), getCurrentTime, utctDay)
 import GHC.IO.Encoding (setLocaleEncoding, utf8)
 import System.Directory (createDirectoryIfMissing)
 import System.Exit (ExitCode (..), exitWith)
@@ -40,10 +42,13 @@ run = do
     putStrLn "Downloading images..."
     imageMap <- ImageFetcher.downloadAllImages events
 
-    -- Generate iCal feeds
+    -- Determine upcoming events (used for all feeds and the calendar HTML)
+    now <- getCurrentTime
+    let today = UTCTime (utctDay now) 0
+        upcomingEvents = filter (isUpcoming today) events
+
+    -- Generate per-event ICS for ALL events (needed for event HTML pages)
     putStrLn "Generating iCal feeds..."
-    masterIcs <- ICalGen.generateMasterIcs events
-    writeStaticFile "static/kalenteri.ics" masterIcs
     icsContentList <-
         mapM
             ( \ev -> do
@@ -53,6 +58,10 @@ run = do
             )
             events
 
+    -- Master ICS: upcoming events only
+    masterIcs <- ICalGen.generateMasterIcs upcomingEvents
+    writeStaticFile "static/kalenteri.ics" masterIcs
+
     -- Build generator context (Map lookups are O(log n) vs O(n) for list-of-tuples)
     let genCtx =
             FeedGen.GeneratorContext
@@ -60,23 +69,23 @@ run = do
                 , FeedGen.imageMap = Map.fromList imageMap
                 }
 
-    -- Generate RSS / Atom / JSON feeds
+    -- Generate RSS / Atom / JSON feeds (upcoming events only)
     putStrLn "Generating feeds..."
-    rss <- FeedGen.generateRss genCtx events
-    atom <- FeedGen.generateAtom genCtx events
-    json <- FeedGen.generateJsonFeed events
+    rss <- FeedGen.generateRss genCtx upcomingEvents
+    atom <- FeedGen.generateAtom genCtx upcomingEvents
+    json <- FeedGen.generateJsonFeed upcomingEvents
     writeStaticFile "static/kalenteri.rss" rss
     writeStaticFile "static/kalenteri.atom" atom
     writeStaticFile "static/kalenteri.json" json
 
-    -- Generate GeoJSON
+    -- Generate GeoJSON (upcoming events only)
     putStrLn "Generating GeoJSON..."
-    geo <- GeoJsonGen.generateGeoJson events
+    geo <- GeoJsonGen.generateGeoJson upcomingEvents
     writeStaticFile "static/kalenteri.geo.json" geo
 
-    -- Generate HTML
+    -- Generate HTML (upcoming events only)
     putStrLn "Generating HTML..."
-    html <- HtmlGen.generateCalendarHtml events
+    html <- HtmlGen.generateCalendarHtml upcomingEvents
     writeStaticFile "static/kalenteri.html" html
     mapM_
         ( \ev -> do
@@ -89,3 +98,9 @@ run = do
 writeStaticFile :: FilePath -> String -> IO ()
 writeStaticFile path content = do
     writeFile path content
+
+-- | True if an event's effective end (end_date if set, else start_date) is today or later.
+isUpcoming :: UTCTime -> PocketBase.Event -> Bool
+isUpcoming today ev =
+    let effective = fromMaybe (PocketBase.eventStartDate ev) (PocketBase.eventEndDate ev)
+     in effective >= today

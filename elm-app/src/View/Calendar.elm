@@ -56,19 +56,19 @@ viewCalendarNav page =
     div [ class "flex items-center gap-4 mb-4 flex-wrap" ]
         [ button
             [ onClick (CalendarSetMonth prevY prevM)
-            , class "px-3 py-1 border rounded hover:bg-gray-100"
+            , class "px-3 py-1 border rounded hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
             ]
             [ text "‹" ]
-        , span [ class "font-semibold text-lg" ]
+        , span [ class "type-h3" ]
             [ text (finnishMonthName page.month ++ " " ++ String.fromInt page.year) ]
         , button
             [ onClick (CalendarSetMonth nextY nextM)
-            , class "px-3 py-1 border rounded hover:bg-gray-100"
+            , class "px-3 py-1 border rounded hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
             ]
             [ text "›" ]
         , button
             [ onClick (CalendarSetMonth page.todayYear page.todayMonth)
-            , class "px-3 py-1 border rounded hover:bg-gray-100"
+            , class "px-3 py-1 border rounded hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
             ]
             [ text (t CalToday) ]
         ]
@@ -106,7 +106,7 @@ viewDayCell page events maybeDay =
                 [ class
                     ("border-r border-b min-h-24 p-1 relative overflow-hidden"
                         ++ (if isToday then
-                                " bg-blue-50"
+                                " bg-brand-yellow/10"
 
                             else
                                 ""
@@ -116,10 +116,10 @@ viewDayCell page events maybeDay =
                 [ span
                     [ class
                         (if isToday then
-                            "text-xs font-bold text-white bg-primary rounded-full inline-flex items-center justify-center w-5 h-5 float-right"
+                            "text-xs font-bold text-white bg-brand rounded-full inline-flex items-center justify-center w-5 h-5 float-right"
 
                          else
-                            "text-xs text-gray-400 float-right"
+                            "text-xs text-gray-500 float-right"
                         )
                     ]
                     [ text (String.fromInt day) ]
@@ -242,7 +242,7 @@ viewListEvent event =
         , onClick (CalendarClickEvent event.id)
         ]
         [ p [ class "text-sm text-gray-500" ] [ text (formatEventDateDisplay event) ]
-        , h3 [ class "font-semibold" ] [ text event.title ]
+        , h3 [ class "type-h4" ] [ text event.title ]
         , case event.location of
             Nothing ->
                 text ""

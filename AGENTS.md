@@ -4,7 +4,7 @@ This file provides instructions for AI coding agents working with this project.
 
 ## Project Overview
 
-Event calendar for *Suomen Palikkayhteisö ry*, built with **Elm 0.19 SPA** (frontend) and a **Haskell static generator** (feeds, HTML, images), backed by **PocketBase**.
+Event calendar for *Suomen Palikkaharrastajat ry*, built with **Elm 0.19 SPA** (frontend) and a **Haskell static generator** (feeds, HTML, images), backed by **PocketBase**.
 
 The project was migrated from SvelteKit 5 in early 2026. There is **no TypeScript, no Svelte, no ESLint, and no Prettier** in the current codebase. Ignore any references to those tools in older docs.
 
@@ -135,6 +135,72 @@ Run these checks in a real browser before releasing. Automated Elm/Haskell unit 
 - [ ] `build/kalenteri.atom` validates at https://validator.w3.org/feed/
 - [ ] `build/kalenteri.html` renders correctly in a browser; QR codes visible when printing
 - [ ] A per-event `.html` page (e.g. `build/events/<id>.html`) renders with title, date, and QR code
+
+## Style Guide
+
+The association's official design guide lives at **<https://logo.palikkaharrastajat.fi/>**. Machine-readable JSON-LD: <https://logo.palikkaharrastajat.fi/design-guide/index.jsonld>.
+
+### Key design tokens
+
+| Token | Value | Tailwind class |
+|---|---|---|
+| brand-black | `#05131D` | `bg-brand` / `text-brand` / `border-brand` |
+| brand-yellow | `#FAC80A` | `bg-brand-yellow` |
+| white | `#FFFFFF` | `text-white` / `bg-white` |
+| red (danger/accent) | `#C91A09` | `bg-red` (custom) |
+| text.muted | `#6B7280` | `text-gray-500` |
+| background.subtle | `#F9FAFB` | `bg-gray-50` |
+| border.default | `#E5E7EB` | `border-gray-200` |
+
+> **Note:** The canonical yellow value is `#FAC80A` (from `colors.jsonld`). Do not use `#F2CD37` — it is incorrect.
+
+### Typography
+
+- **Font**: Outfit variable font (wght axis 100–900), `font-family: 'Outfit', system-ui, sans-serif`. Self-hosted from `elm-app/public/fonts/`.
+- **Named type scale** (use CSS classes, never raw sizes in components):
+
+| Class | Size | Weight | Notes |
+|---|---|---|---|
+| `.type-display` | 3rem | 700 | Hero headlines only |
+| `.type-h1` | 1.875rem | 700 | One per page |
+| `.type-h2` | 1.5rem | 700 | Section headings |
+| `.type-h3` | 1.25rem | 600 | Sub-section headings |
+| `.type-h4` | 1.125rem | 600 | Card / widget headings |
+| `.type-body` | 1rem | 400 | Default body copy |
+| `.type-body-small` | 0.875rem | 500 | UI controls, labels |
+| `.type-caption` | 0.875rem | 400 | Metadata, footnotes |
+| `.type-mono` | 0.875rem | 400 | Code snippets (monospace) |
+| `.type-overline` | 0.75rem | 600 uppercase | Category labels |
+
+### Logos & favicons
+
+- Always use SVG first; provide WebP `<source>` with PNG `<img>` fallback via `<picture>`.
+  - Correct `<picture>` source order: **SVG `<source>` first**, then WebP `<source>`, then `<img>` PNG fallback.
+  - Wrong order (WebP before SVG) causes browsers to pick WebP over the preferred vector format.
+- Variants: **square** (avatars, app icons), **horizontal** (header — `horizontal-full.svg` light, `horizontal-full-dark.svg` dark).
+- Minimum clear space: 25% of logo width on all sides. Minimum digital width: 80 px (square), 200 px (horizontal).
+- Favicon set lives at `https://logo.palikkaharrastajat.fi/favicon/` — download all sizes to `elm-app/public/`.
+- **Never** stretch, recolour, shadow, or outline the logo.
+- **Never** display animated logo variants (`*-animated.webp/gif`) when `prefers-reduced-motion: reduce` is active.
+- In `HtmlGen.hs` static HTML, always use the self-hosted logo path (`/logos/horizontal-full.png`, etc.) — **never** load assets from `logo.palikkaharrastajat.fi` at runtime.
+
+### WCAG / accessibility rules
+
+- All colour pairings must pass WCAG 2.1 AA (≥ 4.5:1 normal text, ≥ 3:1 large text / UI).
+- `bg-brand-yellow` (`#FAC80A`) **fails on white** (1.58:1). Always pair it with `text-brand` (`#05131D`) which passes AAA (10.83:1).
+- `text-brand` (`#05131D`) on white passes AAA (18.79:1). `text-white` on `bg-brand` also passes AAA.
+- Brand red (`#C91A09`) on white passes AA (5.78:1); do not use on dark backgrounds without re-checking.
+- Avoid `text-gray-400` for body or label text — its contrast on white (~2.85:1) fails AA. Use `text-gray-500` (4.6:1) as the minimum for muted text.
+- Max content width is **1024 px** (`max-w-5xl` in Tailwind). Do not use `max-w-4xl` (896 px) for full-page containers.
+
+### Rules for AI agents
+
+1. **Never hard-code hex colours** in Elm views or Haskell HTML generators. Use the Tailwind semantic class names (`bg-brand`, `text-brand`, `bg-brand-yellow`, `border-brand`, `border-gray-200`, etc.) or the `@theme` CSS variables.
+2. **Use named type classes** (`.type-h1`, `.type-h2`, `.type-h3`, `.type-h4`, `.type-body`, `.type-body-small`, `.type-caption`, `.type-mono`, `.type-overline`) rather than ad-hoc `text-xl font-bold` combinations in Elm views and Haskell-generated HTML.
+3. When adding logos to any page (Elm SPA or Haskell static HTML), use the `<picture>` pattern with sources in this exact order: **SVG `<source>` first**, then WebP `<source>`, then `<img>` PNG fallback.
+4. When generating or editing `statics/src/HtmlGen.hs`, embed `@font-face` for Outfit pointing to the **self-hosted** TTF (`/fonts/Outfit-VariableFont_wght.ttf`) — do not load it from `logo.palikkaharrastajat.fi`. Use CSS variables (not raw hex) for all colour values.
+5. Check contrast before picking any colour pair. Refer to the `wcag` fields in `colors.jsonld` or the table above.
+6. The canonical brand yellow is **`#FAC80A`** — do not use `#F2CD37` (legacy incorrect value).
 
 ## Security
 
