@@ -204,6 +204,6 @@ The association's official design guide lives at **<https://logo.palikkaharrasta
 
 ## Security
 
-- PocketBase is at `https://data.suomenpalikkayhteiso.fi`. Ensure collection rules remain properly configured.
+- PocketBase is at `https://data.palikkaharrastajat.fi`. Ensure collection rules remain properly configured.
 - Authentication is handled entirely via PocketBase OAuth2. There is no custom auth server.
 - Do not commit credentials or tokens. The `POCKETBASE_URL` override is for local dev only.

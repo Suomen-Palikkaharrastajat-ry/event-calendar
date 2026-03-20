@@ -124,6 +124,7 @@ init flags url key =
       , nextToastId = 0
       , now = now
       , pbBaseUrl = flags.pbBaseUrl
+      , menuOpen = False
       }
     , cmd
     )
@@ -260,7 +261,7 @@ update msg model =
                         ( page, cmd ) =
                             initPage model.pbBaseUrl model.key route model.authState url model.now
                     in
-                    ( { model | url = url, page = page }, Cmd.batch [ mapCleanupCmd, cmd ] )
+                    ( { model | url = url, page = page, menuOpen = False }, Cmd.batch [ mapCleanupCmd, cmd ] )
 
         LinkClicked urlRequest ->
             case urlRequest of
@@ -1031,6 +1032,10 @@ update msg model =
             , Cmd.none
             )
 
+        -- ── Mobile menu ──────────────────────────────────────────────────────────
+        ToggleMenu ->
+            ( { model | menuOpen = not model.menuOpen }, Cmd.none )
+
         -- ── Time ─────────────────────────────────────────────────────────────────
         Tick _ ->
             ( model, Cmd.none )
@@ -1274,7 +1279,7 @@ view model =
     { title = pageTitle model.page
     , body =
         [ div [ class "min-h-screen flex flex-col" ]
-            [ View.Layout.viewHeader model.authState
+            [ View.Layout.viewHeader model.authState model.menuOpen
             , div [ class "flex-1 max-w-5xl mx-auto w-full" ] [ viewPage model ]
             , View.Layout.viewFooter
             ]

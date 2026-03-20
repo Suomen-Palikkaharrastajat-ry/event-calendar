@@ -162,7 +162,7 @@ pocketBaseTests =
         PB.eventAllDay allDayEvent @?= True
     , testCase "imageUrl helper" $
         PB.imageUrl timedEvent "photo.jpg"
-            @?= "https://data.suomenpalikkayhteiso.fi/api/files/events/abc123/photo.jpg"
+            @?= "https://data.palikkaharrastajat.fi/api/files/events/abc123/photo.jpg"
     ]
 
 -- ---------------------------------------------------------------------------

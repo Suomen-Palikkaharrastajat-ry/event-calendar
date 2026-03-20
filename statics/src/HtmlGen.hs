@@ -83,11 +83,8 @@ calendarIconDataUri =
 calendarCss :: String
 calendarCss =
     unlines
-        [ "@font-face { font-family: 'Outfit'; font-style: normal; font-weight: 100 900;"
-            ++ " font-display: swap;"
-            ++ " src: url('fonts/Outfit-VariableFont_wght.ttf') format('truetype'); }"
-        , ":root { --color-brand-primary: #05131D; --color-brand-accent: #FAC80A; }"
-        , "body { font-family: 'Outfit', system-ui, sans-serif; margin: 20px; }"
+        [ ":root { --color-brand-primary: #000000; --color-brand-accent: #000000; }"
+        , "body { font-family: Arial, sans-serif; margin: 20px; }"
         , ".month { page-break-inside: avoid; break-inside: avoid; }"
         , ".month-header { font-size: 1.5em; font-weight: bold;"
             ++ " color: var(--color-brand-primary);"
@@ -110,29 +107,6 @@ calendarCss =
             ++ " background: white url(\""
             ++ calendarIconDataUri
             ++ "\") no-repeat center/contain; }"
-        , ":root { --color-border-default: #E5E7EB; --color-bg-subtle: #F9FAFB;"
-            ++ " --color-bg-hover: #F3F4F6; --color-text-muted: #6B7280; }"
-        , ".footer { margin-top: auto; border-top: 1px solid var(--color-border-default);"
-            ++ " background: var(--color-bg-subtle); padding: 1rem; }"
-        , ".footer-content { max-width: 64rem; margin: 0 auto; display: grid;"
-            ++ " grid-template-columns: repeat(3,1fr); gap: 1.5rem; }"
-        , ".footer-card { display: block; border-radius: 0.5rem; padding: 1rem;"
-            ++ " text-decoration: none; color: inherit; text-align: left;"
-            ++ " transition: background-color 0.15s; }"
-        , ".footer-card:hover { background: var(--color-bg-hover); }"
-        , ".footer-icon-row { margin-bottom: 0.75rem; display: flex; align-items: center; }"
-        , ".footer-icon { margin-right: 0.5rem; width: 2rem; height: 2rem;"
-            ++ " color: var(--color-brand-primary); flex-shrink: 0; }"
-        , ".footer-card h3 { font-size: 1.125rem; font-weight: 600; margin: 0; }"
-        , ".footer-card p { font-size: 0.875rem; color: var(--color-text-muted); margin: 0.75rem 0 0 0; }"
-        , ".footer-feeds { padding: 1rem; text-align: left; }"
-        , ".footer-feed-links { margin-top: 0.75rem; text-align: center; }"
-        , ".footer-feed-links a { margin: 0 0.25rem; color: var(--color-brand-primary);"
-            ++ " text-decoration: none; }"
-        , ".footer-feed-links a:hover { text-decoration: underline; }"
-        , ".site-logo { display: block; margin-bottom: 1rem; }"
-        , ".site-logo img { max-width: 200px; height: auto; }"
-        , "@media (prefers-reduced-motion: reduce) { .logo-animated { display: none; } }"
         ]
 
 eventPageCss :: String
@@ -210,61 +184,6 @@ renderCalendarEvent icsList ev = do
                             ! A.target "_blank"
                             $ "Lue lisää\x2026"
 
--- | Inline SVG helper — inserts raw SVG markup without escaping.
-svgIcon :: String -> H.Html
-svgIcon path =
-    H.preEscapedToMarkup $
-        "<svg class=\"footer-icon\" fill=\"none\" stroke=\"currentColor\""
-            ++ " viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">"
-            ++ "<path stroke-linecap=\"round\" stroke-linejoin=\"round\""
-            ++ " stroke-width=\"2\" d=\""
-            ++ path
-            ++ "\"></path></svg>"
-
--- | Footer with subscribe/feed links matching the upstream calendar site design.
-renderFooter :: H.Html
-renderFooter =
-    H.footer ! A.class_ "footer" $ do
-        H.div ! A.class_ "footer-content" $ do
-            -- ICalendar
-            H.a
-                ! A.class_ "footer-card"
-                ! A.href "webcal://kalenteri.suomenpalikkayhteiso.fi/kalenteri.ics"
-                ! A.target "_blank"
-                $ do
-                    H.div ! A.class_ "footer-icon-row" $ do
-                        svgIcon "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        H.h3 "iCalendar"
-                    H.p
-                        "Kalenterivienti (ICS) tilaa tai integroi koko kalenterin helposti. Klikkaa kalenteri puhelimeesi!"
-            -- HTML | PDF
-            H.a
-                ! A.class_ "footer-card"
-                ! A.href (H.toValue (Config.siteBaseUrl ++ "/kalenteri.html"))
-                ! A.target "_blank"
-                $ do
-                    H.div ! A.class_ "footer-icon-row" $ do
-                        svgIcon
-                            "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        H.h3 "HTML | PDF"
-                    H.p "Upota tai tulosta valmis tapahtumalistaus. Sisältää kalenterilinkit yksittäisiin tapahtumiin."
-            -- Feeds
-            H.div ! A.class_ "footer-feeds" $ do
-                H.div ! A.class_ "footer-icon-row" $ do
-                    svgIcon
-                        "M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0m6 0a1 1 0 11-2 0 1 1 0 012 0m6 0a1 1 0 11-2 0 1 1 0 012 0"
-                    H.h3 "Syötteet"
-                H.p "Syötteet integroivat uudet tapahtumat verkkosivuille. Nämäkin sisältävät kalenterilinkit."
-                H.div ! A.class_ "footer-feed-links" $ do
-                    H.a ! A.href (H.toValue (Config.siteBaseUrl ++ "/kalenteri.atom")) ! A.target "_blank" $ "ATOM"
-                    H.toHtml (" | " :: String)
-                    H.a ! A.href (H.toValue (Config.siteBaseUrl ++ "/kalenteri.rss")) ! A.target "_blank" $ "RSS"
-                    H.toHtml (" | " :: String)
-                    H.a ! A.href (H.toValue (Config.siteBaseUrl ++ "/kalenteri.json")) ! A.target "_blank" $ "JSON"
-                    H.toHtml (" | " :: String)
-                    H.a ! A.href (H.toValue (Config.siteBaseUrl ++ "/kalenteri.geo.json")) ! A.target "_blank" $
-                        "GeoJSON"
-
 -- | Render a month section.
 renderMonth :: [(String, String)] -> String -> [PB.Event] -> H.Html
 renderMonth icsList monthLabel evs =
@@ -287,11 +206,9 @@ generateCalendarHtml events = do
             H.meta ! A.name "build-date" ! A.content (H.toValue buildDate)
             H.style $ H.toHtml calendarCss
         H.body $ do
-            siteLogo
             H.h1 "Palikkakalenteri"
             H.div ! A.class_ "events" $
                 mapM_ (uncurry (renderMonth icsList)) grouped
-            renderFooter
 
 -- ---------------------------------------------------------------------------
 -- Per-event landing page

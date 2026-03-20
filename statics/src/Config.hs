@@ -12,10 +12,10 @@ module Config (
 Used for GUID/UID generation in feeds and iCal, and for building links in HTML.
 -}
 siteBaseUrl :: String
-siteBaseUrl = "https://kalenteri.suomenpalikkayhteiso.fi"
+siteBaseUrl = "https://kalenteri.palikkaharrastajat.fi"
 
 {- | Default PocketBase API base URL (production).
 Used as fallback when the POCKETBASE_URL environment variable is not set.
 -}
 pbDefaultUrl :: String
-pbDefaultUrl = "https://data.suomenpalikkayhteiso.fi"
+pbDefaultUrl = "https://data.palikkaharrastajat.fi"
