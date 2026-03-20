@@ -59,7 +59,7 @@ The app will be available at `http://localhost:5173`.
 ### Configuration
 
 The PocketBase URL is set at compile time in `elm-app/src/Api.elm`.
-The live instance is at `https://data.suomenpalikkayhteiso.fi`.
+The live instance is at `https://data.palikkaharrastajat.fi`.
 
 ### Useful Commands
 

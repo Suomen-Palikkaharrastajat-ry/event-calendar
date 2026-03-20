@@ -353,6 +353,7 @@ type alias Model =
     , nextToastId : Int
     , now : Time.Posix
     , pbBaseUrl : String
+    , menuOpen : Bool
     }
 
 
@@ -443,5 +444,7 @@ type
       -- Toasts
     | AddToast ToastKind String
     | DismissToast Int
+      -- Mobile menu
+    | ToggleMenu
       -- Subscriptions
     | Tick Time.Posix

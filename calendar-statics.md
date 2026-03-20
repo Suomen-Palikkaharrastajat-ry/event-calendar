@@ -10,8 +10,8 @@ Invoked via `make statics` → `pnpm run generate-statics` → `node scripts/gen
 
 The static generation pipeline fetches all published events from PocketBase and produces a set of static files written to both `static/` (for dev) and `build/` (for production, if it exists). No CLI arguments or environment variables are required — all URLs are hardcoded.
 
-**Base URL:** `https://kalenteri.suomenpalikkayhteiso.fi`
-**Data source:** PocketBase at `https://data.suomenpalikkayhteiso.fi`, collection `events`
+**Base URL:** `https://kalenteri.palikkaharrastajat.fi`
+**Data source:** PocketBase at `https://data.palikkaharrastajat.fi`, collection `events`
 **Event filter:** `state = "published"` AND `(end_date > yesterday OR start_date > yesterday)`
 **Sort order:** `start_date` ascending
 

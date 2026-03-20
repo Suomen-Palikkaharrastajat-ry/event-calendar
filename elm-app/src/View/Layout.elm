@@ -1,5 +1,6 @@
 module View.Layout exposing (viewFooter, viewHeader, viewToasts)
 
+import FeatherIcons
 import Html exposing (Html, a, button, div, footer, h3, header, img, nav, p, span, text)
 import Html.Attributes exposing (alt, attribute, class, href, src, style, type_)
 import Html.Events exposing (onClick)
@@ -10,39 +11,77 @@ import Svg.Attributes as SvgA
 import Types exposing (AuthState(..), Msg(..), Toast, ToastKind(..))
 
 
-viewHeader : AuthState -> Html Msg
-viewHeader authState =
-    header [ class "bg-brand text-white p-4 flex items-center justify-between" ]
-        [ Html.node "picture"
-            [ class "shrink-0"
-            , style "min-width" "200px"
-            , style "padding" "0 25%"
-            ]
-            [ Html.node "source"
-                [ type_ "image/svg+xml"
-                , attribute "srcset" "/logos/horizontal-full-dark.svg"
+viewHeader : AuthState -> Bool -> Html Msg
+viewHeader authState menuOpen =
+    header [ class "bg-brand text-white" ]
+        [ -- Main toolbar
+          div [ class "flex items-center justify-between p-4" ]
+            [ -- Logo left-aligned
+              a [ href (toHref (Route.RouteCalendar Nothing)), class "shrink-0" ]
+                [ Html.node "picture"
+                    []
+                    [ Html.node "source"
+                        [ type_ "image/svg+xml"
+                        , attribute "srcset" "/logos/horizontal-full-dark.svg"
+                        ]
+                        []
+                    , Html.node "source"
+                        [ type_ "image/webp"
+                        , attribute "srcset" "/logos/horizontal-full-dark.webp"
+                        ]
+                        []
+                    , img
+                        [ src "/logos/horizontal-full-dark.png"
+                        , alt "Suomen Palikkaharrastajat"
+                        , class "h-10 w-auto"
+                        ]
+                        []
+                    ]
                 ]
-                []
-            , Html.node "source"
-                [ type_ "image/webp"
-                , attribute "srcset" "/logos/horizontal-full-dark.webp"
+            , -- Desktop nav + auth (hidden on mobile)
+              div [ class "hidden md:flex items-center gap-6" ]
+                [ nav [ class "flex gap-4" ]
+                    [ a [ href (toHref (Route.RouteCalendar Nothing)), class "hover:underline" ]
+                        [ text (t NavHome) ]
+                    , a [ href (toHref Route.RouteEvents), class "hover:underline" ]
+                        [ text (t NavEvents) ]
+                    ]
+                , viewAuthControls authState
                 ]
-                []
-            , img
-                [ src "/logos/horizontal-full-dark.png"
-                , alt "Suomen Palikkaharrastajat"
-                , class "h-10 w-auto"
+            , -- Hamburger button (mobile only)
+              button
+                [ onClick ToggleMenu
+                , class "md:hidden p-1 rounded hover:bg-white/10"
+                , attribute "aria-label" "Valikko"
                 ]
-                []
+                [ featherIcon (if menuOpen then FeatherIcons.x else FeatherIcons.menu) 24 ]
             ]
-        , nav [ class "flex gap-4" ]
-            [ a [ href (toHref (Route.RouteCalendar Nothing)), class "hover:underline" ]
-                [ text (t NavHome) ]
-            , a [ href (toHref Route.RouteEvents), class "hover:underline" ]
-                [ text (t NavEvents) ]
-            ]
-        , viewAuthControls authState
+        , -- Mobile dropdown menu
+          if menuOpen then
+            div [ class "md:hidden border-t border-white/20 px-4 py-3 flex flex-col items-end gap-3" ]
+                [ a
+                    [ href (toHref (Route.RouteCalendar Nothing))
+                    , class "hover:underline"
+                    ]
+                    [ text "Kalenteri" ]
+                , a
+                    [ href (toHref Route.RouteEvents)
+                    , class "hover:underline"
+                    ]
+                    [ text (t NavEvents) ]
+                , viewAuthControls authState
+                ]
+
+          else
+            text ""
         ]
+
+
+featherIcon : FeatherIcons.Icon -> Float -> Html Msg
+featherIcon icon size =
+    icon
+        |> FeatherIcons.withSize size
+        |> FeatherIcons.toHtml []
 
 
 viewAuthControls : AuthState -> Html Msg
@@ -72,18 +111,19 @@ viewFooter : Html Msg
 viewFooter =
     let
         siteUrl =
-            "https://kalenteri.suomenpalikkayhteiso.fi"
+            "https://kalenteri.palikkaharrastajat.fi"
     in
     footer [ class "mt-auto border-t border-gray-200 bg-gray-50 p-4" ]
         [ div [ class "mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3" ]
             [ -- iCalendar
               a
-                [ href "webcal://kalenteri.suomenpalikkayhteiso.fi/kalenteri.ics"
+                [ href "webcal://kalenteri.palikkaharrastajat.fi/kalenteri.ics"
                 , attribute "target" "_blank"
                 , class "block rounded-lg p-4 text-left transition-colors hover:bg-gray-100"
                 ]
                 [ div [ class "mb-3 flex items-center" ]
-                    [ footerIcon "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    [ div [ class "mr-2 text-brand" ]
+                        [ featherIcon FeatherIcons.calendar 32 ]
                     , h3 [ class "type-h3" ] [ text "iCalendar" ]
                     ]
                 , p [ class "text-sm text-gray-600" ]
@@ -96,7 +136,8 @@ viewFooter =
                 , class "block rounded-lg p-4 text-left transition-colors hover:bg-gray-100"
                 ]
                 [ div [ class "mb-3 flex items-center" ]
-                    [ footerIcon "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    [ div [ class "mr-2 text-brand" ]
+                        [ featherIcon FeatherIcons.fileText 32 ]
                     , h3 [ class "type-h3" ] [ text "HTML | PDF" ]
                     ]
                 , p [ class "text-sm text-gray-600" ]
@@ -105,7 +146,8 @@ viewFooter =
             , -- Feeds
               div [ class "p-4 text-left" ]
                 [ div [ class "mb-3 flex items-center" ]
-                    [ footerIcon "M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0m6 0a1 1 0 11-2 0 1 1 0 012 0m6 0a1 1 0 11-2 0 1 1 0 012 0"
+                    [ div [ class "mr-2 text-brand" ]
+                        [ featherIcon FeatherIcons.rss 32 ]
                     , h3 [ class "type-h3" ] [ text "Syötteet" ]
                     ]
                 , p [ class "mb-3 text-sm text-gray-600" ]
@@ -121,24 +163,6 @@ viewFooter =
                     ]
                 ]
             ]
-        ]
-
-
-footerIcon : String -> Html Msg
-footerIcon d =
-    Svg.svg
-        [ SvgA.class "mr-2 h-8 w-8 text-brand flex-shrink-0"
-        , SvgA.fill "none"
-        , SvgA.stroke "currentColor"
-        , SvgA.viewBox "0 0 24 24"
-        ]
-        [ Svg.path
-            [ SvgA.strokeLinecap "round"
-            , SvgA.strokeLinejoin "round"
-            , SvgA.strokeWidth "2"
-            , SvgA.d d
-            ]
-            []
         ]
 
 
@@ -178,7 +202,7 @@ viewToast toast =
         [ text toast.message
         , button
             [ onClick (DismissToast toast.id)
-            , class "ml-2 font-bold hover:opacity-75"
+            , class "ml-2 hover:opacity-75"
             ]
-            [ text "×" ]
+            [ featherIcon FeatherIcons.x 16 ]
         ]

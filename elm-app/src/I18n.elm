@@ -244,7 +244,7 @@ t key =
             "Kirjautuminen epäonnistui"
 
         ContactEmail ->
-            "toimisto@suomenpalikkayhteiso.fi"
+            "toimisto@palikkaharrastajat.fi"
 
         FeedIcal ->
             "iCalendar-syöte"
