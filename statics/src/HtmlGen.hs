@@ -111,15 +111,12 @@ calendarCss =
 
 eventPageCss :: String
 eventPageCss =
-    "@font-face { font-family: 'Outfit'; font-style: normal; font-weight: 100 900;"
-        ++ " font-display: swap;"
-        ++ " src: url('../fonts/Outfit-VariableFont_wght.ttf') format('truetype'); }"
-        ++ " :root { --color-brand-primary: #05131D; }"
-        ++ " body { font-family: 'Outfit', system-ui, sans-serif; margin: 20px; max-width: 800px;"
-        ++ " color: var(--color-brand-primary); }"
-        ++ " .site-logo { display: block; margin-bottom: 1rem; }"
-        ++ " .site-logo img { max-width: 200px; height: auto; }"
-        ++ " @media (prefers-reduced-motion: reduce) { .logo-animated { display: none; } }"
+    unlines
+        [ "body { font-family: Arial, sans-serif; margin: 20px; max-width: 400px; margin: 0 auto; text-align: center; }"
+        , "h1 { color: #333; }"
+        , "p { margin: 2ex 0; }"
+        , "a { color: #0077cc; }"
+        ]
 
 -- ---------------------------------------------------------------------------
 -- Calendar HTML rendering
@@ -156,7 +153,6 @@ renderCalendarEvent icsList ev = do
     H.div ! A.class_ "event" $ do
         H.div ! A.class_ "date-column" $ H.toHtml (DU.formatEventDate ev)
         H.div ! A.class_ "details-column" $ do
-            renderQrCode eventPageUrl
             -- Title with optional location
             H.h2 $ do
                 H.toHtml (PB.eventTitle ev)
@@ -224,15 +220,17 @@ generateEventHtml ev = do
         H.head $ do
             H.meta ! A.charset "UTF-8"
             H.meta ! A.name "viewport" ! A.content "width=device-width, initial-scale=1.0"
-            H.title $ H.toHtml (PB.eventTitle ev)
+            H.title $ do
+                H.toHtml (PB.eventTitle ev)
+                H.toHtml (" - Palikkakalenteri" :: String)
             H.style $ H.toHtml eventPageCss
         H.body $ do
-            siteLogo
-            H.h1 $ H.toHtml (PB.eventTitle ev)
-            H.p $ H.toHtml dateStr
+            H.h1 (H.toHtml (PB.eventTitle ev))
             case PB.eventLocation ev of
-                Nothing -> return ()
-                Just l -> H.p $ H.toHtml l
+                Nothing -> H.p (H.strong (H.toHtml dateStr))
+                Just l -> H.div $ do
+                    H.p $ H.strong (H.toHtml dateStr)
+                    H.p $ H.strong (H.toHtml l)
             case PB.eventDescription ev of
                 Nothing -> return ()
                 Just d -> H.p $ H.toHtml d
@@ -249,21 +247,7 @@ generateEventHtml ev = do
                             ! A.href (H.toValue (T.unpack u))
                             ! A.target "_blank"
                         $ "Lue lisää\x2026"
-            -- QR code linking back to this page
-            case qrCodeDataUri eventPageUrl of
-                Nothing -> return ()
-                Just uri ->
-                    H.div ! A.style "margin-top: 1em;"
-                        $ H.div
-                            ! A.style
-                                "position: relative; display: inline-block;\
-                                \ width: 100px; height: 100px;"
-                        $ do
-                            H.img
-                                ! A.src (H.toValue uri)
-                                ! A.alt "QR-koodi sivulle"
-                                ! A.style "width: 100px; height: 100px;"
-                            H.div ! A.class_ "cal-icon" $ mempty
+            return ()
 
 -- ---------------------------------------------------------------------------
 -- Grouping helper

@@ -66,7 +66,7 @@ eventToVEventLines now ev =
     [ "BEGIN:VEVENT"
     , "UID:" ++ Config.siteBaseUrl ++ "/#/events/" ++ PB.eventId ev
     , "SEQUENCE:0"
-    , "SUMMARY:" ++ escapeIcal (T.unpack (PB.eventTitle ev))
+    , "SUMMARY:" ++ escapeIcal (T.unpack summaryText)
     , dtstart
     , dtend
     ]
@@ -79,6 +79,11 @@ eventToVEventLines now ev =
            , "END:VEVENT"
            ]
   where
+    summaryText :: T.Text
+    summaryText =
+        case PB.eventLocation ev of
+            Nothing -> PB.eventTitle ev
+            Just l -> PB.eventTitle ev <> " | " <> l
     allDay = PB.eventAllDay ev
     start = PB.eventStartDate ev
     dtstart
