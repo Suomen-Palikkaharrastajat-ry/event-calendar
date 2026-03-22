@@ -26,6 +26,7 @@ import Auth
 import Browser
 import Browser.Events
 import Browser.Navigation as Nav
+import DateUtils exposing (utcStringToHelsinkiDateInput, utcStringToHelsinkiTimeInput)
 import File
 import Geocoding
 import Html exposing (Html, a, div, text)
@@ -1206,13 +1207,26 @@ extractCode url =
 eventToForm : String -> Types.Event -> EventFormData
 eventToForm pbBaseUrl event =
     let
-        ( startDate, startTime ) =
-            splitDateTime event.startDate
+        startDate =
+            utcStringToHelsinkiDateInput event.startDate
+
+        startTime =
+            if event.allDay then
+                ""
+
+            else
+                utcStringToHelsinkiTimeInput event.startDate
 
         ( endDate, endTime ) =
             case event.endDate of
                 Just s ->
-                    splitDateTime s
+                    ( utcStringToHelsinkiDateInput s
+                    , if event.allDay then
+                        ""
+
+                      else
+                        utcStringToHelsinkiTimeInput s
+                    )
 
                 Nothing ->
                     ( "", "" )
