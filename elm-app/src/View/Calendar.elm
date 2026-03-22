@@ -1,7 +1,7 @@
 module View.Calendar exposing (view)
 
 import DateUtils exposing (daysInMonth, finnishMonthName, formatEventDateDisplay, monthGrid, nextMonth, prevMonth, utcStringToHelsinkiDateInput)
-import Html exposing (Html, button, div, h3, p, span, text)
+import Html exposing (Html, a, button, div, h3, p, span, text)
 import Html.Attributes exposing (attribute, class, classList, tabindex)
 import Html.Events exposing (onClick)
 import I18n exposing (MsgKey(..), t)
@@ -12,7 +12,20 @@ import Types exposing (AuthState, CalendarPage, CalendarViewMode(..), Event, Msg
 view : AuthState -> CalendarPage -> Html Msg
 view authState page =
     div [ class "p-4" ]
-        [ viewCalendarNav page
+        [ case authState of
+            Types.Authenticated _ ->
+                text ""
+
+            Types.NotAuthenticated ->
+                p [ class "text-sm text-gray-500 mb-2" ]
+                    [ text (t SubmitByEmailText)
+                    , a
+                        [ class "text-blue-500 underline"
+                        , attribute "href" "mailto:palikkaharrastajatry@outlook.com?subject=Uusi%20tapahtuma%20Palikkakalenteriin&body=Tapahtuman%20nimi%3A%0D%0A%0D%0ATarkempi%20kuvaus%3A%0D%0A%0D%0APaikkakunta%3A%0D%0A%0D%0AAlkaa%3A%0D%0A%0D%0AP%C3%A4%C3%A4ttyy%3A%0D%0A%0D%0AKotisivut%3A%0D%0A%0D%0A"
+                        ]
+                        [ text (t SubmitByEmailLinkText) ]
+                    ]
+        , viewCalendarNav page
         , case page.viewMode of
             MonthGrid ->
                 case page.events of

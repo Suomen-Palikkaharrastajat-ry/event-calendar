@@ -56,16 +56,18 @@ data GeneratorContext = GeneratorContext
     -- ^ Maps event ID → local downloaded image path (for enclosure file size).
     }
 
--- | Build the local static image URL for an event, if it has an image.
--- Images are served from the site itself under /images/{eventId}_{filename}.
+{- | Build the local static image URL for an event, if it has an image.
+Images are served from the site itself under /images/{eventId}_{filename}.
+-}
 eventImageUrl :: PB.Event -> Maybe String
 eventImageUrl ev = case PB.eventImage ev of
     Nothing -> Nothing
     Just fname -> Just $ Config.siteBaseUrl ++ "/images/" ++ PB.eventId ev ++ "_" ++ T.unpack fname
 
--- | Build the feed item title: date prefix + event title + location.
--- All-day events use the full date range (with weekday abbr); timed events
--- use just "D.M." (no weekday, no clock time) to match upstream format.
+{- | Build the feed item title: date prefix + event title + location.
+All-day events use the full date range (with weekday abbr); timed events
+use just "D.M." (no weekday, no clock time) to match upstream format.
+-}
 feedItemTitle :: PB.Event -> String
 feedItemTitle ev =
     let title = T.unpack (PB.eventTitle ev)

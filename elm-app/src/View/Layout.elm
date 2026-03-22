@@ -33,7 +33,7 @@ viewHeader authState menuOpen =
                     , img
                         [ src "/logos/horizontal-full-dark.png"
                         , alt "Suomen Palikkaharrastajat"
-                        , class "h-10 w-auto"
+                        , class "h-14 w-auto"
                         ]
                         []
                     ]
@@ -54,7 +54,15 @@ viewHeader authState menuOpen =
                 , class "md:hidden p-1 rounded hover:bg-white/10"
                 , attribute "aria-label" "Valikko"
                 ]
-                [ featherIcon (if menuOpen then FeatherIcons.x else FeatherIcons.menu) 24 ]
+                [ featherIcon
+                    (if menuOpen then
+                        FeatherIcons.x
+
+                     else
+                        FeatherIcons.menu
+                    )
+                    24
+                ]
             ]
         , -- Mobile dropdown menu
           if menuOpen then

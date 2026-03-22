@@ -76,6 +76,8 @@ type MsgKey
     | SaveSuccess
     | DeleteSuccess
     | ImportSuccess
+    | SubmitByEmailText
+    | SubmitByEmailLinkText
 
 
 t : MsgKey -> String
@@ -244,7 +246,7 @@ t key =
             "Kirjautuminen epäonnistui"
 
         ContactEmail ->
-            "toimisto@palikkaharrastajat.fi"
+            "palikkaharrastajatry@outlook.com"
 
         FeedIcal ->
             "iCalendar-syöte"
@@ -296,6 +298,12 @@ t key =
 
         ImportSuccess ->
             "tapahtumat tuotu"
+
+        SubmitByEmailText ->
+            "Jos et ole Suomen Palikkaharrastajat ry:n jäsen,"
+
+        SubmitByEmailLinkText ->
+            "lähetä tapahtumasi meille sähköpostilla."
 
 
 stateLabel : EventState -> String
