@@ -11,6 +11,7 @@ module Api exposing
     , updateEventState
     )
 
+import DateUtils exposing (formDateTimeToUtc)
 import File exposing (File)
 import Http
 import Json.Decode as Json exposing (Decoder)
@@ -240,13 +241,33 @@ deleteEvent pbBaseUrl token eventId toMsg =
 eventFormToMultipart : EventFormData -> Http.Body
 eventFormToMultipart formData =
     let
+        startDatePart =
+            case formDateTimeToUtc formData.startDate formData.startTime formData.allDay of
+                Just s ->
+                    s
+
+                Nothing ->
+                    formData.startDate
+
+        endDatePart =
+            if String.isEmpty formData.endDate then
+                ""
+
+            else
+                case formDateTimeToUtc formData.endDate formData.endTime formData.allDay of
+                    Just s ->
+                        s
+
+                    Nothing ->
+                        formData.endDate
+
         textParts =
             [ Http.stringPart "title" formData.title
             , Http.stringPart "description" formData.description
             , Http.stringPart "location" formData.location
             , Http.stringPart "url" formData.url
-            , Http.stringPart "start_date" formData.startDate
-            , Http.stringPart "end_date" formData.endDate
+            , Http.stringPart "start_date" startDatePart
+            , Http.stringPart "end_date" endDatePart
             , Http.stringPart "all_day"
                 (if formData.allDay then
                     "true"
