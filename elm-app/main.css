@@ -1,0 +1,112 @@
+@import "tailwindcss";
+@import "./public/fonts/outfit.css";
+@plugin "@tailwindcss/forms";
+
+@theme {
+  --color-brand: #05131D;
+  --color-brand-yellow: #FAC80A;
+  --color-red: #C91A09;
+  --font-family-sans: 'Outfit', system-ui, sans-serif;
+}
+
+/* Leaflet map container — must have explicit height */
+.leaflet-container {
+  height: 400px;
+  width: 100%;
+}
+
+/* Pointer cursor on all interactive buttons */
+button:not([disabled]) {
+  cursor: pointer;
+}
+
+button[disabled] {
+  cursor: not-allowed;
+}
+
+/* Primary action button / link — uses the brand primary colour.
+   Works on both <button> and <a> elements (inline-block for the latter). */
+.btn-primary {
+  @apply inline-block px-4 py-2 bg-brand text-white rounded hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2;
+}
+
+/* Calendar event chips — rounded/padding applied per-chip in Elm for multi-day continuity */
+.event-all-day {
+  @apply bg-brand text-white text-xs truncate cursor-pointer;
+}
+
+.event-timed {
+  @apply bg-brand-yellow text-brand text-xs truncate cursor-pointer;
+}
+
+/* ── Typography scale ─────────────────────────────────────────────────────── */
+
+@utility type-display {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+@utility type-h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+@utility type-h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+@utility type-h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+@utility type-body-small {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+@utility type-caption {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+@utility type-h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+@utility type-body {
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+@utility type-mono {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+}
+
+@utility type-overline {
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Suppress animated logo variants for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .logo-animated {
+    display: none;
+  }
+}
