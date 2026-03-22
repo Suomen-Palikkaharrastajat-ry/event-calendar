@@ -42,6 +42,7 @@ elm-build-local: ## Production build of Elm SPA targeting local PocketBase
 elm-test: ## Run Elm unit tests
 	# pnpm wraps the elm binary through node (breaks on ELF); use system elm directly
 	@ELM_BIN=$$(which elm) && \
+		mkdir -p elm-app/node_modules/.bin && \
 		printf '#!/bin/sh\nexec "%s" "$$@"\n' "$$ELM_BIN" \
 		> elm-app/node_modules/.bin/elm && chmod +x elm-app/node_modules/.bin/elm
 	cd elm-app && pnpm test
