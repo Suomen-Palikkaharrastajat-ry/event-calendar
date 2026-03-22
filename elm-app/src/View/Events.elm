@@ -1,6 +1,6 @@
 module View.Events exposing (view)
 
-import DateUtils exposing (formatEventDateDisplay)
+import DateUtils exposing (formatEventDateDisplay, parseUtcString)
 import File
 import Html exposing (Html, a, button, div, h2, input, label, option, p, select, span, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (accept, class, href, selected, type_, value)
@@ -9,6 +9,7 @@ import I18n exposing (MsgKey(..), stateLabel, t)
 import Json.Decode as Json
 import RemoteData exposing (RemoteData)
 import Route exposing (Route(..), toHref)
+import Time exposing (Posix, posixToMillis)
 import Types
     exposing
         ( AuthState(..)
@@ -25,8 +26,8 @@ import Types
 import View.EventForm
 
 
-view : AuthState -> EventsPage -> Html Msg
-view authState evPage =
+view : AuthState -> Posix -> EventsPage -> Html Msg
+view authState now evPage =
     div [ class "max-w-5xl mx-auto p-4" ]
         [ h2 [ class "text-xl font-bold mb-4" ] [ text (t EventListTitle) ]
         , viewKmlSection authState evPage
@@ -45,7 +46,7 @@ view authState evPage =
 
           else
             text ""
-        , viewEventsTable evPage
+        , viewEventsTable now evPage
         ]
 
 
@@ -97,8 +98,8 @@ viewKmlStatus status =
 -- ── EVENTS TABLE ─────────────────────────────────────────────────────────────
 
 
-viewEventsTable : EventsPage -> Html Msg
-viewEventsTable evPage =
+viewEventsTable : Posix -> EventsPage -> Html Msg
+viewEventsTable now evPage =
     case evPage.events of
         RemoteData.NotAsked ->
             text ""
@@ -125,15 +126,79 @@ viewEventsTable evPage =
                                 , th [ class "p-2 border" ] [ text "" ]
                                 ]
                             ]
-                        , tbody [] (List.map viewEventRow pbList.items)
+                        , let
+                            items =
+                                reorderEvents now pbList.items
+                          in
+                          tbody [] (List.map (viewEventRow now) items)
                         ]
                     , viewPagination pbList evPage.currentPage
                     ]
 
 
-viewEventRow : Event -> Html Msg
-viewEventRow event =
-    tr [ class "hover:bg-gray-50 border-b" ]
+{-| Reorder events so all upcoming events (end or start ≥ now) appear before past events.
+Preserves relative order within each group.
+-}
+eventIsPast : Posix -> Event -> Bool
+eventIsPast now event =
+    case event.endDate |> Maybe.andThen parseUtcString of
+        Just endPosix ->
+            posixToMillis endPosix < posixToMillis now
+
+        Nothing ->
+            case parseUtcString event.startDate of
+                Just startPosix ->
+                    posixToMillis startPosix < posixToMillis now
+
+                Nothing ->
+                    False
+
+
+reorderEvents : Posix -> List Event -> List Event
+reorderEvents now eventsList =
+    let
+        ( past, upcoming ) =
+            List.foldl
+                (\r ( ps, us ) ->
+                    if eventIsPast now r then
+                        ( ps ++ [ r ], us )
+
+                    else
+                        ( ps, us ++ [ r ] )
+                )
+                ( [], [] )
+                eventsList
+
+        eventMillis e =
+            case e.endDate |> Maybe.andThen parseUtcString of
+                Just p ->
+                    posixToMillis p
+
+                Nothing ->
+                    case parseUtcString e.startDate of
+                        Just s ->
+                            posixToMillis s
+
+                        Nothing ->
+                            0
+
+        pastDesc =
+            List.sortBy (\e -> Basics.negate (eventMillis e)) past
+    in
+    upcoming ++ pastDesc
+
+
+viewEventRow : Posix -> Event -> Html Msg
+viewEventRow now event =
+    let
+        classes =
+            if eventIsPast now event then
+                "hover:bg-gray-50 border-b opacity-50"
+
+            else
+                "hover:bg-gray-50 border-b"
+    in
+    tr [ class classes ]
         [ td [ class "p-2 border" ]
             [ a
                 [ href (toHref (RouteEventDetail event.id))

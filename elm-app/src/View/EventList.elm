@@ -1,16 +1,17 @@
 module View.EventList exposing (view)
 
-import DateUtils exposing (formatEventDateDisplay)
+import DateUtils exposing (formatEventDateDisplay, parseUtcString)
 import Html exposing (Html, a, div, h1, h3, p, text)
 import Html.Attributes exposing (class, href)
 import I18n exposing (MsgKey(..), t)
 import RemoteData exposing (RemoteData)
 import Route exposing (Route(..), toHref)
+import Time exposing (Posix, posixToMillis)
 import Types exposing (AuthState(..), Event, EventListPage, Msg(..))
 
 
-view : AuthState -> EventListPage -> Html Msg
-view authState page =
+view : AuthState -> Posix -> EventListPage -> Html Msg
+view authState now page =
     div [ class "p-4" ]
         [ div [ class "flex items-center justify-between mb-4" ]
             [ h1 [ class "text-2xl font-bold" ] [ text (t NavEvents) ]
@@ -36,18 +37,92 @@ view authState page =
                 div [ class "text-red-600 text-center py-8" ] [ text (t ErrorUnknown) ]
 
             RemoteData.Success events ->
-                if List.isEmpty events then
+                let
+                    items =
+                        reorderEvents now events
+                in
+                if List.isEmpty items then
                     div [ class "text-gray-500 text-center py-8" ] [ text (t EventListEmpty) ]
 
                 else
                     div [ class "flex flex-col gap-4" ]
-                        (List.map (viewEvent authState) events)
+                        (List.map (viewEvent now authState) items)
         ]
 
 
-viewEvent : AuthState -> Event -> Html Msg
-viewEvent authState event =
-    div [ class "border rounded p-3 hover:bg-gray-50" ]
+{-| Reorder events so upcoming events appear before past events, preserving relative order.
+-}
+reorderEvents : Posix -> List Event -> List Event
+reorderEvents now eventsList =
+    let
+        isPast event =
+            case event.endDate |> Maybe.andThen parseUtcString of
+                Just endPosix ->
+                    posixToMillis endPosix < posixToMillis now
+
+                Nothing ->
+                    case parseUtcString event.startDate of
+                        Just startPosix ->
+                            posixToMillis startPosix < posixToMillis now
+
+                        Nothing ->
+                            False
+
+        ( past, upcoming ) =
+            List.foldl
+                (\r ( ps, us ) ->
+                    if isPast r then
+                        ( ps ++ [ r ], us )
+
+                    else
+                        ( ps, us ++ [ r ] )
+                )
+                ( [], [] )
+                eventsList
+
+        eventMillis e =
+            case e.endDate |> Maybe.andThen parseUtcString of
+                Just p ->
+                    posixToMillis p
+
+                Nothing ->
+                    case parseUtcString e.startDate of
+                        Just s ->
+                            posixToMillis s
+
+                        Nothing ->
+                            0
+
+        pastDesc =
+            List.sortBy (\e -> Basics.negate (eventMillis e)) past
+    in
+    upcoming ++ pastDesc
+
+
+viewEvent : Posix -> AuthState -> Event -> Html Msg
+viewEvent now authState event =
+    let
+        isPast ev =
+            case ev.endDate |> Maybe.andThen parseUtcString of
+                Just endPosix ->
+                    posixToMillis endPosix < posixToMillis now
+
+                Nothing ->
+                    case parseUtcString ev.startDate of
+                        Just startPosix ->
+                            posixToMillis startPosix < posixToMillis now
+
+                        Nothing ->
+                            False
+
+        classes =
+            if isPast event then
+                "border rounded p-3 hover:bg-gray-50 opacity-50"
+
+            else
+                "border rounded p-3 hover:bg-gray-50"
+    in
+    div [ class classes ]
         [ div [ class "flex items-start justify-between gap-4" ]
             [ div []
                 [ p [ class "text-sm text-gray-500" ] [ text (formatEventDateDisplay event) ]

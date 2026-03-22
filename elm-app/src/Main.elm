@@ -1323,10 +1323,10 @@ viewPage model =
             Page.Calendar.view model.authState calPage
 
         PageEventList evListPage ->
-            View.EventList.view model.authState evListPage
+            View.EventList.view model.authState model.now evListPage
 
         PageEvents evPage ->
-            View.Events.view model.authState evPage
+            Page.Events.view model.authState model.now evPage
 
         PageEventDetail id detPage ->
             View.EventDetail.view model.pbBaseUrl model.authState id detPage

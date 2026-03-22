@@ -11,6 +11,7 @@ module Page.Events exposing (init, view)
 import Api
 import Html exposing (Html)
 import RemoteData
+import Time exposing (Posix)
 import Types exposing (AuthState, EventsPage, FormStatus(..), KmlImportStatus(..), Msg, emptyEventFormData)
 import View.Events
 
@@ -43,6 +44,6 @@ init pbBaseUrl maybeToken =
             )
 
 
-view : AuthState -> EventsPage -> Html Msg
+view : AuthState -> Posix -> EventsPage -> Html Msg
 view =
     View.Events.view
