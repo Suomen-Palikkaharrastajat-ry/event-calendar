@@ -38,7 +38,7 @@ feedSelf :: String
 feedSelf = "https://kalenteri.palikkaharrastajat.fi/"
 
 feedDescription :: String
-feedDescription = "Suomen Palikkayhteisö ry:n Palikkakalenteri"
+feedDescription = "Suomen Palikkaharrastajat ry:n Palikkakalenteri"
 
 feedId :: String
 feedId = "https://kalenteri.palikkaharrastajat.fi/"
@@ -205,7 +205,7 @@ generateRss ctx events = do
             , "      " ++ xmlEl "url" feedLogoUrl
             , "      " ++ xmlEl "link" feedLink
             , "    </image>"
-            , "    " ++ xmlText "copyright" "Suomen Palikkayhteisö ry"
+            , "    " ++ xmlText "copyright" "Suomen Palikkaharrastajat ry"
             , "    <atom:link href=\""
                 ++ feedSelf
                 ++ "kalenteri.rss\" rel=\"self\" type=\"application/rss+xml\"/>"
@@ -257,7 +257,7 @@ buildAtomEntry ctx ev = do
             , "    <title type=\"html\">" ++ xmlEscape (feedItemTitle ev) ++ "</title>"
             , "    " ++ xmlText "published" (formatRfc3339 (PB.eventCreated ev))
             , "    " ++ xmlText "updated" (formatRfc3339 (PB.eventUpdated ev))
-            , "    <author><name>Suomen Palikkayhteisö ry</name></author>"
+            , "    <author><name>Suomen Palikkaharrastajat ry</name></author>"
             , "    <link rel=\"alternate\" href=\""
                 ++ maybe "" (xmlEscape . T.unpack) (PB.eventUrl ev)
                 ++ "\"/>"
@@ -283,11 +283,11 @@ generateAtom ctx events = do
             , "  " ++ xmlText "id" feedId
             , "  " ++ xmlText "subtitle" feedDescription
             , "  " ++ xmlText "updated" (formatRfc3339 now)
-            , "  " ++ xmlText "rights" "Suomen Palikkayhteisö ry"
+            , "  " ++ xmlText "rights" "Suomen Palikkaharrastajat ry"
             , "  " ++ xmlEl "logo" feedLogoUrl
             , "  " ++ xmlEl "icon" (Config.siteBaseUrl ++ "/favicon.ico")
             , "  " ++ xmlText "generator" "Emmet"
-            , "  <author><name>Suomen Palikkayhteisö ry</name><email>palikkaharrastajatry@outlook.com</email><uri>https://palikkaharrastajat.fi/</uri></author>"
+            , "  <author><name>Suomen Palikkaharrastajat ry</name><email>palikkaharrastajatry@outlook.com</email><uri>https://palikkaharrastajat.fi/</uri></author>"
             , concat entries
             , "</feed>"
             ]
@@ -308,7 +308,7 @@ jsonFeedItem ev =
             , "content_html" .= contentHtml
             , "date_published" .= formatRfc3339Ms (PB.eventCreated ev)
             , "date_modified" .= formatRfc3339Ms (PB.eventUpdated ev)
-            , "author" .= object ["name" .= ("Suomen Palikkayhteisö ry" :: String)]
+            , "author" .= object ["name" .= ("Suomen Palikkaharrastajat ry" :: String)]
             ]
         urlField = case PB.eventUrl ev of
             Just u -> ["url" .= T.unpack u]
@@ -333,7 +333,7 @@ generateJsonFeed events =
                         , "icon" .= feedLogoUrl
                         , "author"
                             .= object
-                                [ "name" .= ("Suomen Palikkayhteisö ry" :: String)
+                                [ "name" .= ("Suomen Palikkaharrastajat ry" :: String)
                                 , "url" .= ("https://palikkaharrastajat.fi/" :: String)
                                 ]
                         , "items" .= map jsonFeedItem events

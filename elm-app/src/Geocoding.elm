@@ -18,7 +18,7 @@ nominatimBase =
 
 userAgent : Http.Header
 userAgent =
-    Http.header "User-Agent" "SuomenPalikkayhteiso-Kalenteri/1.0"
+    Http.header "User-Agent" "SuomenPalikkaharrastajat-Kalenteri/1.0"
 
 
 {-| Geocode a location name to coordinates via Nominatim.

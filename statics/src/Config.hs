@@ -1,4 +1,4 @@
-{- | Shared URL constants for the Suomen Palikkayhteisö event calendar.
+{- | Shared URL constants for the Suomen Palikkaharrastajat event calendar.
 
 Import from this module for the canonical site URL and PocketBase API URL,
 instead of defining them independently in each generator module.

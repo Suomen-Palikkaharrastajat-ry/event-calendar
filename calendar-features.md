@@ -2,7 +2,7 @@
 
 **Stack:** SvelteKit 5 (Runes) + PocketBase + Tailwind CSS + Leaflet
 
-**Purpose:** Event management system for *Suomen Palikkayhteisö ry* (Finnish Parkour community), Finnish-language UI.
+**Purpose:** Event management system for *Suomen Palikkaharrastajat ry* (Finnish Parkour community), Finnish-language UI.
 
 ---
 

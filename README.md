@@ -1,6 +1,6 @@
 # Event Calendar
 
-Event calendar for Suomen Palikkayhteisö ry — built with Elm 0.19, Haskell, and PocketBase.
+Event calendar for Suomen Palikkaharrastajat ry — built with Elm 0.19, Haskell, and PocketBase.
 
 ## Features
 

@@ -1,7 +1,7 @@
 cabal-version: 2.2
 name:          statics
 version:       0.1.0.0
-synopsis:      Static file generator for the Suomen Palikkayhteisö event calendar
+synopsis:      Static file generator for the Suomen Palikkaharrastajat event calendar
 description:
   Fetches published events from PocketBase and generates:
   iCal feeds, RSS/Atom/JSON feeds, GeoJSON, printable HTML,
