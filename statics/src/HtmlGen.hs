@@ -40,7 +40,7 @@ qrCodeDataUri url = do
             (QR.defaultQRCodeOptions QR.M)
             QR.Iso8859_1OrUtf8WithoutECI
             (T.pack url)
-    return $ QRJP.toPngDataUrlS 4 2 code
+    return $ QRJP.toPngDataUrlS 4 8 code
 
 -- | Encode an ICS string as a base64 data URI for inline download links.
 icsDataUri :: String -> String
@@ -106,13 +106,14 @@ calendarCss =
             ++ " width: 24px; height: 24px; padding: 2px; border-radius: 2px;"
             ++ " background: white url(\""
             ++ calendarIconDataUri
-            ++ "\") no-repeat center/contain; }"
+            ++ "\") no-repeat center/contain;"
+            ++ " print-color-adjust: exact; -webkit-print-color-adjust: exact; }"
         ]
 
 eventPageCss :: String
 eventPageCss =
     unlines
-        [ "body { font-family: Arial, sans-serif; margin: 20px; max-width: 400px; margin: 0 auto; text-align: center; }"
+        [ "body { font-family: Arial, sans-serif; margin: 20px; max-width: 400px; padding: 0 1em; margin: 0 auto; text-align: center; }"
         , "h1 { color: #333; }"
         , "p { margin: 2ex 0; }"
         , "a { color: #0077cc; }"
@@ -153,6 +154,7 @@ renderCalendarEvent icsList ev = do
     H.div ! A.class_ "event" $ do
         H.div ! A.class_ "date-column" $ H.toHtml (DU.formatEventDate ev)
         H.div ! A.class_ "details-column" $ do
+            renderQrCode eventPageUrl
             -- Title with optional location
             H.h2 $ do
                 H.toHtml (PB.eventTitle ev)
@@ -247,7 +249,21 @@ generateEventHtml ev = do
                             ! A.href (H.toValue (T.unpack u))
                             ! A.target "_blank"
                         $ "Lue lisää\x2026"
-            return ()
+            -- QR code linking back to this page
+            case qrCodeDataUri eventPageUrl of
+                Nothing -> return ()
+                Just uri ->
+                    H.div ! A.style "margin-top: 1em;"
+                        $ H.div
+                            ! A.style
+                                "position: relative; display: inline-block;\
+                                \ width: 100px; height: 100px;"
+                        $ do
+                            H.img
+                                ! A.src (H.toValue uri)
+                                ! A.alt "QR-koodi sivulle"
+                                ! A.style "width: 100px; height: 100px;"
+                            H.div ! A.class_ "cal-icon" $ mempty
 
 -- ---------------------------------------------------------------------------
 -- Grouping helper
