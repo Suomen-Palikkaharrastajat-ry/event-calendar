@@ -91,6 +91,13 @@ jobs:
       - name: Build
         run: make dist
 
+      # ── Save statics binary for scheduled workflow ────────────────────────────
+
+      - uses: actions/cache@v4
+        with:
+          path: statics/statics
+          key: binary-statics-${{ runner.os }}-${{ hashFiles('statics/statics.cabal', 'cabal.project', 'statics/src/**/*.hs', 'statics/app/**/*.hs') }}
+
       # ── Upload artifact ───────────────────────────────────────────────────────
 
       - uses: actions/configure-pages@v5
