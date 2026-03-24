@@ -3,25 +3,8 @@ let
     { pkgs, config, ... }:
 
     {
-      # Downgrade PocketBase to match production (0.31.0).
-      # Override is needed because nixpkgs/master tracks the latest release.
-      # Hashes sourced from nixpkgs commit 594420d4 (pocketbase: 0.30.4 -> 0.31.0).
-      overlays = [
-        (final: prev: {
-          pocketbase = prev.pocketbase.overrideAttrs (
-            finalAttrs: old: {
-              version = "0.31.0";
-              src = final.fetchFromGitHub {
-                owner = "pocketbase";
-                repo = "pocketbase";
-                rev = "v${finalAttrs.version}";
-                hash = "sha256-YCYihhPq24JdJKAU8zr4h4z131zj4BN3Qh/y5tHmyRs=";
-              };
-              vendorHash = "sha256-wsPJIlsq4Q26cce69a0oqEalfDrNIMVFt8ufdj+WId4=";
-            }
-          );
-        })
-      ];
+      # Downgrade PocketBase to match production (0.31.0). See overlays.nix.
+      overlays = [ (import ./overlays.nix) ];
 
       # https://devenv.sh/basics/
       env.GREET = "devenv";
@@ -33,115 +16,10 @@ let
       # Elm 0.19 tools
       languages.elm.enable = true;
 
-      # Haskell (GHC + cabal + tools)
-      # Uses ghcWithPackages to provide a GHC with all statics/ and planet/ dependencies
+      # Haskell (GHC + cabal + HLS via languages.haskell.enable)
+      # Custom packages (qrcode-core, qrcode-juicypixels) defined in overrides.nix.
       languages.haskell.enable = true;
-      languages.haskell.package =
-        (pkgs.haskellPackages.override {
-          overrides = self: super: {
-            qrcode-core = super.callPackage (
-              {
-                mkDerivation,
-                base,
-                binary,
-                bytestring,
-                case-insensitive,
-                containers,
-                dlist,
-                primitive,
-                text,
-                vector,
-              }:
-              mkDerivation {
-                pname = "qrcode-core";
-                version = "0.9.11";
-                sha256 = "sha256-bYbshOLd8XarNGzIbopFLmc/3KAdYkHDH++l0cm2iaI=";
-                libraryHaskellDepends = [
-                  base
-                  binary
-                  bytestring
-                  case-insensitive
-                  containers
-                  dlist
-                  primitive
-                  text
-                  vector
-                ];
-              }
-            ) { };
-            qrcode-juicypixels = super.callPackage (
-              {
-                mkDerivation,
-                base,
-                base64-bytestring,
-                bytestring,
-                JuicyPixels,
-                qrcode-core,
-                text,
-                vector,
-              }:
-              mkDerivation {
-                pname = "qrcode-juicypixels";
-                version = "0.8.7";
-                sha256 = "sha256-4tZ8n18LK790VNUMkbSNDu4Jh7lc/2PvqVhQh1BIb/M=";
-                libraryHaskellDepends = [
-                  base
-                  base64-bytestring
-                  bytestring
-                  JuicyPixels
-                  qrcode-core
-                  text
-                  vector
-                ];
-              }
-            ) { };
-          };
-        }).ghcWithPackages
-          (
-            ps: with ps; [
-              # Core
-              aeson
-              http-client
-              http-client-tls
-              http-conduit
-              time
-              directory
-              filepath
-              text
-              bytestring
-              containers
-              vector
-              unordered-containers
-              scientific
-              uuid
-              base64-bytestring
-              async
-              # Feed generation
-              feed
-              blaze-html
-              blaze-markup
-              # Timezone
-              tz
-              tzdata
-              # Image / QR (statics/)
-              qrcode-core
-              qrcode-juicypixels
-              # XML / Atom (planet/)
-              xml-conduit
-              xml-types
-              tagsoup
-              uri-bytestring
-              toml-parser
-              # Testing
-              tasty
-              tasty-hunit
-              tasty-quickcheck
-              # Formatter
-              fourmolu
-              # Linter
-              hlint
-            ]
-          );
+      languages.haskell.package = pkgs.haskell.packages.ghc96.ghc;
 
       dotenv.enable = true;
 
@@ -169,6 +47,11 @@ let
         pocketbase # local PocketBase instance for testing
         treefmt # universal formatter runner
         cabal-install # Haskell build tool (cabal CLI)
+        entr # file watcher for make watch
+        haskell.packages.ghc96.hlint
+        haskell.packages.ghc96.fourmolu
+        elmPackages.elm-review
+        elmPackages.elm-json
         # elm-format is provided by languages.elm.enable
       ];
 
@@ -178,13 +61,15 @@ let
       # ── PocketBase local instance ────────────────────────────────────────────────
       # PocketBase has no built-in devenv service; run it as a process.
       # Data dir: .devenv/state/pocketbase/data  (already bootstrapped)
-      # Schema migrations: pb_migrations/ (run `pocketbase migrate` to apply)
+      # Schema migrations: fixtures/pb_migrations/ (run `pocketbase migrate` to apply)
       # Admin UI: http://127.0.0.1:8090/_/
       processes.pocketbase = {
-        # types.d.ts is auto-generated by PocketBase's JSVM plugin for IDE support but
-        # older PocketBase versions try to execute it as a JS migration and panic.
-        # Delete it before every start so only real *.js migrations are discovered.
-        exec = "pocketbase serve --dir=$DEVENV_ROOT/.devenv/state/pocketbase/data --http=127.0.0.1:8090 --migrationsDir=$DEVENV_ROOT/fixtures/pb_migrations";
+        exec = ''
+          pocketbase serve \
+            --dir="$DEVENV_ROOT/.devenv/state/pocketbase/data" \
+            --migrationsDir="$DEVENV_ROOT/fixtures/pb_migrations" \
+            --http=127.0.0.1:8090
+        '';
       };
 
       # ── Keycloak OIDC provider ───────────────────────────────────────────────────
@@ -206,13 +91,17 @@ let
       };
 
       enterShell = ''
-        hello
-        pnpm --version
-        echo "GHC: $(ghc --version)"
-        echo "cabal: $(cabal --version | head -1)"
-        echo "Elm: $(elm --version)"
-        echo "PocketBase: http://127.0.0.1:8090  (run: devenv up)"
-        echo "Keycloak:   http://localhost:8080   (run: devenv up)"
+        echo ""
+        echo "── event-calendar dev environment ───────────────────"
+        echo "  GHC:        $(ghc --version)"
+        echo "  Cabal:      $(cabal --version | head -1)"
+        echo "  Elm:        $(elm --version)"
+        echo "  pnpm:       $(pnpm --version)"
+        echo ""
+        echo "  devenv up   → start all services"
+        echo "  PocketBase: http://127.0.0.1:8090  (devenv up)"
+        echo "  Keycloak:   http://localhost:8080   (devenv up)"
+        echo ""
       '';
 
       # See full reference at https://devenv.sh/reference/options/

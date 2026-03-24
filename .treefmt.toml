@@ -1,8 +1,9 @@
-[formatter.haskell]
+[formatter.fourmolu]
 command = "fourmolu"
-options = [
-  "--mode",
-  "inplace",
-  "--check-idempotence"
-]
-includes = ["*.hs"]
+options = ["--mode", "inplace"]
+includes = ["statics/src/**/*.hs", "statics/app/**/*.hs", "statics/tests/**/*.hs"]
+
+[formatter.elm-format]
+command = "elm-format"
+options = ["--yes"]
+includes = ["elm-app/src/**/*.elm"]
