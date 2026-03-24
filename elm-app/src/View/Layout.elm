@@ -32,7 +32,7 @@ viewHeader authState menuOpen =
                         []
                     , img
                         [ src "/logos/horizontal-full-dark.png"
-                        , alt "Suomen Palikkaharrastajat"
+                        , alt "Suomen Palikkaharrastajat ry"
                         , class "h-14 w-auto"
                         ]
                         []

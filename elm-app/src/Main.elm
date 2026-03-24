@@ -1348,7 +1348,7 @@ pageTitle page =
             "Sivua ei löydy — Palikkakalenteri"
 
         PageCalendar _ ->
-            "Kalenteri — Palikkakalenteri"
+            "Palikkakalenteri"
 
         PageEventList _ ->
             "Tapahtumat — Palikkakalenteri"
