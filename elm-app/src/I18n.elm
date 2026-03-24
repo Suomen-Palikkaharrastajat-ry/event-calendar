@@ -84,7 +84,7 @@ t : MsgKey -> String
 t key =
     case key of
         AppTitle ->
-            "Suomen Palikkaharrastajat — Tapahtumat"
+            "Palikkakalenteri | Suomen Palikkaharrastajat ry"
 
         NavHome ->
             "Kalenteri"

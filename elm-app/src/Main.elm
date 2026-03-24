@@ -1339,33 +1339,33 @@ pageTitle : Page -> String
 pageTitle page =
     case page of
         PageLoading ->
-            "Ladataan... — Suomen Palikkaharrastajat"
+            "Ladataan... — Palikkakalenteri"
 
         PageAuthCallback ->
-            "Kirjautuminen — Suomen Palikkaharrastajat"
+            "Kirjautuminen — Palikkakalenteri"
 
         PageNotFound ->
-            "Sivua ei löydy — Suomen Palikkaharrastajat"
+            "Sivua ei löydy — Palikkakalenteri"
 
         PageCalendar _ ->
-            "Kalenteri — Suomen Palikkaharrastajat"
+            "Kalenteri — Palikkakalenteri"
 
         PageEventList _ ->
-            "Tapahtumat — Suomen Palikkaharrastajat"
+            "Tapahtumat — Palikkakalenteri"
 
         PageEvents _ ->
-            "Tapahtumat — Suomen Palikkaharrastajat"
+            "Tapahtumat — Palikkakalenteri"
 
         PageEventDetail _ detPage ->
             case detPage.event of
                 Success event ->
-                    event.title ++ " — Suomen Palikkaharrastajat"
+                    event.title ++ " — Palikkakalenteri"
 
                 _ ->
-                    "Tapahtuma — Suomen Palikkaharrastajat"
+                    "Tapahtuma — Palikkakalenteri"
 
         PageEventEdit _ _ ->
-            "Muokkaa tapahtumaa — Suomen Palikkaharrastajat"
+            "Muokkaa tapahtumaa — Palikkakalenteri"
 
 
 
