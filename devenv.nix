@@ -93,14 +93,15 @@ let
       enterShell = ''
         echo ""
         echo "── event-calendar dev environment ───────────────────"
-        echo "  GHC:        $(ghc --version)"
-        echo "  Cabal:      $(cabal --version | head -1)"
-        echo "  Elm:        $(elm --version)"
-        echo "  pnpm:       $(pnpm --version)"
+        echo "  GHC:    $(ghc --version)"
+        echo "  Cabal:  $(cabal --version | head -1)"
+        echo "  Elm:    $(elm --version)"
+        echo "  pnpm:   $(pnpm --version)"
         echo ""
-        echo "  devenv up   → start all services"
-        echo "  PocketBase: http://127.0.0.1:8090  (devenv up)"
-        echo "  Keycloak:   http://localhost:8080   (devenv up)"
+        echo "  make dist  — build statics + Elm app"
+        echo "  devenv up  — start all services"
+        echo "    PocketBase: http://127.0.0.1:8090"
+        echo "    Keycloak:   http://localhost:8080"
         echo ""
       '';
 
