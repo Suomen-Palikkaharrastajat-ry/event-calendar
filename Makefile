@@ -30,9 +30,12 @@ elm-dev: ## Start Elm + Vite dev server (hot reload)
 elm-dev-local: ## Start Elm + Vite dev server against local PocketBase
 	cd elm-app && VITE_POCKETBASE_URL=$(LOCAL_PB_URL) pnpm dev
 
-.PHONY: elm-build
-elm-build: ## Production build of Elm SPA → build/
+build/.elm-stamp: $(shell find elm-app/src -name '*.elm') elm-app/elm.json elm-app/package.json
 	cd elm-app && pnpm build
+	touch $@
+
+.PHONY: elm-build
+elm-build: build/.elm-stamp ## Production build of Elm SPA → build/
 
 .PHONY: elm-build-local
 elm-build-local: ## Production build of Elm SPA targeting local PocketBase
@@ -57,17 +60,25 @@ elm-format: ## Auto-format Elm source files
 
 # ── Haskell static generator ──────────────────────────────────────────────────
 
+HS_SOURCES := $(shell find statics/src statics/app -name '*.hs') statics/statics.cabal $(wildcard cabal.project*)
+
+statics/statics: $(HS_SOURCES)
+	cabal build statics --offline
+	cp $$(cabal list-bin statics) $@
+
 .PHONY: statics-build
-statics-build: ## Build Haskell static generator
-	cabal build statics
+statics-build: statics/statics ## Build Haskell static generator
+
+build/.statics-stamp: statics/statics
+	./statics/statics
+	touch $@
 
 .PHONY: statics
-statics: ## Generate static files (ics, rss, atom, html, geojson, images)
-	cabal run statics
+statics: build/.statics-stamp ## Generate static files (ics, rss, atom, html, geojson, images)
 
 .PHONY: statics-local
 statics-local: ## Generate static files against local PocketBase
-	POCKETBASE_URL=$(LOCAL_PB_URL) cabal run statics
+	POCKETBASE_URL=$(LOCAL_PB_URL) ./statics/statics
 
 .PHONY: statics-test
 statics-test: ## Run Haskell tests
@@ -98,7 +109,7 @@ watch: elm-dev ## Start development server
 build: elm-build ## Production build of Elm SPA
 
 .PHONY: dist
-dist: elm-build statics ## Full production build: Elm SPA + static files
+dist: build/.elm-stamp build/.statics-stamp ## Full production build: Elm SPA + static files
 	cp -r static/. build/
 
 .PHONY: dist-local
