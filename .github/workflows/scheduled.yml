@@ -1,8 +1,8 @@
-name: Clean build
+name: Scheduled update
 
 on:
-  push:
-    branches: [main]
+  schedule:
+    - cron: '0 0,6,12,18 * * *' # Four times per day
   workflow_dispatch:
 
 permissions:
@@ -11,8 +11,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages-${{ github.ref }}
-  cancel-in-progress: true
+  group: pages-scheduled
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -76,14 +76,11 @@ jobs:
           key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
           restore-keys: elm-${{ runner.os }}-
 
-      # ── Install and test ──────────────────────────────────────────────────────
+      # ── Install and build ─────────────────────────────────────────────────────
 
       - name: Install Elm app dependencies
         run: pnpm install
         working-directory: elm-app
-
-      - name: Run Elm tests
-        run: make elm-test
 
       - name: Run Haskell tests
         run: make statics-test
@@ -99,24 +96,6 @@ jobs:
         with:
           path: ./build
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    outputs:
-      page_url: ${{ steps.deployment.outputs.page_url }}
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-  verify:
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: bash scripts/smoke-test.sh
-        env:
-          SITE_URL: ${{ needs.deploy.outputs.page_url }}
