@@ -5,8 +5,45 @@
 @theme {
   --color-brand: #05131D;
   --color-brand-yellow: #FAC80A;
-  --color-red: #C91A09;
-  --font-family-sans: 'Outfit', system-ui, sans-serif;
+  --color-brand-red: #C91A09;
+  --font-sans: 'Outfit', system-ui, sans-serif;
+
+  /* ── Nougat palette ─────────────────────────────────── */
+  --color-brand-nougat-light: #F6D7B3;
+  --color-brand-nougat:       #D09168;
+  --color-brand-nougat-dark:  #AD6140;
+
+  /* ── Semantic text ──────────────────────────────────── */
+  --color-text-primary: #05131D;
+  --color-text-on-dark: #FFFFFF;
+  --color-text-muted:   #6B7280;
+  --color-text-subtle:  #9CA3AF;
+
+  /* ── Semantic backgrounds ───────────────────────────── */
+  --color-bg-page:   #FFFFFF;
+  --color-bg-dark:   #05131D;
+  --color-bg-subtle: #F9FAFB;
+  --color-bg-accent: #FAC80A;
+
+  /* ── Semantic borders ───────────────────────────────── */
+  --color-border-default: #E5E7EB;
+  --color-border-brand:   #05131D;
+
+  /* ── Motion ─────────────────────────────────────────── */
+  --duration-fast: 150ms;
+  --duration-base: 300ms;
+  --duration-slow: 500ms;
+  --ease-standard:   cubic-bezier(0.4, 0.0, 0.2, 1.0);
+  --ease-decelerate: cubic-bezier(0.0, 0.0, 0.2, 1.0);
+  --ease-accelerate: cubic-bezier(0.4, 0.0, 1.0, 1.0);
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+  }
 }
 
 /* Leaflet map container — must have explicit height */
@@ -45,12 +82,14 @@ button[disabled] {
   font-size: 3rem;
   font-weight: 700;
   line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 @utility type-h1 {
   font-size: 1.875rem;
   font-weight: 700;
   line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
 @utility type-h2 {
@@ -65,6 +104,18 @@ button[disabled] {
   line-height: 1.35;
 }
 
+@utility type-h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+@utility type-body {
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
 @utility type-body-small {
   font-size: 0.875rem;
   font-weight: 500;
@@ -75,24 +126,13 @@ button[disabled] {
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.4;
-}
-
-@utility type-h4 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-@utility type-body {
-  font-size: 1rem;
-  font-weight: 400;
-  line-height: 1.5;
+  letter-spacing: 0.02em;
 }
 
 @utility type-mono {
   font-size: 0.875rem;
   font-weight: 400;
-  line-height: 1.5;
+  line-height: 1.6;
   font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
 }
 
@@ -101,12 +141,40 @@ button[disabled] {
   font-weight: 600;
   line-height: 1.4;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
 }
 
-/* Suppress animated logo variants for users who prefer reduced motion */
+/* ── Reduced-motion ──────────────────────────────────────────────────────── */
+
 @media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
   .logo-animated {
     display: none;
   }
+}
+
+/* ── Shared components ───────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: no-preference) {
+  .card-hover:hover {
+    transform: translateY(-2px);
+    transition: transform var(--duration-base) var(--ease-standard);
+  }
+}
+
+.timeline-nav {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-default) transparent;
+}
+
+.timeline-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.timeline-nav::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-default);
+  border-radius: 3px;
 }

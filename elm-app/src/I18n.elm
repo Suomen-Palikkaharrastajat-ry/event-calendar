@@ -5,6 +5,7 @@ import Types exposing (EventState(..))
 
 type MsgKey
     = AppTitle
+    | NavbarTitle
     | NavHome
     | NavEvents
     | NavLogin
@@ -85,6 +86,9 @@ t key =
     case key of
         AppTitle ->
             "Palikkakalenteri | Suomen Palikkaharrastajat ry"
+
+        NavbarTitle ->
+            "Palikkakalenteri"
 
         NavHome ->
             "Kalenteri"

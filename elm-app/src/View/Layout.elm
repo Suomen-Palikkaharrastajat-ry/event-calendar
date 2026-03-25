@@ -13,37 +13,26 @@ import Types exposing (AuthState(..), Msg(..), Toast, ToastKind(..))
 
 viewHeader : AuthState -> Bool -> Html Msg
 viewHeader authState menuOpen =
-    header [ class "bg-brand text-white" ]
-        [ -- Main toolbar
-          div [ class "flex items-center justify-between p-4" ]
-            [ -- Logo left-aligned
-              a [ href (toHref (Route.RouteCalendar Nothing)), class "shrink-0" ]
-                [ Html.node "picture"
-                    []
-                    [ Html.node "source"
-                        [ type_ "image/svg+xml"
-                        , attribute "srcset" "/logos/horizontal-full-dark.svg"
-                        ]
-                        []
-                    , Html.node "source"
-                        [ type_ "image/webp"
-                        , attribute "srcset" "/logos/horizontal-full-dark.webp"
-                        ]
-                        []
-                    , img
-                        [ src "/logos/horizontal-full-dark.png"
-                        , alt "Suomen Palikkaharrastajat ry"
-                        , class "h-14 w-auto"
-                        ]
-                        []
+    header [ class "bg-brand border-b border-brand sticky top-0 z-50" ]
+        [ -- Short toolbar (h-14, matches planet design)
+          div [ class "flex items-center justify-between px-4 h-14" ]
+            [ -- Square logo + site name
+              a [ href (toHref (Route.RouteCalendar Nothing)), class "flex items-center gap-2" ]
+                [ img
+                    [ src "/logos/square/square-smile.svg"
+                    , alt ""
+                    , attribute "aria-hidden" "true"
+                    , class "h-8 w-8"
                     ]
+                    []
+                , span [ class "text-lg font-bold text-white" ] [ text (t NavbarTitle) ]
                 ]
             , -- Desktop nav + auth (hidden on mobile)
               div [ class "hidden md:flex items-center gap-6" ]
                 [ nav [ class "flex gap-4" ]
-                    [ a [ href (toHref (Route.RouteCalendar Nothing)), class "hover:underline" ]
+                    [ a [ href (toHref (Route.RouteCalendar Nothing)), class "text-white/80 hover:text-white hover:underline font-medium text-sm" ]
                         [ text (t NavHome) ]
-                    , a [ href (toHref Route.RouteEvents), class "hover:underline" ]
+                    , a [ href (toHref Route.RouteEvents), class "text-white/80 hover:text-white hover:underline font-medium text-sm" ]
                         [ text (t NavEvents) ]
                     ]
                 , viewAuthControls authState
@@ -51,8 +40,22 @@ viewHeader authState menuOpen =
             , -- Hamburger button (mobile only)
               button
                 [ onClick ToggleMenu
-                , class "md:hidden p-1 rounded hover:bg-white/10"
-                , attribute "aria-label" "Valikko"
+                , class "md:hidden p-2 rounded-lg text-white"
+                , style "cursor" "pointer"
+                , attribute "aria-label"
+                    (if menuOpen then
+                        "Sulje valikko"
+
+                     else
+                        "Avaa valikko"
+                    )
+                , attribute "aria-expanded"
+                    (if menuOpen then
+                        "true"
+
+                     else
+                        "false"
+                    )
                 ]
                 [ featherIcon
                     (if menuOpen then
@@ -69,12 +72,12 @@ viewHeader authState menuOpen =
             div [ class "md:hidden border-t border-white/20 px-4 py-3 flex flex-col items-end gap-3" ]
                 [ a
                     [ href (toHref (Route.RouteCalendar Nothing))
-                    , class "hover:underline"
+                    , class "text-white/80 hover:text-white hover:underline font-medium text-sm"
                     ]
                     [ text "Kalenteri" ]
                 , a
                     [ href (toHref Route.RouteEvents)
-                    , class "hover:underline"
+                    , class "text-white/80 hover:text-white hover:underline font-medium text-sm"
                     ]
                     [ text (t NavEvents) ]
                 , viewAuthControls authState
