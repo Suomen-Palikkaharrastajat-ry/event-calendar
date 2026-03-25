@@ -91,12 +91,19 @@ jobs:
 
       # ── Build ─────────────────────────────────────────────────────────────────
 
-      - name: Install Elm app dependencies
-        run: pnpm install
-        working-directory: elm-app
+      - name: Generate static files
+        run: |
+          mkdir -p build
+          ./statics/statics
 
-      - name: Build
-        run: make dist
+      - name: Build Elm App
+        run: |
+          cd elm-app
+          pnpm install
+          pnpm run build
+
+      - name: Copy static assets
+        run: cp -r static/. build/
 
       # ── Upload artifact ───────────────────────────────────────────────────────
 

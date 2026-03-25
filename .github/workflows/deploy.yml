@@ -88,6 +88,9 @@ jobs:
       - name: Run Haskell tests
         run: make statics-test
 
+      - name: Build statics binary
+        run: cabal build statics
+
       - name: Build
         run: make dist
 
