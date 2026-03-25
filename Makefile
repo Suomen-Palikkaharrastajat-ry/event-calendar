@@ -63,7 +63,7 @@ elm-format: ## Auto-format Elm source files
 HS_SOURCES := $(shell find statics/src statics/app -name '*.hs') statics/statics.cabal $(wildcard cabal.project*)
 
 statics/statics: $(HS_SOURCES)
-	cabal build statics --offline
+	cabal build statics
 	cp $$(cabal list-bin statics) $@
 
 .PHONY: statics-build
