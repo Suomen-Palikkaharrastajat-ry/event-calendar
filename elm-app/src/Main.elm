@@ -1035,7 +1035,11 @@ update msg model =
 
         -- ── Mobile menu ──────────────────────────────────────────────────────────
         ToggleMenu ->
-            ( { model | menuOpen = not model.menuOpen }, Cmd.none )
+            if model.menuOpen then
+                ( { model | menuOpen = False }, Cmd.none )
+
+            else
+                ( { model | menuOpen = True }, Ports.focusMobileNav () )
 
         -- ── Time ─────────────────────────────────────────────────────────────────
         Tick _ ->

@@ -69,7 +69,7 @@ viewHeader authState menuOpen =
             ]
         , -- Mobile dropdown menu
           if menuOpen then
-            div [ class "md:hidden border-t border-white/20 px-4 py-3 flex flex-col items-end gap-3" ]
+            div [ class "md:hidden border-t border-white/20 px-4 py-3 flex flex-col items-end gap-3", attribute "id" "ec-mobile-nav" ]
                 [ a
                     [ href (toHref (Route.RouteCalendar Nothing))
                     , class "text-white/80 hover:text-white hover:underline font-medium text-sm"

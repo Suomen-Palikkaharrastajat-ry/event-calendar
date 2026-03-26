@@ -30,6 +30,15 @@ const app = Elm.Main.init({
   flags,
 })
 
+// ── Nav ports ─────────────────────────────────────────────────────────────────
+
+app.ports.focusMobileNav.subscribe(function () {
+  requestAnimationFrame(function () {
+    const el = document.querySelector('#ec-mobile-nav a')
+    if (el) el.focus()
+  })
+})
+
 // ── Auth ports ────────────────────────────────────────────────────────────────
 
 app.ports.initiateOAuth.subscribe(async (pbBaseUrl) => {

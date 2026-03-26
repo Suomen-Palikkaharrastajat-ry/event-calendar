@@ -3,6 +3,7 @@ port module Ports exposing
     , clearAuthToken
     , destroyMap
       -- Map (inbound)
+    , focusMobileNav
     , getCallbackParams
       -- Auth (inbound)
     , initMap
@@ -20,6 +21,15 @@ port module Ports exposing
     )
 
 import Json.Decode as Json
+
+
+
+-- ── Nav ports ─────────────────────────────────────────────────────────────────
+
+
+{-| Focus the first nav item in the mobile menu.
+-}
+port focusMobileNav : () -> Cmd msg
 
 
 
