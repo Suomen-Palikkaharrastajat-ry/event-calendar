@@ -140,17 +140,26 @@ Run these checks in a real browser before releasing. Automated Elm/Haskell unit 
 
 The association's official design guide lives at **<https://logo.palikkaharrastajat.fi/>**. Machine-readable JSON-LD: <https://logo.palikkaharrastajat.fi/design-guide/index.jsonld>.
 
+**Agent CSS reference:** Fetch `https://logo.palikkaharrastajat.fi/brand.css` for the latest canonical `@theme`, `@utility type-*`, `@font-face`, reduced-motion rule, and shared component classes. Tailwind v4 requires `@theme` in the locally-processed file — copy the content into `elm-app/main.css`.
+
 ### Key design tokens
+
+Use semantic token classes from `elm-app/main.css` — never hard-code hex values.
 
 | Token | Value | Tailwind class |
 |---|---|---|
-| brand-black | `#05131D` | `bg-brand` / `text-brand` / `border-brand` |
-| brand-yellow | `#FAC80A` | `bg-brand-yellow` |
-| white | `#FFFFFF` | `text-white` / `bg-white` |
-| red (danger/accent) | `#C91A09` | `bg-red` (custom) |
-| text.muted | `#6B7280` | `text-gray-500` |
-| background.subtle | `#F9FAFB` | `bg-gray-50` |
-| border.default | `#E5E7EB` | `border-gray-200` |
+| `--color-brand` | `#05131D` | `bg-brand` / `text-brand` / `border-brand` |
+| `--color-brand-yellow` | `#FAC80A` | `bg-brand-yellow` / `bg-bg-accent` |
+| `--color-brand-red` | `#C91A09` | `bg-brand-red` / `text-brand-red` (danger/error only) |
+| `--color-text-primary` | `#05131D` | `text-text-primary` |
+| `--color-text-on-dark` | `#FFFFFF` | `text-text-on-dark` |
+| `--color-text-muted` | `#6B7280` | `text-text-muted` |
+| `--color-text-subtle` | `#9CA3AF` | `text-text-subtle` |
+| `--color-bg-page` | `#FFFFFF` | `bg-bg-page` |
+| `--color-bg-subtle` | `#F9FAFB` | `bg-bg-subtle` |
+| `--color-bg-dark` | `#05131D` | `bg-bg-dark` |
+| `--color-border-default` | `#E5E7EB` | `border-border-default` |
+| `--color-border-brand` | `#05131D` | `border-border-brand` |
 
 > **Note:** The canonical yellow value is `#FAC80A` (from `colors.jsonld`). Do not use `#F2CD37` — it is incorrect.
 
@@ -193,6 +202,20 @@ The association's official design guide lives at **<https://logo.palikkaharrasta
 - Avoid `text-gray-400` for body or label text — its contrast on white (~2.85:1) fails AA. Use `text-gray-500` (4.6:1) as the minimum for muted text.
 - Max content width is **1024 px** (`max-w-5xl` in Tailwind). Do not use `max-w-4xl` (896 px) for full-page containers.
 
+### Component Library (design-guide)
+
+The association maintains a shared UI component library in the **design-guide** repository (`git@github.com:Suomen-Palikkaharrastajat-ry/design-guide.git`). It contains 32 reusable Elm components under `src/Component/`.
+
+This project is an Elm SPA (not elm-pages), so components cannot be referenced via git submodule source-directories. Instead, **copy individual component files** from the design-guide repo:
+
+1. Browse components at https://logo.palikkaharrastajat.fi/komponentit
+2. Copy the relevant `.elm` file from `design-guide/src/Component/` into `elm-app/src/Component/`
+3. Note: `Component.Alert`, `Component.Dialog`, and `Component.Toast` each depend on `Component.CloseButton` — copy that too
+
+**Focus ring convention:** Use `focus-visible:ring-2 focus-visible:ring-brand` (keyboard-only — no ring on mouse click). Do NOT use `focus:ring-*`.
+
+**Available components:** Alert, Accordion, Badge, Breadcrumb, Button (with `ariaPressedState` for toggles), ButtonGroup, Card, CloseButton, Collapse, Dialog, DownloadButton, Dropdown, FeatureGrid, Footer, Hero, ListGroup, Navbar, Pagination, Placeholder, Pricing, Progress, SectionHeader, Spinner, Stats, Tabs, Tag, Timeline, Toast, Toggle, Tooltip — plus ColorSwatch and LogoCard (design-guide-specific).
+
 ### Rules for AI agents
 
 1. **Never hard-code hex colours** in Elm views or Haskell HTML generators. Use the Tailwind semantic class names (`bg-brand`, `text-brand`, `bg-brand-yellow`, `border-brand`, `border-gray-200`, etc.) or the `@theme` CSS variables.
@@ -202,13 +225,8 @@ The association's official design guide lives at **<https://logo.palikkaharrasta
 5. Check contrast before picking any colour pair. Refer to the `wcag` fields in `colors.jsonld` or the table above.
 6. The canonical brand yellow is **`#FAC80A`** — do not use `#F2CD37` (legacy incorrect value).
 
-## Security
-
-- **Primary colors** (dark violet): `primary-50` through `primary-900` (generates `bg-primary-*`, `text-primary-*`, etc.)
-- **Brand colors**: `brand-primary`, `brand-secondary`, `brand-accent`, `brand-dark`, `brand-highlight`
-
 ## Security Considerations
 
-- The application uses PocketBase for the backend, which is hosted at `https://data.palikkaharrastajat.fi`. Ensure that the PocketBase security rules are properly configured to prevent unauthorized access to data.
-- Authentication is handled via OAuth2 with an OIDC provider. The authentication logic is in `src/lib/auth.ts`.
-- When making changes to the authentication or data access logic, be sure to test thoroughly to prevent security vulnerabilities.
+- The backend is PocketBase at `https://data.palikkaharrastajat.fi`. Ensure PocketBase collection rules are correctly configured to prevent unauthorized reads/writes.
+- Authentication is OAuth2/OIDC via PocketBase. Auth logic lives in `elm-app/src/Auth.elm`.
+- When modifying auth or data-access logic, run `make test` and manually verify the E2E checklist above.
