@@ -17,6 +17,7 @@ elm-app/node_modules/
 # --- Haskell build artifacts ---
 dist-newstyle/
 .cabal/
+statics/statics
 
 # --- Elm build artifacts ---
 elm-app/elm-stuff/

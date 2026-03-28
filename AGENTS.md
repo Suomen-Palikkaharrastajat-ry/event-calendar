@@ -191,7 +191,7 @@ Use semantic token classes from `elm-app/main.css` — never hard-code hex value
 - Favicon set lives at `https://logo.palikkaharrastajat.fi/favicon/` — download all sizes to `elm-app/public/`.
 - **Never** stretch, recolour, shadow, or outline the logo.
 - **Never** display animated logo variants (`*-animated.webp/gif`) when `prefers-reduced-motion: reduce` is active.
-- In `HtmlGen.hs` static HTML, always use the self-hosted logo path (`/logos/horizontal-full.png`, etc.) — **never** load assets from `logo.palikkaharrastajat.fi` at runtime.
+- In `HtmlGen.hs` static HTML, always use the self-hosted logo path (`/logo/horizontal-full.png`, etc.) — **never** load assets from `logo.palikkaharrastajat.fi` at runtime.
 
 ### WCAG / accessibility rules
 

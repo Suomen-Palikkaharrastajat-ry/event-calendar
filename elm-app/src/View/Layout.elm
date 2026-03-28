@@ -20,7 +20,7 @@ viewHeader authState menuOpen =
             [ -- Square logo + site name
               a [ href (toHref (Route.RouteCalendar Nothing)), class "flex items-center gap-2" ]
                 [ img
-                    [ src "/logos/square/square-smile.svg"
+                    [ src "/logo/square/square-smile.svg"
                     , alt ""
                     , attribute "aria-hidden" "true"
                     , class "h-8 w-8"
@@ -241,7 +241,7 @@ viewBrandFooter =
                 [ -- Col 1: service links + logo
                   div [ class "flex items-start gap-4" ]
                     [ img
-                        [ src "/logos/square/square-smile-full-dark.svg"
+                        [ src "/logo/square/square-smile-full-dark-bold.svg"
                         , alt ""
                         , attribute "aria-hidden" "true"
                         , class "h-35 w-35 flex-shrink-0"

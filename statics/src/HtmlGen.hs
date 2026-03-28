@@ -58,9 +58,9 @@ siteLogo =
     H.div ! A.class_ "site-logo" $
         H.preEscapedToMarkup
             ( "<picture>"
-                ++ "<source type=\"image/svg+xml\" srcset=\"logos/horizontal-full.svg\">"
-                ++ "<source type=\"image/webp\" srcset=\"logos/horizontal-full.webp\">"
-                ++ "<img src=\"logos/horizontal-full.png\""
+                ++ "<source type=\"image/svg+xml\" srcset=\"logo/horizontal-full.svg\">"
+                ++ "<source type=\"image/webp\" srcset=\"logo/horizontal-full.webp\">"
+                ++ "<img src=\"logo/horizontal-full.png\""
                 ++ " alt=\"Suomen Palikkaharrastajat\" style=\"max-width:200px;height:auto;\">"
                 ++ "</picture>"
                 :: String
