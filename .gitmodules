@@ -1,0 +1,3 @@
+[submodule "vendor/design-guide"]
+	path = vendor/design-guide
+	url = git@github.com:Suomen-Palikkaharrastajat-ry/design-guide.git
