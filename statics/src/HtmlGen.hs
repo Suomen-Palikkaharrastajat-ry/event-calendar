@@ -101,6 +101,8 @@ calendarCss =
         , ".details-column p { margin: 1ex 0 1.5ex 0; hyphens: auto; }"
         , ".qrcode { display: none; }"
         , "@media print { .qrcode { display: flex; } .readmore { display: none; } }"
+        , ".event:focus { outline: 3px solid #0066cc; outline-offset: 4px; border-radius: 2px; cursor: default; }"
+        , "@media print { .event:focus { outline: none; } }"
         , ".cal-icon { position: absolute; top: 50%; left: 50%;"
             ++ " transform: translate(-50%,-50%);"
             ++ " width: 24px; height: 24px; padding: 2px; border-radius: 2px;"
@@ -108,6 +110,38 @@ calendarCss =
             ++ calendarIconDataUri
             ++ "\") no-repeat center/contain;"
             ++ " print-color-adjust: exact; -webkit-print-color-adjust: exact; }"
+        ]
+
+calendarJs :: String
+calendarJs =
+    unlines
+        [ "(function () {"
+        , "  document.addEventListener('keydown', function (e) {"
+        , "    var focused = document.activeElement;"
+        , "    var evts = Array.from(document.querySelectorAll('.event'));"
+        , "    if (!focused || !focused.classList.contains('event')) {"
+        , "      if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && evts.length > 0) {"
+        , "        e.preventDefault(); evts[0].focus();"
+        , "      }"
+        , "      return;"
+        , "    }"
+        , "    var idx = evts.indexOf(focused);"
+        , "    if (e.key === 'ArrowDown') {"
+        , "      e.preventDefault();"
+        , "      if (idx < evts.length - 1) evts[idx + 1].focus();"
+        , "    } else if (e.key === 'ArrowUp') {"
+        , "      e.preventDefault();"
+        , "      if (idx > 0) evts[idx - 1].focus();"
+        , "    } else if (e.key === 'Delete' || e.key === 'Backspace') {"
+        , "      e.preventDefault();"
+        , "      var next = evts[idx + 1] || evts[idx - 1];"
+        , "      var month = focused.closest('.month');"
+        , "      focused.remove();"
+        , "      if (month && month.querySelectorAll('.event').length === 0) month.remove();"
+        , "      if (next && document.body.contains(next)) next.focus();"
+        , "    }"
+        , "  });"
+        , "})();"
         ]
 
 eventPageCss :: String
@@ -151,7 +185,7 @@ renderCalendarEvent :: [(String, String)] -> PB.Event -> H.Html
 renderCalendarEvent icsList ev = do
     let ics = fromMaybe "" (lookup (PB.eventId ev) icsList)
     let eventPageUrl = Config.siteBaseUrl ++ "/events/" ++ PB.eventId ev ++ ".html"
-    H.div ! A.class_ "event" $ do
+    H.div ! A.class_ "event" ! A.tabindex "0" $ do
         H.div ! A.class_ "date-column" $ H.toHtml (DU.formatEventDate ev)
         H.div ! A.class_ "details-column" $ do
             renderQrCode eventPageUrl
@@ -207,6 +241,7 @@ generateCalendarHtml events = do
             H.h1 "Palikkakalenteri"
             H.div ! A.class_ "events" $
                 mapM_ (uncurry (renderMonth icsList)) grouped
+            H.script ! A.type_ "text/javascript" $ H.toHtml calendarJs
 
 -- ---------------------------------------------------------------------------
 -- Per-event landing page

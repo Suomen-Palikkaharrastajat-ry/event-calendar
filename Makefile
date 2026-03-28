@@ -70,6 +70,7 @@ statics/statics: $(HS_SOURCES)
 statics-build: statics/statics ## Build Haskell static generator
 
 build/.statics-stamp: statics/statics
+	mkdir -p build
 	./statics/statics
 	touch $@
 

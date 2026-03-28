@@ -39,8 +39,6 @@ library
     http-client,
     http-client-tls,
     time,
-    tz,
-    tzdata,
     blaze-html,
     blaze-markup,
     feed,
