@@ -94,7 +94,7 @@ t key =
             "Kalenteri"
 
         NavEvents ->
-            "Tapahtumat"
+            "Tulevat tapahtumat"
 
         NavLogin ->
             "Kirjaudu sisään"

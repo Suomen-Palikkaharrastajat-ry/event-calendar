@@ -446,5 +446,6 @@ type
     | DismissToast Int
       -- Mobile menu
     | ToggleMenu
+    | CloseMenu
       -- Subscriptions
     | Tick Time.Posix

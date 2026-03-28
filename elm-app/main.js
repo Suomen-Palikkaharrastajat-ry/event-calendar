@@ -34,8 +34,8 @@ const app = Elm.Main.init({
 
 app.ports.focusMobileNav.subscribe(function () {
   requestAnimationFrame(function () {
-    const el = document.querySelector('#ec-mobile-nav a')
-    if (el) el.focus()
+    const el = document.getElementById('mobile-nav-active') || document.querySelector('#mobile-nav a')
+    if (el) el.focus({ focusVisible: true })
   })
 })
 

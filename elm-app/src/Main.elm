@@ -1041,6 +1041,9 @@ update msg model =
             else
                 ( { model | menuOpen = True }, Ports.focusMobileNav () )
 
+        CloseMenu ->
+            ( { model | menuOpen = False }, Cmd.none )
+
         -- ── Time ─────────────────────────────────────────────────────────────────
         Tick _ ->
             ( model, Cmd.none )
@@ -1300,26 +1303,42 @@ view model =
             [ View.Layout.viewHeader model.authState model.menuOpen
             , div [ class "flex-1 max-w-5xl mx-auto w-full" ] [ viewPage model ]
             , View.Layout.viewFooter
+            , View.Layout.viewBrandFooter
+            , View.Layout.viewMobileOverlay model.menuOpen
+            , View.Layout.viewMobileDrawer model.menuOpen (activeMenuRoute model.url) model.authState
             ]
         , View.Layout.viewToasts model.toasts
         ]
     }
 
 
+activeMenuRoute : Url -> Maybe Route
+activeMenuRoute url =
+    case parseUrl url of
+        RouteCalendar _ ->
+            Just (RouteCalendar Nothing)
+
+        RouteEvents ->
+            Just RouteEvents
+
+        _ ->
+            Nothing
+
+
 viewPage : Model -> Html Msg
 viewPage model =
     case model.page of
         PageLoading ->
-            div [ class "p-8 text-center text-gray-500" ] [ text "Ladataan..." ]
+            div [ class "p-8 text-center text-text-muted" ] [ text "Ladataan..." ]
 
         PageAuthCallback ->
-            div [ class "p-8 text-center text-gray-500" ] [ text "Kirjaudutaan..." ]
+            div [ class "p-8 text-center text-text-muted" ] [ text "Kirjaudutaan..." ]
 
         PageNotFound ->
             div [ class "p-8 text-center" ]
-                [ div [ class "text-2xl font-bold mb-2" ] [ text "404" ]
-                , div [ class "text-gray-600 mb-4" ] [ text "Sivua ei löydy" ]
-                , a [ href (toHref (RouteCalendar Nothing)), class "text-blue-600 underline" ]
+                [ div [ class "type-h1 mb-2" ] [ text "404" ]
+                , div [ class "text-text-muted mb-4" ] [ text "Sivua ei löydy" ]
+                , a [ href (toHref (RouteCalendar Nothing)), class "text-brand underline" ]
                     [ text "Takaisin kalenteriin" ]
                 ]
 
@@ -1355,10 +1374,10 @@ pageTitle page =
             "Palikkakalenteri"
 
         PageEventList _ ->
-            "Tapahtumat — Palikkakalenteri"
+            "Tulevat tapahtumat — Palikkakalenteri"
 
         PageEvents _ ->
-            "Tapahtumat — Palikkakalenteri"
+            "Tulevat tapahtumat— Palikkakalenteri"
 
         PageEventDetail _ detPage ->
             case detPage.event of
@@ -1380,13 +1399,27 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     let
         keyboardSub =
-            case model.page of
-                PageEventDetail _ _ ->
-                    Browser.Events.onKeyDown
-                        (Json.map DetailKeyPressed (Json.field "key" Json.string))
+            if model.menuOpen then
+                Browser.Events.onKeyDown
+                    (Json.field "key" Json.string
+                        |> Json.andThen
+                            (\key ->
+                                if key == "Escape" then
+                                    Json.succeed CloseMenu
 
-                _ ->
-                    Sub.none
+                                else
+                                    Json.fail "not escape"
+                            )
+                    )
+
+            else
+                case model.page of
+                    PageEventDetail _ _ ->
+                        Browser.Events.onKeyDown
+                            (Json.map DetailKeyPressed (Json.field "key" Json.string))
+
+                    _ ->
+                        Sub.none
     in
     Sub.batch
         [ Ports.callbackParams
