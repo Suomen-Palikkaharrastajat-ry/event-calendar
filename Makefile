@@ -125,6 +125,10 @@ check: elm-check statics-check ## Run all linting/formatting checks
 .PHONY: format
 format: elm-format statics-format ## Auto-format all code
 
+.PHONY: vendor 
+vendor: ## Update all git submodules to latest remote HEAD
+	git submodule update --remote --merge
+
 .PHONY: clean
 clean: ## Remove build output
 	$(RM) -r build

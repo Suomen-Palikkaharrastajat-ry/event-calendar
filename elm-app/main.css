@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./public/fonts/outfit.css";
 @plugin "@tailwindcss/forms";
+@source "../vendor/design-guide/src";
 
 @theme {
   --color-brand: #05131D;
