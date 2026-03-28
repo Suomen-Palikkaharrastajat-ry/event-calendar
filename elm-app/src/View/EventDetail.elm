@@ -16,7 +16,7 @@ view pbBaseUrl authState _ detPage =
     div [ class "max-w-2xl mx-auto p-4" ]
         [ button
             [ onClick (NavigateTo (RouteCalendar Nothing))
-            , class "text-sm text-brand hover:underline mb-4 inline-block"
+            , class "type-caption text-brand hover:underline mb-4 inline-block"
             ]
             [ text (t DetailBack) ]
         , case detPage.event of
@@ -24,25 +24,25 @@ view pbBaseUrl authState _ detPage =
                 text ""
 
             RemoteData.Loading ->
-                div [ class "text-gray-500 text-center py-8" ] [ text (t Loading) ]
+                div [ class "text-text-muted text-center py-8" ] [ text (t Loading) ]
 
             RemoteData.Failure _ ->
-                div [ class "text-red-600 py-4" ] [ text (t ErrorUnknown) ]
+                div [ class "text-brand-red py-4" ] [ text (t ErrorUnknown) ]
 
             RemoteData.Success event ->
                 div []
                     [ div [ class "flex justify-between items-start mb-2" ]
-                        [ h1 [ class "text-2xl font-bold" ] [ text event.title ]
+                        [ h1 [ class "type-h1" ] [ text event.title ]
                         , if isAuthenticated authState then
                             div [ class "flex gap-2 ml-4 shrink-0" ]
                                 [ button
                                     [ onClick (NavigateTo (RouteEventEdit event.id))
-                                    , class "px-3 py-1 bg-brand text-white rounded hover:opacity-90 text-sm"
+                                    , class "px-3 py-1 bg-brand text-white rounded hover:opacity-90 type-caption"
                                     ]
                                     [ text (t DetailEdit) ]
                                 , button
                                     [ onClick DetailRequestDelete
-                                    , class "px-3 py-1 bg-red-700 text-white rounded hover:opacity-90 text-sm"
+                                    , class "px-3 py-1 bg-brand-red text-white rounded hover:opacity-90 type-caption"
                                     ]
                                     [ text (t DetailDelete) ]
                                 ]
@@ -51,30 +51,30 @@ view pbBaseUrl authState _ detPage =
                             text ""
                         ]
                     , if detPage.deleteConfirm then
-                        div [ class "flex items-center gap-3 p-3 mb-3 bg-red-50 border border-red-200 rounded" ]
-                            [ span [ class "text-red-700 font-medium" ] [ text "Poistetaanko tapahtuma?" ]
+                        div [ class "flex items-center gap-3 p-3 mb-3 bg-brand-red/10 border border-brand-red/30 rounded" ]
+                            [ span [ class "text-brand-red type-body-small" ] [ text "Poistetaanko tapahtuma?" ]
                             , button
                                 [ onClick DetailConfirmDelete
-                                , class "px-3 py-1 bg-red-700 text-white rounded hover:opacity-90 text-sm"
+                                , class "px-3 py-1 bg-brand-red text-white rounded hover:opacity-90 type-caption"
                                 ]
                                 [ text (t DetailDeleteConfirm) ]
                             , button
                                 [ onClick (NavigateTo (RouteCalendar Nothing))
-                                , class "px-3 py-1 border rounded hover:bg-gray-100 text-sm"
+                                , class "px-3 py-1 border rounded hover:bg-bg-subtle type-caption"
                                 ]
                                 [ text (t DetailDeleteCancel) ]
                             ]
 
                       else
                         text ""
-                    , p [ class "text-gray-600 mb-3" ] [ text (formatEventDateDisplay event) ]
+                    , p [ class "text-text-muted mb-3" ] [ text (formatEventDateDisplay event) ]
                     , case event.location of
                         Nothing ->
                             text ""
 
                         Just loc ->
                             div [ class "mb-3" ]
-                                [ span [ class "font-semibold mr-1" ] [ text (t DetailLocation ++ ":") ]
+                                [ span [ class "type-body-small mr-1" ] [ text (t DetailLocation ++ ":") ]
                                 , case event.point of
                                     Just pt ->
                                         a
@@ -98,7 +98,7 @@ view pbBaseUrl authState _ detPage =
                             text ""
 
                         Just desc ->
-                            div [ class "mb-4 whitespace-pre-line text-gray-800" ] [ text desc ]
+                            div [ class "mb-4 whitespace-pre-line text-text-primary" ] [ text desc ]
                     , case event.image of
                         Nothing ->
                             text ""

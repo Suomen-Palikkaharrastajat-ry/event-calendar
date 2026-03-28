@@ -74,13 +74,13 @@ view formData formStatus isEdit =
 viewEdit : EventEditPage -> Html Msg
 viewEdit editPage =
     div [ class "max-w-2xl mx-auto p-4" ]
-        [ h2 [ class "text-xl font-bold mb-4" ] [ text "Muokkaa tapahtumaa" ]
+        [ h2 [ class "type-h3 mb-4" ] [ text "Muokkaa tapahtumaa" ]
         , case editPage.event of
             RemoteData.Loading ->
-                div [ class "text-gray-500" ] [ text (t Loading) ]
+                div [ class "text-text-muted" ] [ text (t Loading) ]
 
             RemoteData.Failure _ ->
-                div [ class "text-red-600" ] [ text (t ErrorUnknown) ]
+                div [ class "text-brand-red" ] [ text (t ErrorUnknown) ]
 
             _ ->
                 viewSharedFields editFormMsgs editPage.form editPage.formStatus True
@@ -119,7 +119,7 @@ viewGeocodeSection msgs form =
         [ div [ class "flex items-center gap-2" ]
             [ button
                 [ onClick msgs.onToggleGeocode
-                , class "text-sm px-2 py-1 border rounded hover:bg-gray-100"
+                , class "type-caption px-2 py-1 border rounded hover:bg-bg-subtle"
                 ]
                 [ text
                     (if form.geocodingEnabled then
@@ -132,7 +132,7 @@ viewGeocodeSection msgs form =
             , if form.geocodingEnabled && not (String.isEmpty form.location) then
                 button
                     [ onClick msgs.onGeocode
-                    , class "text-sm px-2 py-1 bg-brand-yellow text-brand rounded hover:opacity-90"
+                    , class "type-caption px-2 py-1 bg-brand-yellow text-brand rounded hover:opacity-90"
                     ]
                     [ text (t FormGeocode) ]
 
@@ -142,31 +142,31 @@ viewGeocodeSection msgs form =
         , if not form.geocodingEnabled then
             div [ class "flex gap-2" ]
                 [ div [ class "flex-1" ]
-                    [ label [ class "text-sm text-gray-600 block mb-1" ] [ text (t FormLat) ]
+                    [ label [ class "type-caption text-text-muted block mb-1" ] [ text (t FormLat) ]
                     , input
                         [ type_ "number"
                         , value form.lat
                         , step "0.000001"
                         , onInput (msgs.onFieldChanged "lat")
-                        , class "w-full border rounded px-2 py-1 text-sm"
+                        , class "w-full border rounded px-2 py-1 type-caption"
                         ]
                         []
                     ]
                 , div [ class "flex-1" ]
-                    [ label [ class "text-sm text-gray-600 block mb-1" ] [ text (t FormLon) ]
+                    [ label [ class "type-caption text-text-muted block mb-1" ] [ text (t FormLon) ]
                     , input
                         [ type_ "number"
                         , value form.lon
                         , step "0.000001"
                         , onInput (msgs.onFieldChanged "lon")
-                        , class "w-full border rounded px-2 py-1 text-sm"
+                        , class "w-full border rounded px-2 py-1 type-caption"
                         ]
                         []
                     ]
                 ]
 
           else if not (String.isEmpty form.lat) && not (String.isEmpty form.lon) then
-            p [ class "text-xs text-gray-500" ]
+            p [ class "type-caption text-text-muted" ]
                 [ text (form.lat ++ ", " ++ form.lon) ]
 
           else
@@ -178,7 +178,7 @@ viewGeocodeSection msgs form =
 viewImageSection : FormMsgs -> Bool -> EventFormData -> Html Msg
 viewImageSection msgs showExistingIfPresent form =
     div [ class "flex flex-col gap-1" ]
-        [ label [ class "font-medium text-sm" ] [ text (t FormImage) ]
+        [ label [ class "type-body-small" ] [ text (t FormImage) ]
         , case form.imagePreviewUrl of
             Just previewUrl ->
                 div [ class "mb-2" ]
@@ -201,7 +201,7 @@ viewImageSection msgs showExistingIfPresent form =
             [ type_ "file"
             , accept "image/*"
             , on "change" (Json.map msgs.onFileSelected fileDecoder)
-            , class "text-sm"
+            , class "type-caption"
             ]
             []
         , input
@@ -209,7 +209,7 @@ viewImageSection msgs showExistingIfPresent form =
             , value form.imageDescription
             , onInput (msgs.onFieldChanged "imageDescription")
             , Html.Attributes.placeholder (t FormImageAlt)
-            , class "border rounded px-2 py-1 text-sm"
+            , class "border rounded px-2 py-1 type-caption"
             ]
             []
         ]
@@ -226,11 +226,11 @@ viewDateSection msgs form =
                 , id msgs.allDayCheckboxId
                 ]
                 []
-            , label [ for msgs.allDayCheckboxId, class "text-sm" ] [ text (t FormAllDay) ]
+            , label [ for msgs.allDayCheckboxId, class "type-caption" ] [ text (t FormAllDay) ]
             ]
         , div [ class "flex gap-2 flex-wrap" ]
             [ div []
-                [ label [ class "text-sm text-gray-600 block mb-1" ] [ text (t FormStartDate) ]
+                [ label [ class "type-caption text-text-muted block mb-1" ] [ text (t FormStartDate) ]
                 , input
                     [ type_ "date"
                     , value form.startDate
@@ -241,7 +241,7 @@ viewDateSection msgs form =
                 ]
             , if not form.allDay then
                 div []
-                    [ label [ class "text-sm text-gray-600 block mb-1" ] [ text (t FormStartTime) ]
+                    [ label [ class "type-caption text-text-muted block mb-1" ] [ text (t FormStartTime) ]
                     , input
                         [ type_ "time"
                         , value form.startTime
@@ -254,7 +254,7 @@ viewDateSection msgs form =
               else
                 text ""
             , div []
-                [ label [ class "text-sm text-gray-600 block mb-1" ] [ text (t FormEndDate) ]
+                [ label [ class "type-caption text-text-muted block mb-1" ] [ text (t FormEndDate) ]
                 , input
                     [ type_ "date"
                     , value form.endDate
@@ -265,7 +265,7 @@ viewDateSection msgs form =
                 ]
             , if not form.allDay then
                 div []
-                    [ label [ class "text-sm text-gray-600 block mb-1" ] [ text (t FormEndTime) ]
+                    [ label [ class "type-caption text-text-muted block mb-1" ] [ text (t FormEndTime) ]
                     , input
                         [ type_ "time"
                         , value form.endTime
@@ -288,7 +288,7 @@ Note: `Deleted` is intentionally absent — deletion is a separate action
 viewStateSelect : EventState -> (String -> Msg) -> Html Msg
 viewStateSelect currentState toMsg =
     div []
-        [ label [ class "font-medium text-sm block mb-1" ] [ text (t FormStatus) ]
+        [ label [ class "type-body-small block mb-1" ] [ text (t FormStatus) ]
         , select
             [ onInput toMsg
             , class "appearance-auto border rounded px-2 py-1"
@@ -324,7 +324,7 @@ viewFormButtons formStatus isEdit =
             ]
         , button
             [ onClick (NavigateTo RouteEvents)
-            , class "px-4 py-2 border rounded hover:bg-gray-100"
+            , class "px-4 py-2 border rounded hover:bg-bg-subtle"
             ]
             [ text (t FormCancel) ]
         ]
@@ -337,7 +337,7 @@ viewFormButtons formStatus isEdit =
 fieldText : String -> String -> String -> Bool -> (String -> String -> Msg) -> Html Msg
 fieldText fieldId labelText val required toMsg =
     div []
-        [ label [ for fieldId, class "font-medium text-sm block mb-1" ]
+        [ label [ for fieldId, class "type-body-small block mb-1" ]
             [ text
                 (if required then
                     labelText ++ " *"
@@ -360,7 +360,7 @@ fieldText fieldId labelText val required toMsg =
 fieldTextarea : String -> String -> String -> (String -> String -> Msg) -> Html Msg
 fieldTextarea fieldId labelText val toMsg =
     div []
-        [ label [ for fieldId, class "font-medium text-sm block mb-1" ] [ text labelText ]
+        [ label [ for fieldId, class "type-body-small block mb-1" ] [ text labelText ]
         , textarea
             [ id fieldId
             , value val

@@ -17,10 +17,11 @@ view authState page =
                 text ""
 
             Types.NotAuthenticated ->
-                p [ class "text-sm text-gray-500 mb-2" ]
+                p [ class "type-caption text-text-muted mb-2" ]
                     [ text (t SubmitByEmailText)
+                    , text " "
                     , a
-                        [ class "text-blue-500 underline"
+                        [ class "text-brand underline"
                         , attribute "href" "mailto:palikkaharrastajatry@outlook.com?subject=Uusi%20tapahtuma%20Palikkakalenteriin&body=Tapahtuman%20nimi%3A%0D%0A%0D%0ATarkempi%20kuvaus%3A%0D%0A%0D%0APaikkakunta%3A%0D%0A%0D%0AAlkaa%3A%0D%0A%0D%0AP%C3%A4%C3%A4ttyy%3A%0D%0A%0D%0AKotisivut%3A%0D%0A%0D%0A"
                         ]
                         [ text (t SubmitByEmailLinkText) ]
@@ -33,10 +34,10 @@ view authState page =
                         text ""
 
                     RemoteData.Loading ->
-                        div [ class "text-gray-500 text-center py-8" ] [ text (t Loading) ]
+                        div [ class "text-text-muted text-center py-8" ] [ text (t Loading) ]
 
                     RemoteData.Failure _ ->
-                        div [ class "text-red-600 text-center py-8" ] [ text (t ErrorUnknown) ]
+                        div [ class "text-brand-red text-center py-8" ] [ text (t ErrorUnknown) ]
 
                     RemoteData.Success events ->
                         viewMonthGrid page events
@@ -47,10 +48,10 @@ view authState page =
                         text ""
 
                     RemoteData.Loading ->
-                        div [ class "text-gray-500 text-center py-8" ] [ text (t Loading) ]
+                        div [ class "text-text-muted text-center py-8" ] [ text (t Loading) ]
 
                     RemoteData.Failure _ ->
-                        div [ class "text-red-600 text-center py-8" ] [ text (t ErrorUnknown) ]
+                        div [ class "text-brand-red text-center py-8" ] [ text (t ErrorUnknown) ]
 
                     RemoteData.Success events ->
                         viewListView page events
@@ -69,19 +70,19 @@ viewCalendarNav page =
     div [ class "flex items-center gap-4 mb-4 flex-wrap" ]
         [ button
             [ onClick (CalendarSetMonth prevY prevM)
-            , class "px-3 py-1 border rounded hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
+            , class "px-3 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
             ]
             [ text "‹" ]
         , span [ class "type-h3" ]
             [ text (finnishMonthName page.month ++ " " ++ String.fromInt page.year) ]
         , button
             [ onClick (CalendarSetMonth nextY nextM)
-            , class "px-3 py-1 border rounded hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
+            , class "px-3 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
             ]
             [ text "›" ]
         , button
             [ onClick (CalendarSetMonth page.todayYear page.todayMonth)
-            , class "px-3 py-1 border rounded hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
+            , class "px-3 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
             ]
             [ text (t CalToday) ]
         ]
@@ -90,7 +91,7 @@ viewCalendarNav page =
 viewMonthGrid : CalendarPage -> List Event -> Html Msg
 viewMonthGrid page events =
     div []
-        [ div [ class "grid grid-cols-7 text-center text-xs font-semibold text-gray-500 mb-1" ]
+        [ div [ class "grid grid-cols-7 text-center type-overline text-text-muted mb-1" ]
             (List.map (\d -> div [] [ text d ])
                 [ "Ma", "Ti", "Ke", "To", "Pe", "La", "Su" ]
             )
@@ -105,7 +106,7 @@ viewDayCell : CalendarPage -> List Event -> Maybe Int -> Html Msg
 viewDayCell page events maybeDay =
     case maybeDay of
         Nothing ->
-            div [ class "border-r border-b min-h-24 bg-gray-50" ] []
+            div [ class "border-r border-b min-h-24 bg-bg-subtle" ] []
 
         Just day ->
             let
@@ -129,17 +130,17 @@ viewDayCell page events maybeDay =
                 [ span
                     [ class
                         (if isToday then
-                            "text-xs font-bold text-white bg-brand rounded-full inline-flex items-center justify-center w-5 h-5 float-right"
+                            "type-caption text-white bg-brand rounded-full inline-flex items-center justify-center w-5 h-5 float-right"
 
                          else
-                            "text-xs text-gray-500 float-right"
+                            "type-caption text-text-muted float-right"
                         )
                     ]
                     [ text (String.fromInt day) ]
                 , div [ class "mt-5 flex flex-col gap-0.5 -mx-1" ]
                     (List.take 3 (List.map (\ev -> viewEventChip (chipPos page.year page.month day ev) ev) dayEvents)
                         ++ (if List.length dayEvents > 3 then
-                                [ div [ class "text-xs text-gray-500 mx-1" ]
+                                [ div [ class "type-caption text-text-muted mx-1" ]
                                     [ text ("+" ++ String.fromInt (List.length dayEvents - 3) ++ " lisää") ]
                                 ]
 
@@ -241,7 +242,7 @@ viewListView page events =
             List.filter (eventInMonth page.year page.month) events
     in
     if List.isEmpty monthEvents then
-        div [ class "text-gray-500 text-center py-8" ] [ text (t CalNoEvents) ]
+        div [ class "text-text-muted text-center py-8" ] [ text (t CalNoEvents) ]
 
     else
         div [ class "flex flex-col gap-4" ]
@@ -251,17 +252,17 @@ viewListView page events =
 viewListEvent : Event -> Html Msg
 viewListEvent event =
     div
-        [ class "border rounded p-3 cursor-pointer hover:bg-gray-50"
+        [ class "border rounded p-3 cursor-pointer hover:bg-bg-subtle"
         , onClick (CalendarClickEvent event.id)
         ]
-        [ p [ class "text-sm text-gray-500" ] [ text (formatEventDateDisplay event) ]
+        [ p [ class "type-caption text-text-muted" ] [ text (formatEventDateDisplay event) ]
         , h3 [ class "type-h4" ] [ text event.title ]
         , case event.location of
             Nothing ->
                 text ""
 
             Just loc ->
-                p [ class "text-sm text-gray-600" ] [ text loc ]
+                p [ class "type-caption text-text-muted" ] [ text loc ]
         ]
 
 

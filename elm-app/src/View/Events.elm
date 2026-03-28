@@ -29,11 +29,11 @@ import View.EventForm
 view : AuthState -> Posix -> EventsPage -> Html Msg
 view authState now evPage =
     div [ class "max-w-5xl mx-auto p-4" ]
-        [ h2 [ class "text-xl font-bold mb-4" ] [ text (t EventListTitle) ]
+        [ h2 [ class "type-h3 mb-4" ] [ text (t EventListTitle) ]
         , viewKmlSection authState evPage
         , if evPage.showNewForm then
-            div [ class "mb-6 p-4 border rounded bg-gray-50" ]
-                [ h2 [ class "text-lg font-semibold mb-3" ] [ text (t EventListNewEvent) ]
+            div [ class "mb-6 p-4 border rounded bg-bg-subtle" ]
+                [ h2 [ class "type-h4 mb-3" ] [ text (t EventListNewEvent) ]
                 , View.EventForm.view evPage.form evPage.formStatus False
                 ]
 
@@ -61,12 +61,12 @@ viewKmlSection authState evPage =
 
     else
         div [ class "mb-4 flex items-center gap-3 flex-wrap" ]
-            [ label [ class "text-sm font-medium" ] [ text (t KmlImport) ]
+            [ label [ class "type-body-small" ] [ text (t KmlImport) ]
             , input
                 [ type_ "file"
                 , accept ".kml"
                 , on "change" (Json.map EventsKmlFileSelected kmlFileDecoder)
-                , class "text-sm"
+                , class "type-caption"
                 ]
                 []
             , viewKmlStatus evPage.kmlImportStatus
@@ -80,18 +80,18 @@ viewKmlStatus status =
             text ""
 
         Types.KmlParsing ->
-            span [ class "text-sm text-gray-500" ] [ text (t I18n.KmlImporting) ]
+            span [ class "type-caption text-text-muted" ] [ text (t I18n.KmlImporting) ]
 
         Types.KmlImporting done total ->
-            span [ class "text-sm text-blue-600" ]
+            span [ class "type-caption text-brand" ]
                 [ text (String.fromInt done ++ " / " ++ String.fromInt total) ]
 
         Types.KmlDone n ->
-            span [ class "text-sm text-green-600" ]
+            span [ class "type-caption text-brand" ]
                 [ text (String.fromInt n ++ " " ++ t I18n.KmlDone) ]
 
         Types.KmlError err ->
-            span [ class "text-sm text-red-600" ] [ text (t I18n.KmlError ++ ": " ++ err) ]
+            span [ class "type-caption text-brand-red" ] [ text (t I18n.KmlError ++ ": " ++ err) ]
 
 
 
@@ -105,20 +105,20 @@ viewEventsTable now evPage =
             text ""
 
         RemoteData.Loading ->
-            div [ class "text-gray-500 text-center py-8" ] [ text (t Loading) ]
+            div [ class "text-text-muted text-center py-8" ] [ text (t Loading) ]
 
         RemoteData.Failure _ ->
-            div [ class "text-red-600 py-4" ] [ text (t ErrorUnknown) ]
+            div [ class "text-brand-red py-4" ] [ text (t ErrorUnknown) ]
 
         RemoteData.Success pbList ->
             if List.isEmpty pbList.items then
-                div [ class "text-gray-500 text-center py-8" ] [ text (t EventListEmpty) ]
+                div [ class "text-text-muted text-center py-8" ] [ text (t EventListEmpty) ]
 
             else
                 div []
-                    [ table [ class "w-full text-sm border-collapse" ]
+                    [ table [ class "w-full type-caption border-collapse" ]
                         [ thead []
-                            [ tr [ class "bg-gray-100 text-left" ]
+                            [ tr [ class "bg-bg-subtle text-left" ]
                                 [ th [ class "p-2 border" ] [ text "Nimi" ]
                                 , th [ class "p-2 border" ] [ text "Sijainti" ]
                                 , th [ class "p-2 border" ] [ text "Päivämäärä" ]
@@ -193,16 +193,16 @@ viewEventRow now event =
     let
         classes =
             if eventIsPast now event then
-                "hover:bg-gray-50 border-b opacity-50"
+                "hover:bg-bg-subtle border-b opacity-50"
 
             else
-                "hover:bg-gray-50 border-b"
+                "hover:bg-bg-subtle border-b"
     in
     tr [ class classes ]
         [ td [ class "p-2 border" ]
             [ a
                 [ href (toHref (RouteEventDetail event.id))
-                , class "hover:underline font-medium"
+                , class "hover:underline type-body-small"
                 ]
                 [ text
                     (String.left 40 event.title
@@ -215,7 +215,7 @@ viewEventRow now event =
                     )
                 ]
             ]
-        , td [ class "p-2 border text-gray-600" ]
+        , td [ class "p-2 border text-text-muted" ]
             [ case event.location of
                 Nothing ->
                     text "—"
@@ -238,7 +238,7 @@ viewEventRow now event =
                         Nothing ->
                             text (String.left 30 loc)
             ]
-        , td [ class "p-2 border text-gray-600 whitespace-nowrap" ]
+        , td [ class "p-2 border text-text-muted whitespace-nowrap" ]
             [ text (String.left 10 event.startDate) ]
         , td [ class "p-2 border" ]
             [ select
@@ -251,7 +251,7 @@ viewEventRow now event =
                             Nothing ->
                                 EventsStatusChanged event.id event.state
                     )
-                , class "appearance-auto border rounded px-1 py-0.5 text-xs"
+                , class "appearance-auto border rounded px-1 py-0.5 type-caption"
                 ]
                 [ option [ value "draft", selected (event.state == Draft) ] [ text (stateLabel Draft) ]
                 , option [ value "pending", selected (event.state == Pending) ] [ text (stateLabel Pending) ]
@@ -262,7 +262,7 @@ viewEventRow now event =
         , td [ class "p-2 border" ]
             [ a
                 [ href (toHref (RouteEventEdit event.id))
-                , class "text-brand hover:underline text-xs"
+                , class "text-brand hover:underline type-caption"
                 ]
                 [ text (t EventListEdit) ]
             ]
@@ -275,11 +275,11 @@ viewPagination pbList currentPage =
         text ""
 
     else
-        div [ class "flex items-center gap-3 mt-4 text-sm" ]
+        div [ class "flex items-center gap-3 mt-4 type-caption" ]
             [ button
                 [ onClick (EventsSetPage (currentPage - 1))
                 , Html.Attributes.disabled (currentPage <= 1)
-                , class "px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+                , class "px-3 py-1 border rounded hover:bg-bg-subtle disabled:opacity-50"
                 ]
                 [ text "‹ Edellinen" ]
             , span []
@@ -296,7 +296,7 @@ viewPagination pbList currentPage =
             , button
                 [ onClick (EventsSetPage (currentPage + 1))
                 , Html.Attributes.disabled (currentPage >= pbList.totalPages)
-                , class "px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+                , class "px-3 py-1 border rounded hover:bg-bg-subtle disabled:opacity-50"
                 ]
                 [ text "Seuraava ›" ]
             ]

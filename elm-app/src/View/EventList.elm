@@ -14,12 +14,12 @@ view : AuthState -> Posix -> EventListPage -> Html Msg
 view authState now page =
     div [ class "p-4" ]
         [ div [ class "flex items-center justify-between mb-4" ]
-            [ h1 [ class "text-2xl font-bold" ] [ text (t NavEvents) ]
+            [ h1 [ class "type-h1" ] [ text (t NavEvents) ]
             , case authState of
                 Authenticated _ ->
                     a
                         [ href (toHref RouteEventNew)
-                        , class "btn-primary text-sm"
+                        , class "btn-primary type-caption"
                         ]
                         [ text ("+ " ++ t EventListNewEvent) ]
 
@@ -31,10 +31,10 @@ view authState now page =
                 text ""
 
             RemoteData.Loading ->
-                div [ class "text-gray-500 text-center py-8" ] [ text (t Loading) ]
+                div [ class "text-text-muted text-center py-8" ] [ text (t Loading) ]
 
             RemoteData.Failure _ ->
-                div [ class "text-red-600 text-center py-8" ] [ text (t ErrorUnknown) ]
+                div [ class "text-brand-red text-center py-8" ] [ text (t ErrorUnknown) ]
 
             RemoteData.Success events ->
                 let
@@ -42,7 +42,7 @@ view authState now page =
                         reorderEvents now events
                 in
                 if List.isEmpty items then
-                    div [ class "text-gray-500 text-center py-8" ] [ text (t EventListEmpty) ]
+                    div [ class "text-text-muted text-center py-8" ] [ text (t EventListEmpty) ]
 
                 else
                     div [ class "flex flex-col gap-4" ]
@@ -117,16 +117,16 @@ viewEvent now authState event =
 
         classes =
             if isPast event then
-                "border rounded p-3 hover:bg-gray-50 opacity-50"
+                "border rounded p-3 hover:bg-bg-subtle opacity-50"
 
             else
-                "border rounded p-3 hover:bg-gray-50"
+                "border rounded p-3 hover:bg-bg-subtle"
     in
     div [ class classes ]
         [ div [ class "flex items-start justify-between gap-4" ]
             [ div []
-                [ p [ class "text-sm text-gray-500" ] [ text (formatEventDateDisplay event) ]
-                , h3 [ class "font-semibold" ]
+                [ p [ class "type-caption text-text-muted" ] [ text (formatEventDateDisplay event) ]
+                , h3 [ class "type-h4" ]
                     [ a
                         [ href (toHref (RouteEventDetail event.id))
                         , class "hover:underline"
@@ -138,13 +138,13 @@ viewEvent now authState event =
                         text ""
 
                     Just loc ->
-                        p [ class "text-sm text-gray-600" ] [ text loc ]
+                        p [ class "type-caption text-text-muted" ] [ text loc ]
                 ]
             , case authState of
                 Authenticated _ ->
                     a
                         [ href (toHref (RouteEventEdit event.id))
-                        , class "text-sm text-primary hover:underline shrink-0"
+                        , class "type-caption text-primary hover:underline shrink-0"
                         ]
                         [ text (t EventListEdit) ]
 
