@@ -252,7 +252,6 @@ generateEventHtml :: PB.Event -> IO String
 generateEventHtml ev = do
     ics <- ICalGen.generateEventIcs ev
     let dateStr = DU.formatEventDate ev
-    let eventPageUrl = Config.siteBaseUrl ++ "/events/" ++ PB.eventId ev ++ ".html"
     return $ renderHtml $ H.docTypeHtml ! A.lang "fi" $ do
         H.head $ do
             H.meta ! A.charset "UTF-8"
@@ -284,21 +283,6 @@ generateEventHtml ev = do
                             ! A.href (H.toValue (T.unpack u))
                             ! A.target "_blank"
                         $ "Lue lisää\x2026"
-            -- QR code linking back to this page
-            case qrCodeDataUri eventPageUrl of
-                Nothing -> return ()
-                Just uri ->
-                    H.div ! A.style "margin-top: 1em;"
-                        $ H.div
-                            ! A.style
-                                "position: relative; display: inline-block;\
-                                \ width: 100px; height: 100px;"
-                        $ do
-                            H.img
-                                ! A.src (H.toValue uri)
-                                ! A.alt "QR-koodi sivulle"
-                                ! A.style "width: 100px; height: 100px;"
-                            H.div ! A.class_ "cal-icon" $ mempty
 
 -- ---------------------------------------------------------------------------
 -- Grouping helper
