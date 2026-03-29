@@ -1,11 +1,13 @@
 module View.EventForm exposing (view, viewEdit)
 
+import FeatherIcons
 import File exposing (File)
 import Html exposing (Html, button, div, h2, img, input, label, option, p, select, text, textarea)
 import Html.Attributes exposing (accept, alt, checked, class, disabled, for, id, selected, src, step, type_, value)
 import Html.Events exposing (on, onCheck, onClick, onInput)
 import I18n exposing (MsgKey(..), stateLabel, t)
 import Json.Decode as Json
+import View.Icons exposing (featherIcon)
 import RemoteData
 import Route exposing (Route(..), toHref)
 import Types
@@ -121,14 +123,12 @@ viewGeocodeSection msgs form =
                 [ onClick msgs.onToggleGeocode
                 , class "type-caption px-2 py-1 border rounded hover:bg-bg-subtle"
                 ]
-                [ text
-                    (if form.geocodingEnabled then
-                        "📍 " ++ t FormGeocode
+                (if form.geocodingEnabled then
+                    [ featherIcon FeatherIcons.mapPin 14, text (" " ++ t FormGeocode) ]
 
-                     else
-                        "🌍 " ++ t FormManualCoords
-                    )
-                ]
+                 else
+                    [ featherIcon FeatherIcons.map 14, text (" " ++ t FormManualCoords) ]
+                )
             , if form.geocodingEnabled && not (String.isEmpty form.location) then
                 button
                     [ onClick msgs.onGeocode

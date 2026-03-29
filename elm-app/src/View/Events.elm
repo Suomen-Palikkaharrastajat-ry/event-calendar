@@ -1,12 +1,14 @@
 module View.Events exposing (view)
 
 import DateUtils exposing (formatEventDateDisplay, parseUtcString, toHelsinkiParts)
+import FeatherIcons
 import File
 import Html exposing (Html, a, button, div, h2, input, label, option, p, select, span, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (accept, class, href, selected, type_, value)
 import Html.Events exposing (on, onClick, onInput)
 import I18n exposing (MsgKey(..), stateLabel, t)
 import Json.Decode as Json
+import View.Icons exposing (featherIcon)
 import RemoteData exposing (RemoteData)
 import Route exposing (Route(..), toHref)
 import Time exposing (Posix, posixToMillis)
@@ -304,9 +306,9 @@ viewPagination pbList currentPage =
             [ button
                 [ onClick (EventsSetPage (currentPage - 1))
                 , Html.Attributes.disabled (currentPage <= 1)
-                , class "px-3 py-1 border rounded hover:bg-bg-subtle disabled:opacity-50"
+                , class "flex items-center gap-1 px-3 py-1 border rounded hover:bg-bg-subtle disabled:opacity-50"
                 ]
-                [ text "‹ Edellinen" ]
+                [ featherIcon FeatherIcons.chevronLeft 14, text " Edellinen" ]
             , span []
                 [ text
                     (t EventListPage
@@ -321,9 +323,9 @@ viewPagination pbList currentPage =
             , button
                 [ onClick (EventsSetPage (currentPage + 1))
                 , Html.Attributes.disabled (currentPage >= pbList.totalPages)
-                , class "px-3 py-1 border rounded hover:bg-bg-subtle disabled:opacity-50"
+                , class "flex items-center gap-1 px-3 py-1 border rounded hover:bg-bg-subtle disabled:opacity-50"
                 ]
-                [ text "Seuraava ›" ]
+                [ text "Seuraava ", featherIcon FeatherIcons.chevronRight 14 ]
             ]
 
 

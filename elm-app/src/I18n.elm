@@ -199,7 +199,7 @@ t key =
             "Peruuta"
 
         DetailBack ->
-            "← Takaisin"
+            "Takaisin"
 
         DetailLocation ->
             "Sijainti"

@@ -1,12 +1,14 @@
 module View.Calendar exposing (view)
 
 import DateUtils exposing (daysInMonth, finnishMonthName, formatEventDateDisplay, monthGrid, nextMonth, prevMonth, utcStringToHelsinkiDateInput)
+import FeatherIcons
 import Html exposing (Html, a, button, div, h3, p, span, text)
 import Html.Attributes exposing (attribute, class, classList, tabindex)
 import Html.Events exposing (onClick)
 import I18n exposing (MsgKey(..), t)
 import RemoteData exposing (RemoteData)
 import Types exposing (AuthState, CalendarPage, CalendarViewMode(..), Event, Msg(..))
+import View.Icons exposing (featherIcon)
 
 
 view : AuthState -> CalendarPage -> Html Msg
@@ -70,16 +72,16 @@ viewCalendarNav page =
     div [ class "flex items-center gap-4 mb-4 flex-wrap" ]
         [ button
             [ onClick (CalendarSetMonth prevY prevM)
-            , class "px-3 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
+            , class "px-2 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
             ]
-            [ text "‹" ]
+            [ featherIcon FeatherIcons.chevronLeft 16 ]
         , span [ class "type-h3" ]
             [ text (finnishMonthName page.month ++ " " ++ String.fromInt page.year) ]
         , button
             [ onClick (CalendarSetMonth nextY nextM)
-            , class "px-3 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
+            , class "px-2 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
             ]
-            [ text "›" ]
+            [ featherIcon FeatherIcons.chevronRight 16 ]
         , button
             [ onClick (CalendarSetMonth page.todayYear page.todayMonth)
             , class "px-3 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"

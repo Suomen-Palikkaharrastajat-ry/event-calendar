@@ -2,10 +2,12 @@ module View.EventDetail exposing (view)
 
 import Api
 import DateUtils exposing (formatEventDateDisplay)
+import FeatherIcons
 import Html exposing (Html, a, button, div, h1, img, p, span, text)
 import Html.Attributes exposing (alt, class, href, src, target)
 import Html.Events exposing (onClick)
 import I18n exposing (MsgKey(..), t)
+import View.Icons exposing (featherIcon)
 import RemoteData exposing (RemoteData)
 import Route exposing (Route(..), toHref)
 import Types exposing (AuthState(..), EventDetailPage, Msg(..), isAuthenticated)
@@ -16,9 +18,9 @@ view pbBaseUrl authState _ detPage =
     div [ class "max-w-2xl mx-auto p-4" ]
         [ button
             [ onClick (NavigateTo (RouteCalendar Nothing))
-            , class "type-caption text-brand hover:underline mb-4 inline-block"
+            , class "flex items-center gap-1 type-caption text-brand hover:underline mb-4"
             ]
-            [ text (t DetailBack) ]
+            [ featherIcon FeatherIcons.arrowLeft 14, text (t DetailBack) ]
         , case detPage.event of
             RemoteData.NotAsked ->
                 text ""
