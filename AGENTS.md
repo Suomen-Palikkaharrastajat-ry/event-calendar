@@ -206,11 +206,24 @@ Use semantic token classes from `elm-app/main.css` — never hard-code hex value
 
 The association maintains a shared UI component library in the **design-guide** repository (`git@github.com:Suomen-Palikkaharrastajat-ry/design-guide.git`). It contains 32 reusable Elm components under `src/Component/`.
 
-This project is an Elm SPA (not elm-pages), so components cannot be referenced via git submodule source-directories. Instead, **copy individual component files** from the design-guide repo:
+This project uses the design-guide as a **git submodule** at `vendor/design-guide/`. The path is already included in `elm-app/elm.json` source-directories, so components are imported directly:
 
-1. Browse components at https://logo.palikkaharrastajat.fi/komponentit
-2. Copy the relevant `.elm` file from `design-guide/src/Component/` into `elm-app/src/Component/`
-3. Note: `Component.Alert`, `Component.Dialog`, and `Component.Toast` each depend on `Component.CloseButton` — copy that too
+```elm
+import Component.Button as Button
+import Component.Card as Card
+import Component.Alert as Alert
+```
+
+**Submodule management:**
+```bash
+# After cloning event-calendar:
+git submodule update --init
+
+# To pull latest design-guide changes:
+git submodule update --remote vendor/design-guide
+```
+
+Note: `Component.Alert`, `Component.Dialog`, and `Component.Toast` each depend on `Component.CloseButton`.
 
 **Focus ring convention:** Use `focus-visible:ring-2 focus-visible:ring-brand` (keyboard-only — no ring on mouse click). Do NOT use `focus:ring-*`.
 

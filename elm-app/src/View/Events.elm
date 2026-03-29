@@ -1,6 +1,6 @@
 module View.Events exposing (view)
 
-import DateUtils exposing (formatEventDateDisplay, parseUtcString)
+import DateUtils exposing (formatEventDateDisplay, parseUtcString, toHelsinkiParts)
 import File
 import Html exposing (Html, a, button, div, h2, input, label, option, p, select, span, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (accept, class, href, selected, type_, value)
@@ -141,17 +141,42 @@ Preserves relative order within each group.
 -}
 eventIsPast : Posix -> Event -> Bool
 eventIsPast now event =
-    case event.endDate |> Maybe.andThen parseUtcString of
-        Just endPosix ->
-            posixToMillis endPosix < posixToMillis now
+    let
+        dateIsPast posix =
+            let
+                p =
+                    toHelsinkiParts posix
 
-        Nothing ->
-            case parseUtcString event.startDate of
-                Just startPosix ->
-                    posixToMillis startPosix < posixToMillis now
+                n =
+                    toHelsinkiParts now
+            in
+            ( p.year, p.month, p.day ) < ( n.year, n.month, n.day )
+    in
+    if event.allDay then
+        case event.endDate |> Maybe.andThen parseUtcString of
+            Just endPosix ->
+                dateIsPast endPosix
 
-                Nothing ->
-                    False
+            Nothing ->
+                case parseUtcString event.startDate of
+                    Just startPosix ->
+                        dateIsPast startPosix
+
+                    Nothing ->
+                        False
+
+    else
+        case event.endDate |> Maybe.andThen parseUtcString of
+            Just endPosix ->
+                posixToMillis endPosix < posixToMillis now
+
+            Nothing ->
+                case parseUtcString event.startDate of
+                    Just startPosix ->
+                        posixToMillis startPosix < posixToMillis now
+
+                    Nothing ->
+                        False
 
 
 reorderEvents : Posix -> List Event -> List Event

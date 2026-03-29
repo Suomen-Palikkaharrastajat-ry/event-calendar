@@ -1,6 +1,6 @@
 module View.EventList exposing (view)
 
-import DateUtils exposing (formatEventDateDisplay, parseUtcString)
+import DateUtils exposing (formatEventDateDisplay, parseUtcString, toHelsinkiParts)
 import Html exposing (Html, a, div, h1, h3, p, text)
 import Html.Attributes exposing (class, href)
 import I18n exposing (MsgKey(..), t)
@@ -56,17 +56,42 @@ reorderEvents : Posix -> List Event -> List Event
 reorderEvents now eventsList =
     let
         isPast event =
-            case event.endDate |> Maybe.andThen parseUtcString of
-                Just endPosix ->
-                    posixToMillis endPosix < posixToMillis now
+            let
+                dateIsPast posix =
+                    let
+                        p =
+                            toHelsinkiParts posix
 
-                Nothing ->
-                    case parseUtcString event.startDate of
-                        Just startPosix ->
-                            posixToMillis startPosix < posixToMillis now
+                        n =
+                            toHelsinkiParts now
+                    in
+                    ( p.year, p.month, p.day ) < ( n.year, n.month, n.day )
+            in
+            if event.allDay then
+                case event.endDate |> Maybe.andThen parseUtcString of
+                    Just endPosix ->
+                        dateIsPast endPosix
 
-                        Nothing ->
-                            False
+                    Nothing ->
+                        case parseUtcString event.startDate of
+                            Just startPosix ->
+                                dateIsPast startPosix
+
+                            Nothing ->
+                                False
+
+            else
+                case event.endDate |> Maybe.andThen parseUtcString of
+                    Just endPosix ->
+                        posixToMillis endPosix < posixToMillis now
+
+                    Nothing ->
+                        case parseUtcString event.startDate of
+                            Just startPosix ->
+                                posixToMillis startPosix < posixToMillis now
+
+                            Nothing ->
+                                False
 
         ( past, upcoming ) =
             List.foldl
@@ -103,17 +128,42 @@ viewEvent : Posix -> AuthState -> Event -> Html Msg
 viewEvent now authState event =
     let
         isPast ev =
-            case ev.endDate |> Maybe.andThen parseUtcString of
-                Just endPosix ->
-                    posixToMillis endPosix < posixToMillis now
+            let
+                dateIsPast posix =
+                    let
+                        p =
+                            toHelsinkiParts posix
 
-                Nothing ->
-                    case parseUtcString ev.startDate of
-                        Just startPosix ->
-                            posixToMillis startPosix < posixToMillis now
+                        n =
+                            toHelsinkiParts now
+                    in
+                    ( p.year, p.month, p.day ) < ( n.year, n.month, n.day )
+            in
+            if ev.allDay then
+                case ev.endDate |> Maybe.andThen parseUtcString of
+                    Just endPosix ->
+                        dateIsPast endPosix
 
-                        Nothing ->
-                            False
+                    Nothing ->
+                        case parseUtcString ev.startDate of
+                            Just startPosix ->
+                                dateIsPast startPosix
+
+                            Nothing ->
+                                False
+
+            else
+                case ev.endDate |> Maybe.andThen parseUtcString of
+                    Just endPosix ->
+                        posixToMillis endPosix < posixToMillis now
+
+                    Nothing ->
+                        case parseUtcString ev.startDate of
+                            Just startPosix ->
+                                posixToMillis startPosix < posixToMillis now
+
+                            Nothing ->
+                                False
 
         classes =
             if isPast event then

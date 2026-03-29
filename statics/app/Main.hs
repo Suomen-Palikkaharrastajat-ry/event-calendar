@@ -10,7 +10,8 @@ import qualified PocketBase
 import Control.Exception (SomeException, try)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (fromMaybe)
-import Data.Time (UTCTime (..), getCurrentTime, utctDay)
+import Data.Time (Day, LocalTime (..), UTCTime (..), ZonedTime (..), getCurrentTime, utctDay)
+import qualified DateUtils as DU
 import GHC.IO.Encoding (setLocaleEncoding, utf8)
 import System.Directory (createDirectoryIfMissing)
 import System.Exit (ExitCode (..), exitWith)
@@ -44,8 +45,9 @@ run = do
 
     -- Determine upcoming events (used for all feeds and the calendar HTML)
     now <- getCurrentTime
-    let today = UTCTime (utctDay now) 0
-        upcomingEvents = filter (isUpcoming today) events
+    let todayUtc = UTCTime (utctDay now) 0
+        todayHki = localDay (zonedTimeToLocalTime (DU.toHelsinki now))
+        upcomingEvents = filter (isUpcoming todayHki todayUtc) events
 
     -- Generate per-event ICS for ALL events (needed for event HTML pages)
     putStrLn "Generating iCal feeds..."
@@ -99,8 +101,13 @@ writeStaticFile :: FilePath -> String -> IO ()
 writeStaticFile path content = do
     writeFile path content
 
--- | True if an event's effective end (end_date if set, else start_date) is today or later.
-isUpcoming :: UTCTime -> PocketBase.Event -> Bool
-isUpcoming today ev =
+{- | True if an event's effective end (end_date if set, else start_date) is today or later.
+All-day events compare by Helsinki calendar date (their dates are stored as Helsinki midnight
+converted to UTC, so UTC midnight comparison would incorrectly exclude events ending "today").
+-}
+isUpcoming :: Day -> UTCTime -> PocketBase.Event -> Bool
+isUpcoming todayHki todayUtc ev =
     let effective = fromMaybe (PocketBase.eventStartDate ev) (PocketBase.eventEndDate ev)
-     in effective >= today
+     in if PocketBase.eventAllDay ev
+            then localDay (zonedTimeToLocalTime (DU.toHelsinki effective)) >= todayHki
+            else effective >= todayUtc
