@@ -1,12 +1,12 @@
 # AGENTS.md
 
-This file provides instructions for AI coding agents working with this project.
+This file provides instructions for AI coding agents working on this project.
 
 ## Project Overview
 
 Event calendar for *Suomen Palikkaharrastajat ry*, built with **Elm 0.19 SPA** (frontend) and a **Haskell static generator** (feeds, HTML, images), backed by **PocketBase**.
 
-The project was migrated from SvelteKit 5 in early 2026. There is **no TypeScript, no Svelte, no ESLint, and no Prettier** in the current codebase. Ignore any references to those tools in older docs.
+The project was migrated from SvelteKit 5 in early 2026. There is **no TypeScript, no Svelte, no ESLint, no Prettier, and no pnpm** in the current codebase. Ignore any references to those tools in older docs.
 
 ## Repository Layout
 
@@ -16,14 +16,17 @@ elm-app/          Elm 0.19 SPA (Vite + vite-plugin-elm + Tailwind CSS 4)
   src/Page/       Page-level Elm modules (Calendar, Events, EventDetail, EventEdit)
   src/View/       View helpers (Layout, Calendar, Events, EventForm, EventDetail, MapWidget, EventList)
   tests/          Elm unit tests — elm-explorations/test (81 tests)
-  public/         Static assets (Leaflet marker icons)
+  public/         Static assets (Leaflet marker icons, fonts, logo)
 statics/          Haskell static generator (Cabal)
   src/            Library modules (PocketBase, DateUtils, ICalGen, FeedGen, GeoJsonGen, HtmlGen, ImageFetcher)
   app/Main.hs     Executable entry point
   tests/Main.hs   Haskell tests — tasty (72 tests)
 static/           Files copied verbatim into build/ (e.g. .nojekyll)
-refactoring-plan/ Migration documentation (historical reference only)
-.github/workflows CI/CD: build.yml (push to main → GitHub Pages), hourly-build.yml
+pkgs/             Nix-managed npm packages (vite, elm-test, Tailwind, etc.)
+  npm-tools.nix   Nix derivation — wraps vite and elm-test as standalone binaries
+  package.json    npm manifest for pkgs/npm-tools.nix
+  package-lock.json  Lockfile for pkgs/npm-tools.nix
+.github/workflows CI/CD: deploy.yml (push to main → GitHub Pages), scheduled.yml (hourly build)
 ```
 
 ## Development Environment
@@ -39,6 +42,25 @@ make develop   # creates devenv.local.nix + devenv.local.yaml, opens VS Code
 ```sh
 make shell
 ```
+
+### npm / node_modules
+
+All npm packages (vite, vite-plugin-elm, @tailwindcss/vite, elm-test, leaflet, pocketbase, …) are managed by the Nix derivation in `pkgs/npm-tools.nix`. There is no `package.json` in the project root or in `elm-app/`.
+
+When `devenv shell` starts, `enterShell` creates two symlinks pointing at the Nix store:
+```
+node_modules      → <nix-store>/event-calendar-npm-tools/lib/node_modules
+elm-app/node_modules → same
+```
+
+These symlinks let `vite build` and `elm-test` resolve packages when run from either the repo root or `elm-app/`.
+
+**To update npm dependencies:**
+1. Edit `pkgs/package.json`
+2. Generate a new lockfile: `npm install --package-lock-only --ignore-scripts` (needs `nodejs_22` available)
+3. Set `hash = pkgs.lib.fakeHash;` in `pkgs/npm-tools.nix`
+4. Run `devenv shell` — it fails with `got: sha256-…` in the error
+5. Paste that sha256 into `pkgs/npm-tools.nix`
 
 ## Build and Test Commands
 
@@ -84,24 +106,23 @@ All commands are defined in the `Makefile`. Run them from the repo root:
 - `PageEventList` is the public events list page; the calendar has no list-view toggle.
 - Maps use **Leaflet** via Elm ports (`elm-app/src/Ports.elm`). Geocoding uses Nominatim.
 - Auth is OAuth2/OIDC via PocketBase. `requireAuth` takes a `Browser.Navigation.Key`.
-- PocketBase URL is compiled in via `elm-app/src/Api.elm`. For local dev, set `POCKETBASE_URL`.
+- PocketBase URL is compiled in via `elm-app/src/Api.elm`. For local dev, set `VITE_POCKETBASE_URL`.
 - `RemoteData` (krisajenkins/remotedata) is used for async API state.
 - Pagination uses a custom `PbList a` wrapper (not plain `List a`).
 
 ### Haskell Static Generator
 - Fetches live events from PocketBase REST API (`statics/src/PocketBase.hs`).
 - Generates: iCal (ICalGen), RSS/Atom/JSON Feed (FeedGen), GeoJSON (GeoJsonGen), printable HTML + per-event pages (HtmlGen), event images (ImageFetcher).
-- QR codes via `qrcode-juicypixels` (custom Nix override): use `QRJP.toPngDataUrlS`.
 - ICS files embedded in feeds as `text/calendar` enclosures (base64-encoded).
 - `statics/app/Main.hs` calls `setLocaleEncoding utf8` — required because the devcontainer locale ≠ UTF-8.
 - `iCalendar` Haskell library is unmaintained; ICalGen.hs uses manual RFC 5545 text generation instead.
 
 ## Known Gotchas
 
-- **elm-test wrapper**: pnpm installs a broken Node-wrapping `elm` binary. The `make elm-test` target rewrites `elm-app/node_modules/.bin/elm` to call the system ELF binary directly. Do not remove this workaround.
 - **cabal vs stack**: `planet/` (reference implementation) uses Stack — it is **not** part of `cabal.project`. The `cabal.project` file manages only `statics/`.
-- **GHC version**: 9.10.3 (via devenv/Nix). CI uses `haskell-actions/setup` with `ghc-version: '9.10'`.
+- **GHC version**: 9.6.7 (via devenv/Nix). CI uses `haskell-actions/setup` with `ghc-version: '9.6'`.
 - **JSON decoders in Elm tests**: `Json.Decode.decodeString` returns `Result Json.Error a`, not `Result String a`.
+- **node_modules are symlinks**: `elm-app/node_modules` points into the Nix store (read-only). Do not run `npm install` or `pnpm install` inside `elm-app/` — it will break the symlink. Add deps via `pkgs/package.json` instead.
 
 ## Manual E2E Test Checklist
 
@@ -133,8 +154,7 @@ Run these checks in a real browser before releasing. Automated Elm/Haskell unit 
 - [ ] `build/kalenteri.ics` opens in a calendar app and shows all published events
 - [ ] `build/kalenteri.rss` validates at https://validator.w3.org/feed/
 - [ ] `build/kalenteri.atom` validates at https://validator.w3.org/feed/
-- [ ] `build/kalenteri.html` renders correctly in a browser; QR codes visible when printing
-- [ ] A per-event `.html` page (e.g. `build/events/<id>.html`) renders with title, date, and QR code
+- [ ] `build/kalenteri.html` renders correctly in a browser
 
 ## Style Guide
 

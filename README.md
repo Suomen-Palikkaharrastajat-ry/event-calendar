@@ -12,7 +12,6 @@ Event calendar for Suomen Palikkaharrastajat ry — built with Elm 0.19, Haskell
 - Finnish UI with Helsinki timezone support (DST-aware)
 - Static feed exports: iCal, RSS, Atom, JSON Feed, GeoJSON
 - Printable HTML calendar and per-event landing pages
-- QR codes on event pages
 
 ## Tech Stack
 
@@ -36,16 +35,13 @@ Install [devenv](https://devenv.sh/) then run:
 make develop
 ```
 
-This bootstraps a Nix-based shell with GHC 9.10, Cabal, Elm 0.19.1, elm-format, pnpm, and all other tools.
+This bootstraps a Nix-based shell with GHC 9.6, Cabal, Elm 0.19.1, Vite, and all other tools.
 
 ### Getting Started
 
 ```sh
 # Enter the dev shell
 make shell
-
-# Install Elm app dependencies (first time only)
-cd elm-app && pnpm install && cd ..
 
 # Update Cabal package index (first time only)
 cabal update
@@ -58,8 +54,11 @@ The app will be available at `http://localhost:5173`.
 
 ### Configuration
 
-The PocketBase URL is set at compile time in `elm-app/src/Api.elm`.
-The live instance is at `https://data.palikkaharrastajat.fi`.
+The PocketBase URL defaults to the live instance at `https://data.palikkaharrastajat.fi`.
+For local development, set `VITE_POCKETBASE_URL` (Elm SPA) and `POCKETBASE_URL` (static generator)
+via `.env` or the `*-local` Makefile targets.
+
+A local PocketBase instance and Keycloak OIDC provider are available via `devenv up`.
 
 ### Useful Commands
 
@@ -81,12 +80,12 @@ make clean        # Remove build/
 elm-app/          Elm 0.19 SPA (frontend)
   src/            Elm source modules
   tests/          Elm tests (elm-test)
-  public/         Static assets (marker icons, etc.)
+  public/         Static assets (marker icons, fonts, logo)
 statics/          Haskell static generator
   src/            Haskell library modules
   app/            Haskell executable entry point
   tests/          Haskell tests (cabal test)
-refactoring-plan/ Migration documentation
+static/           Files copied verbatim into build/
 .github/workflows CI/CD (GitHub Actions → GitHub Pages)
 ```
 
