@@ -23,91 +23,21 @@ jobs:
         with:
           submodules: true
 
-      # ── Restore statics binary ────────────────────────────────────────────────
-
-      - uses: actions/cache/restore@v4
-        id: binary-cache
+      - uses: cachix/install-nix-action@v31
         with:
-          path: statics/statics
-          key: binary-statics-${{ runner.os }}-${{ hashFiles('statics/statics.cabal', 'cabal.project', 'statics/src/**/*.hs', 'statics/app/**/*.hs') }}
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - if: steps.binary-cache.outputs.cache-hit != 'true'
-        name: Setup GHC and Cabal (fallback build)
-        uses: haskell-actions/setup@v2
+      - uses: cachix/cachix-action@v16
         with:
-          ghc-version: '9.6'
-          cabal-version: 'latest'
+          name: palikkaharrastajat
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          extraPullNames: devenv
 
-      - if: steps.binary-cache.outputs.cache-hit != 'true'
-        id: date
-        run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+      - name: Install devenv
+        run: nix profile install nixpkgs#devenv
 
-      - if: steps.binary-cache.outputs.cache-hit != 'true'
-        uses: actions/cache@v4
-        with:
-          path: ~/.cabal/packages
-          key: cabal-index-${{ runner.os }}-${{ steps.date.outputs.date }}
-          restore-keys: cabal-index-${{ runner.os }}-
-
-      - if: steps.binary-cache.outputs.cache-hit != 'true'
-        run: cabal update
-
-      - if: steps.binary-cache.outputs.cache-hit != 'true'
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cabal/store
-            dist-newstyle
-          key: cabal-${{ runner.os }}-${{ hashFiles('statics/statics.cabal', 'cabal.project') }}
-          restore-keys: |
-            cabal-${{ runner.os }}-
-
-      - if: steps.binary-cache.outputs.cache-hit != 'true'
-        run: make statics-build
-
-      - run: chmod +x statics/statics
-
-      # ── Node / Elm caches ─────────────────────────────────────────────────────
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-          cache-dependency-path: 'elm-app/pnpm-lock.yaml'
-
-      - name: Install Elm
-        run: npm install -g elm@0.19.1
-
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.elm
-            elm-app/elm-stuff
-          key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
-          restore-keys: elm-${{ runner.os }}-
-
-      # ── Build ─────────────────────────────────────────────────────────────────
-
-      - name: Generate static files
-        run: |
-          mkdir -p build
-          ./statics/statics
-
-      - name: Build Elm App
-        run: |
-          cd elm-app
-          pnpm install
-          pnpm run build
-
-      - name: Copy static assets
-        run: cp -r static/. build/
-
-      # ── Upload artifact ───────────────────────────────────────────────────────
+      - name: Build
+        run: devenv shell -- make dist
 
       - uses: actions/configure-pages@v5
 

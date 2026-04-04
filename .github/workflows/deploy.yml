@@ -23,87 +23,27 @@ jobs:
         with:
           submodules: true
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: cachix/install-nix-action@v31
         with:
-          version: 10
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: cachix/cachix-action@v16
         with:
-          node-version: '20'
-          cache: 'pnpm'
-          cache-dependency-path: 'elm-app/pnpm-lock.yaml'
+          name: palikkaharrastajat
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          extraPullNames: devenv
 
-      - name: Install Elm
-        run: npm install -g elm@0.19.1
-
-      - name: Setup GHC and Cabal
-        uses: haskell-actions/setup@v2
-        with:
-          ghc-version: '9.6'
-          cabal-version: 'latest'
-
-      # ── Cabal package index cache (daily) ────────────────────────────────────
-
-      - id: date
-        run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cabal/packages
-          key: cabal-index-${{ runner.os }}-${{ steps.date.outputs.date }}
-          restore-keys: cabal-index-${{ runner.os }}-
-
-      - run: cabal update
-
-      # ── Cabal store cache ─────────────────────────────────────────────────────
-
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cabal/store
-            dist-newstyle
-          key: cabal-${{ runner.os }}-${{ hashFiles('statics/statics.cabal', 'cabal.project') }}
-          restore-keys: |
-            cabal-${{ runner.os }}-
-
-      # ── Elm cache ─────────────────────────────────────────────────────────────
-
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.elm
-            elm-app/elm-stuff
-          key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
-          restore-keys: elm-${{ runner.os }}-
-
-      # ── Install and test ──────────────────────────────────────────────────────
-
-      - name: Install Elm app dependencies
-        run: pnpm install
-        working-directory: elm-app
+      - name: Install devenv
+        run: nix profile install nixpkgs#devenv
 
       - name: Run Elm tests
-        run: make elm-test
+        run: devenv shell -- make elm-test
 
       - name: Run Haskell tests
-        run: make statics-test
-
-      - name: Build statics binary
-        run: cabal build statics
+        run: devenv shell -- make statics-test
 
       - name: Build
-        run: make dist
-
-      # ── Save statics binary for scheduled workflow ────────────────────────────
-
-      - uses: actions/cache@v4
-        with:
-          path: statics/statics
-          key: binary-statics-${{ runner.os }}-${{ hashFiles('statics/statics.cabal', 'cabal.project', 'statics/src/**/*.hs', 'statics/app/**/*.hs') }}
-
-      # ── Upload artifact ───────────────────────────────────────────────────────
+        run: devenv shell -- make dist
 
       - uses: actions/configure-pages@v5
 

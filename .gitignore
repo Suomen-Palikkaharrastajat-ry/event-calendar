@@ -7,7 +7,7 @@
 .devenv*
 devenv.local.nix
 devenv.local.yaml
-.direnv
+.vite/
 
 # --- Dependencies ---
 node_modules/
