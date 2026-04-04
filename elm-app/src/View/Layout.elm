@@ -3,12 +3,12 @@ module View.Layout exposing (viewBrandFooter, viewFooter, viewHeader, viewMobile
 import Component.MobileDrawer as MobileDrawer
 import FeatherIcons
 import Html exposing (Html, a, button, div, footer, h3, header, img, li, nav, p, span, text, ul)
-import View.Icons exposing (featherIcon)
 import Html.Attributes exposing (alt, attribute, class, href, src, style)
 import Html.Events exposing (onClick)
 import I18n exposing (MsgKey(..), t)
 import Route exposing (Route(..), toHref)
 import Types exposing (AuthState(..), Msg(..), Toast, ToastKind(..))
+import View.Icons exposing (featherIcon)
 
 
 viewHeader : AuthState -> Bool -> Html Msg

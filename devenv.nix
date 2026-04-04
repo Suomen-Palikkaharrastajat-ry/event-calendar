@@ -1,17 +1,12 @@
 let
   shell =
     { pkgs, config, ... }:
-
+    let
+      npmTools = pkgs.callPackage ./pkgs/npm-tools.nix { };
+    in
     {
       # Downgrade PocketBase to match production (0.31.0). See overlays.nix.
       overlays = [ (import ./overlays.nix) ];
-
-      # https://devenv.sh/basics/
-      env.GREET = "devenv";
-
-      # JavaScript / Node.js (for Vite, pnpm, elm-test, etc.)
-      languages.javascript.enable = true;
-      languages.javascript.pnpm.enable = true;
 
       # Elm 0.19 tools
       languages.elm.enable = true;
@@ -22,6 +17,11 @@ let
       languages.haskell.package = pkgs.haskell.packages.ghc96.ghc;
 
       dotenv.enable = true;
+
+      # Vite must be able to `require()` packages like @tailwindcss/vite and
+      # vite-plugin-elm at runtime. npmTools bundles the full node_modules tree;
+      # expose it via NODE_PATH.
+      env.NODE_PATH = "${npmTools}/lib/node_modules";
 
       # ── PocketBase URL (statics + Elm frontend) ──────────────────────────────────
       # Both the statics generator and the Elm frontend default to the production
@@ -53,10 +53,9 @@ let
         elmPackages.elm-review
         elmPackages.elm-json
         # elm-format is provided by languages.elm.enable
+        nodejs_22
+        npmTools # provides vite and elm-test bins
       ];
-
-      # https://devenv.sh/scripts/
-      scripts.hello.exec = "echo hello from $GREET";
 
       # ── PocketBase local instance ────────────────────────────────────────────────
       # PocketBase has no built-in devenv service; run it as a process.
@@ -91,12 +90,20 @@ let
       };
 
       enterShell = ''
+        # ESM `import` does not respect NODE_PATH; only CJS `require()` does.
+        # vite.config.mjs uses `import` for @tailwindcss/vite and vite-plugin-elm,
+        # so we symlink node_modules → the Nix store tree so Node's standard
+        # module resolution finds them both from the repo root and from elm-app/.
+        ln -sfn "${npmTools}/lib/node_modules" node_modules
+        ln -sfn "${npmTools}/lib/node_modules" elm-app/node_modules
+
         echo ""
         echo "── event-calendar dev environment ───────────────────"
         echo "  GHC:    $(ghc --version)"
         echo "  Cabal:  $(cabal --version | head -1)"
         echo "  Elm:    $(elm --version)"
-        echo "  pnpm:   $(pnpm --version)"
+        echo "  Node:   $(node --version)"
+        echo "  Vite:   $(vite --version)"
         echo ""
         echo "  make dist  — build statics + Elm app"
         echo "  devenv up  — start all services"

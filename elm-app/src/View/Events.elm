@@ -8,7 +8,6 @@ import Html.Attributes exposing (accept, class, href, selected, type_, value)
 import Html.Events exposing (on, onClick, onInput)
 import I18n exposing (MsgKey(..), stateLabel, t)
 import Json.Decode as Json
-import View.Icons exposing (featherIcon)
 import RemoteData exposing (RemoteData)
 import Route exposing (Route(..), toHref)
 import Time exposing (Posix, posixToMillis)
@@ -26,6 +25,7 @@ import Types
         , isAuthenticated
         )
 import View.EventForm
+import View.Icons exposing (featherIcon)
 
 
 view : AuthState -> Posix -> EventsPage -> Html Msg

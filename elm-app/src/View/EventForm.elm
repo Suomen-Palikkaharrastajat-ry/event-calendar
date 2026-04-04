@@ -7,7 +7,6 @@ import Html.Attributes exposing (accept, alt, checked, class, disabled, for, id,
 import Html.Events exposing (on, onCheck, onClick, onInput)
 import I18n exposing (MsgKey(..), stateLabel, t)
 import Json.Decode as Json
-import View.Icons exposing (featherIcon)
 import RemoteData
 import Route exposing (Route(..), toHref)
 import Types
@@ -19,6 +18,7 @@ import Types
         , FormStatus(..)
         , Msg(..)
         )
+import View.Icons exposing (featherIcon)
 import View.MapWidget
 
 

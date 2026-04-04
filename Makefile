@@ -24,14 +24,14 @@ devenv.local.yaml:
 
 .PHONY: elm-dev
 elm-dev: ## Start Elm + Vite dev server (hot reload)
-	cd elm-app && pnpm dev
+	cd elm-app && vite
 
 .PHONY: elm-dev-local
 elm-dev-local: ## Start Elm + Vite dev server against local PocketBase
-	cd elm-app && VITE_POCKETBASE_URL=$(LOCAL_PB_URL) pnpm dev
+	cd elm-app && VITE_POCKETBASE_URL=$(LOCAL_PB_URL) vite
 
-build/.elm-stamp: $(shell find elm-app/src -name '*.elm') elm-app/elm.json elm-app/package.json
-	cd elm-app && pnpm build
+build/.elm-stamp: $(shell find elm-app/src -name '*.elm') elm-app/elm.json
+	cd elm-app && vite build
 	touch $@
 
 .PHONY: elm-build
@@ -39,16 +39,11 @@ elm-build: build/.elm-stamp ## Production build of Elm SPA → build/
 
 .PHONY: elm-build-local
 elm-build-local: ## Production build of Elm SPA targeting local PocketBase
-	cd elm-app && VITE_POCKETBASE_URL=$(LOCAL_PB_URL) pnpm build
+	cd elm-app && VITE_POCKETBASE_URL=$(LOCAL_PB_URL) vite build
 
 .PHONY: elm-test
 elm-test: ## Run Elm unit tests
-	# pnpm wraps the elm binary through node (breaks on ELF); use system elm directly
-	@ELM_BIN=$$(which elm) && \
-		mkdir -p elm-app/node_modules/.bin && \
-		printf '#!/bin/sh\nexec "%s" "$$@"\n' "$$ELM_BIN" \
-		> elm-app/node_modules/.bin/elm && chmod +x elm-app/node_modules/.bin/elm
-	cd elm-app && pnpm test
+	cd elm-app && elm-test
 
 .PHONY: elm-check
 elm-check: ## Check Elm formatting (no changes)

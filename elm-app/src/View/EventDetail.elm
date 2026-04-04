@@ -7,10 +7,10 @@ import Html exposing (Html, a, button, div, h1, img, p, span, text)
 import Html.Attributes exposing (alt, class, href, src, target)
 import Html.Events exposing (onClick)
 import I18n exposing (MsgKey(..), t)
-import View.Icons exposing (featherIcon)
 import RemoteData exposing (RemoteData)
 import Route exposing (Route(..), toHref)
 import Types exposing (AuthState(..), EventDetailPage, Msg(..), isAuthenticated)
+import View.Icons exposing (featherIcon)
 
 
 view : String -> AuthState -> String -> EventDetailPage -> Html Msg
