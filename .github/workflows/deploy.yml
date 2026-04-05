@@ -46,8 +46,8 @@ jobs:
           key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
           restore-keys: elm-${{ runner.os }}-
 
-      - name: Run Elm tests
-        run: devenv shell --profile ci -- make elm-test
+      - name: Run tests
+        run: devenv shell --profile ci -- make test
 
       - name: Build
         run: devenv shell --profile ci -- make dist-ci
