@@ -280,7 +280,7 @@ update msg model =
             ( model, Ports.initiateOAuth model.pbBaseUrl )
 
         LogOut ->
-            ( { model | authState = NotAuthenticated }
+            ( { model | authState = NotAuthenticated, menuOpen = False }
             , Cmd.batch
                 [ Ports.clearAuthToken ()
                 , Nav.pushUrl model.key (toHref (RouteCalendar Nothing))

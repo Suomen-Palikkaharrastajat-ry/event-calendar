@@ -36,7 +36,7 @@ viewHeader authState menuOpen =
                     , a [ href (toHref Route.RouteEvents), class "type-caption text-white/80 hover:text-white hover:underline" ]
                         [ text (t NavEvents) ]
                     ]
-                , viewAuthControls authState
+                , viewDesktopAuthControls authState
                 ]
             , -- Hamburger button (mobile only)
               button
@@ -71,31 +71,45 @@ viewHeader authState menuOpen =
         ]
 
 
-viewAuthControls : AuthState -> Html Msg
-viewAuthControls authState =
+viewDesktopAuthControls : AuthState -> Html Msg
+viewDesktopAuthControls authState =
     case authState of
         NotAuthenticated ->
             div [ class "flex gap-2 items-center" ]
-                [ Button.view
-                    { label = t LoginButton
-                    , variant = Button.Primary
-                    , size = Button.Small
-                    , onClick = LoginClicked
-                    , disabled = False
-                    , loading = False
-                    , ariaPressedState = Nothing
-                    }
-                ]
+                [ authButton LoginClicked (t LoginButton) ]
 
         Authenticated user ->
             div [ class "flex gap-2 items-center" ]
-                [ span [ class "type-caption" ] [ text user.name ]
-                , button
-                    [ onClick LogOut
-                    , class "type-caption underline hover:no-underline"
-                    ]
-                    [ text (t LogoutButton) ]
+                [ span [ class "type-caption text-white/80" ] [ text user.name ]
+                , authButton LogOut (t LogoutButton)
                 ]
+
+
+viewMobileAuthControls : AuthState -> Html Msg
+viewMobileAuthControls authState =
+    case authState of
+        NotAuthenticated ->
+            div [ class "flex" ]
+                [ authButton LoginClicked (t LoginButton) ]
+
+        Authenticated user ->
+            div [ class "flex flex-col items-start gap-3" ]
+                [ span [ class "type-caption text-text-muted" ] [ text user.name ]
+                , authButton LogOut (t LogoutButton)
+                ]
+
+
+authButton : Msg -> String -> Html Msg
+authButton msg label =
+    Button.view
+        { label = label
+        , variant = Button.Primary
+        , size = Button.Small
+        , onClick = msg
+        , disabled = False
+        , loading = False
+        , ariaPressedState = Nothing
+        }
 
 
 viewFooter : Html Msg
@@ -223,7 +237,7 @@ viewMobileDrawer menuOpen activeRoute authState =
                     ]
                 ]
             , div [ class "p-4 border-t border-border-default" ]
-                [ viewAuthControls authState ]
+                [ viewMobileAuthControls authState ]
             ]
         }
 
