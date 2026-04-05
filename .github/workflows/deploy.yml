@@ -36,17 +36,30 @@ jobs:
       - name: Install devenv
         run: nix profile install nixpkgs#devenv
 
-      - uses: actions/cache@v4
+      - name: Restore Elm cache
+        id: elm-cache-restore
+        uses: actions/cache/restore@v4
         with:
-          path: elm-app/elm-stuff
-          key: elm-stuff-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
-          restore-keys: elm-stuff-${{ runner.os }}-
+          path: |
+            ~/.elm
+            elm-app/elm-stuff
+          key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
+          restore-keys: elm-${{ runner.os }}-
 
       - name: Run Elm tests
         run: devenv shell --profile ci -- make elm-test
 
       - name: Build
         run: devenv shell --profile ci -- make dist-ci
+
+      - name: Save Elm cache
+        if: steps.elm-cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.elm
+            elm-app/elm-stuff
+          key: ${{ steps.elm-cache-restore.outputs.cache-primary-key }}
 
       - uses: actions/configure-pages@v5
 
