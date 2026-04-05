@@ -1,3 +1,3 @@
-[submodule "vendor/design-guide"]
-	path = vendor/design-guide
-	url = https://github.com/Suomen-Palikkaharrastajat-ry/design-guide.git
+[submodule "vendor/master-builder"]
+	path = vendor/master-builder
+	url = https://github.com/Suomen-Palikkaharrastajat-ry/master-builder.git
