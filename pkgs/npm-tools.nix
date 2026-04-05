@@ -28,7 +28,7 @@ let
     # Computed by building with pkgs.lib.fakeHash and reading the "got:" line.
     # To update: set back to pkgs.lib.fakeHash, run `devenv shell`, replace with
     # the sha256 printed in the error output.
-    hash = "sha256-pj67oy0md1+kSc7tMn/KJvUFVfChYgQrtZ6LvUiSvK4=";
+    hash = "sha256-LeeZq/w/kPflICzzTo/FMR5Q3kv1GzMV2ySNQSGgDhM=";
   };
 in
 pkgs.stdenv.mkDerivation {
@@ -71,6 +71,28 @@ pkgs.stdenv.mkDerivation {
     mkdir -p $out/bin $out/lib
     cp -r node_modules $out/lib/
 
+    # Patch broken tailwind-resolver default export (upstream bug in 0.3.x):
+    # The minified bundle exports 'u1' which doesn't exist in the module.
+    for f in \
+      $out/lib/node_modules/tailwind-resolver/dist/index.mjs \
+      $out/lib/node_modules/elm-tailwind-classes/node_modules/tailwind-resolver/dist/index.mjs; do
+      if [ -f "$f" ]; then
+        substituteInPlace "$f" --replace-quiet "u1 as default" "h1 as default"
+      fi
+    done
+
+    # Patch elm-tailwind vite plugin: bundledReviewConfig points into the Nix
+    # store (read-only). elm-review tries to mkdir 'suppressed/' inside the
+    # config dir and gets EACCES. Fix: copy extractor to a writable tmpdir at
+    # runtime so elm-review can write there. (fs is already imported in the file.)
+    if [ -f "$out/lib/node_modules/elm-tailwind-classes/vite-plugin/index.js" ]; then
+      substituteInPlace \
+        "$out/lib/node_modules/elm-tailwind-classes/vite-plugin/index.js" \
+        --replace-fail \
+        "const bundledReviewConfig = path.resolve(__dirname, '..', 'extractor');" \
+        "const bundledReviewConfig = (() => { const src = path.resolve(__dirname, '..', 'extractor'); const dst = path.join(process.env.TMPDIR || '/tmp', 'elm-tailwind-extractor'); try { fs.cpSync(src, dst, { recursive: true, force: true }); } catch(e) {} return dst; })();"
+    fi
+
     # vite CLI
     # Entry point: node_modules/vite/bin/vite.js
     makeWrapper ${pkgs.nodejs_22}/bin/node $out/bin/vite \
@@ -84,6 +106,13 @@ pkgs.stdenv.mkDerivation {
       --add-flags "$out/lib/node_modules/elm-test/bin/elm-test" \
       --prefix PATH : "$out/lib/node_modules/.bin" \
       --prefix PATH : "${pkgs.elmPackages.elm}/bin" \
+      --set NODE_PATH "$out/lib/node_modules"
+
+    # elm-tailwind-classes CLI  (elm-tailwind-classes gen)
+    # Entry point: node_modules/elm-tailwind-classes/vite-plugin/cli.js
+    makeWrapper ${pkgs.nodejs_22}/bin/node $out/bin/elm-tailwind-classes \
+      --add-flags "$out/lib/node_modules/elm-tailwind-classes/vite-plugin/cli.js" \
+      --prefix PATH : "$out/lib/node_modules/.bin" \
       --set NODE_PATH "$out/lib/node_modules"
 
     runHook postInstall
