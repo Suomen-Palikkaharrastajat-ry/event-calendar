@@ -14,7 +14,7 @@ import View.Icons exposing (featherIcon)
 
 viewHeader : AuthState -> Bool -> Html Msg
 viewHeader authState menuOpen =
-    header [ class "bg-brand border-b border-brand sticky top-0 z-50" ]
+    header [ class "bg-brand border-b border-brand sticky md:static top-0 z-50" ]
         [ -- Short toolbar (h-14, matches planet design)
           div [ class "flex items-center justify-between px-4 h-14" ]
             [ -- Square logo + site name
