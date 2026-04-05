@@ -4,6 +4,15 @@ LOCAL_PB_URL = http://127.0.0.1:8090
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+# ── Vendor / submodules ──────────────────────────────────────────────────────
+
+.PHONY: vendor
+vendor: ## Init and update all git submodules to their pinned commits
+	@# In CI environments (GitHub Actions, Netlify) SSH access is unavailable;
+	@# rewrite git@github.com: to https://github.com/ so submodules clone via HTTPS.
+	@[ -z "$$CI" ] || git config --global url."https://github.com/".insteadOf "git@github.com:"
+	git submodule update --init
+
 # ── Development environment ──────────────────────────────────────────────────
 
 .PHONY: shell
@@ -41,8 +50,12 @@ elm-build: build/.elm-stamp ## Production build of Elm SPA → build/
 elm-build-local: ## Production build of Elm SPA targeting local PocketBase
 	cd elm-app && VITE_POCKETBASE_URL=$(LOCAL_PB_URL) vite build
 
+.PHONY: elm-tailwind-gen
+elm-tailwind-gen: ## Generate typed Tailwind Elm modules into elm-app/.elm-tailwind/
+	cd elm-app && elm-tailwind-classes gen
+
 .PHONY: elm-test
-elm-test: ## Run Elm unit tests
+elm-test: elm-tailwind-gen ## Run Elm unit tests
 	cd elm-app && elm-test
 
 .PHONY: elm-check
@@ -129,10 +142,6 @@ check: elm-check statics-check ## Run all linting/formatting checks
 
 .PHONY: format
 format: elm-format statics-format ## Auto-format all code
-
-.PHONY: vendor 
-vendor: ## Update all git submodules to latest remote HEAD
-	git submodule update --remote --merge
 
 .PHONY: clean
 clean: ## Remove build output
