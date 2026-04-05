@@ -1,5 +1,8 @@
 module View.EventList exposing (view)
 
+import Component.Alert as Alert
+import Component.Button as Button
+import Component.Spinner as Spinner
 import DateUtils exposing (formatEventDateDisplay, parseUtcString, toHelsinkiParts)
 import Html exposing (Html, a, div, h1, h3, p, text)
 import Html.Attributes exposing (class, href)
@@ -17,11 +20,12 @@ view authState now page =
             [ h1 [ class "type-h1" ] [ text (t NavEvents) ]
             , case authState of
                 Authenticated _ ->
-                    a
-                        [ href (toHref RouteEventNew)
-                        , class "btn-primary type-caption"
-                        ]
-                        [ text ("+ " ++ t EventListNewEvent) ]
+                    Button.viewLink
+                        { label = "+ " ++ t EventListNewEvent
+                        , variant = Button.Primary
+                        , size = Button.Small
+                        , href = toHref RouteEventNew
+                        }
 
                 NotAuthenticated ->
                     text ""
@@ -31,10 +35,18 @@ view authState now page =
                 text ""
 
             RemoteData.Loading ->
-                div [ class "text-text-muted text-center py-8" ] [ text (t Loading) ]
+                div [ class "flex justify-center py-8" ]
+                    [ Spinner.view { size = Spinner.Medium, label = t Loading } ]
 
             RemoteData.Failure _ ->
-                div [ class "text-brand-red text-center py-8" ] [ text (t ErrorUnknown) ]
+                div [ class "py-4" ]
+                    [ Alert.view
+                        { alertType = Alert.Error
+                        , title = Nothing
+                        , body = [ text (t ErrorUnknown) ]
+                        , onDismiss = Nothing
+                        }
+                    ]
 
             RemoteData.Success events ->
                 let

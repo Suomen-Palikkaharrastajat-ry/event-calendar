@@ -1,6 +1,9 @@
 module View.EventDetail exposing (view)
 
 import Api
+import Component.Alert as Alert
+import Component.Button as Button
+import Component.Spinner as Spinner
 import DateUtils exposing (formatEventDateDisplay)
 import FeatherIcons
 import Html exposing (Html, a, button, div, h1, img, p, span, text)
@@ -26,10 +29,18 @@ view pbBaseUrl authState _ detPage =
                 text ""
 
             RemoteData.Loading ->
-                div [ class "text-text-muted text-center py-8" ] [ text (t Loading) ]
+                div [ class "flex justify-center py-8" ]
+                    [ Spinner.view { size = Spinner.Medium, label = t Loading } ]
 
             RemoteData.Failure _ ->
-                div [ class "text-brand-red py-4" ] [ text (t ErrorUnknown) ]
+                div [ class "py-4" ]
+                    [ Alert.view
+                        { alertType = Alert.Error
+                        , title = Nothing
+                        , body = [ text (t ErrorUnknown) ]
+                        , onDismiss = Nothing
+                        }
+                    ]
 
             RemoteData.Success event ->
                 div []
@@ -37,34 +48,58 @@ view pbBaseUrl authState _ detPage =
                         [ h1 [ class "type-h1" ] [ text event.title ]
                         , if isAuthenticated authState then
                             div [ class "flex gap-2 ml-4 shrink-0" ]
-                                [ button
-                                    [ onClick (NavigateTo (RouteEventEdit event.id))
-                                    , class "px-3 py-1 bg-brand text-white rounded hover:opacity-90 type-caption"
-                                    ]
-                                    [ text (t DetailEdit) ]
-                                , button
-                                    [ onClick DetailRequestDelete
-                                    , class "px-3 py-1 bg-brand-red text-white rounded hover:opacity-90 type-caption"
-                                    ]
-                                    [ text (t DetailDelete) ]
+                                [ Button.view
+                                    { label = t DetailEdit
+                                    , variant = Button.Secondary
+                                    , size = Button.Small
+                                    , onClick = NavigateTo (RouteEventEdit event.id)
+                                    , disabled = False
+                                    , loading = False
+                                    , ariaPressedState = Nothing
+                                    }
+                                , Button.view
+                                    { label = t DetailDelete
+                                    , variant = Button.Danger
+                                    , size = Button.Small
+                                    , onClick = DetailRequestDelete
+                                    , disabled = False
+                                    , loading = False
+                                    , ariaPressedState = Nothing
+                                    }
                                 ]
 
                           else
                             text ""
                         ]
                     , if detPage.deleteConfirm then
-                        div [ class "flex items-center gap-3 p-3 mb-3 bg-brand-red/10 border border-brand-red/30 rounded" ]
-                            [ span [ class "text-brand-red type-body-small" ] [ text "Poistetaanko tapahtuma?" ]
-                            , button
-                                [ onClick DetailConfirmDelete
-                                , class "px-3 py-1 bg-brand-red text-white rounded hover:opacity-90 type-caption"
-                                ]
-                                [ text (t DetailDeleteConfirm) ]
-                            , button
-                                [ onClick (NavigateTo (RouteCalendar Nothing))
-                                , class "px-3 py-1 border rounded hover:bg-bg-subtle type-caption"
-                                ]
-                                [ text (t DetailDeleteCancel) ]
+                        div [ class "mb-3" ]
+                            [ Alert.view
+                                { alertType = Alert.Error
+                                , title = Just "Poistetaanko tapahtuma?"
+                                , body =
+                                    [ div [ class "flex gap-2 mt-2" ]
+                                        [ Button.view
+                                            { label = t DetailDeleteConfirm
+                                            , variant = Button.Danger
+                                            , size = Button.Small
+                                            , onClick = DetailConfirmDelete
+                                            , disabled = False
+                                            , loading = False
+                                            , ariaPressedState = Nothing
+                                            }
+                                        , Button.view
+                                            { label = t DetailDeleteCancel
+                                            , variant = Button.Secondary
+                                            , size = Button.Small
+                                            , onClick = NavigateTo (RouteCalendar Nothing)
+                                            , disabled = False
+                                            , loading = False
+                                            , ariaPressedState = Nothing
+                                            }
+                                        ]
+                                    ]
+                                , onDismiss = Nothing
+                                }
                             ]
 
                       else

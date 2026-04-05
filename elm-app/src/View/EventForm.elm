@@ -1,5 +1,8 @@
 module View.EventForm exposing (view, viewEdit)
 
+import Component.Alert as Alert
+import Component.Button as Button
+import Component.Spinner as Spinner
 import FeatherIcons
 import File exposing (File)
 import Html exposing (Html, button, div, h2, img, input, label, option, p, select, text, textarea)
@@ -79,10 +82,16 @@ viewEdit editPage =
         [ h2 [ class "type-h3 mb-4" ] [ text "Muokkaa tapahtumaa" ]
         , case editPage.event of
             RemoteData.Loading ->
-                div [ class "text-text-muted" ] [ text (t Loading) ]
+                div [ class "flex justify-center py-8" ]
+                    [ Spinner.view { size = Spinner.Medium, label = t Loading } ]
 
             RemoteData.Failure _ ->
-                div [ class "text-brand-red" ] [ text (t ErrorUnknown) ]
+                Alert.view
+                    { alertType = Alert.Error
+                    , title = Nothing
+                    , body = [ text (t ErrorUnknown) ]
+                    , onDismiss = Nothing
+                    }
 
             _ ->
                 viewSharedFields editFormMsgs editPage.form editPage.formStatus True
@@ -303,30 +312,34 @@ viewStateSelect currentState toMsg =
 viewFormButtons : FormStatus -> Bool -> Html Msg
 viewFormButtons formStatus isEdit =
     div [ class "flex gap-2 pt-2" ]
-        [ button
-            [ onClick
-                (if isEdit then
-                    EditFormSubmit
-
-                 else
-                    EventsFormSubmit
-                )
-            , disabled (formStatus == FormSubmitting)
-            , class "px-4 py-2 bg-brand text-white rounded hover:opacity-90 disabled:opacity-50"
-            ]
-            [ text
-                (if formStatus == FormSubmitting then
+        [ Button.view
+            { label =
+                if formStatus == FormSubmitting then
                     t Saving
 
-                 else
+                else
                     t FormSave
-                )
-            ]
-        , button
-            [ onClick (NavigateTo RouteEvents)
-            , class "px-4 py-2 border rounded hover:bg-bg-subtle"
-            ]
-            [ text (t FormCancel) ]
+            , variant = Button.Primary
+            , size = Button.Medium
+            , onClick =
+                if isEdit then
+                    EditFormSubmit
+
+                else
+                    EventsFormSubmit
+            , disabled = formStatus == FormSubmitting
+            , loading = formStatus == FormSubmitting
+            , ariaPressedState = Nothing
+            }
+        , Button.view
+            { label = t FormCancel
+            , variant = Button.Secondary
+            , size = Button.Medium
+            , onClick = NavigateTo RouteEvents
+            , disabled = False
+            , loading = False
+            , ariaPressedState = Nothing
+            }
         ]
 
 

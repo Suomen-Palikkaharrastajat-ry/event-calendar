@@ -1,5 +1,6 @@
 module View.Layout exposing (viewBrandFooter, viewFooter, viewHeader, viewMobileDrawer, viewMobileOverlay, viewToasts)
 
+import Component.Button as Button
 import Component.MobileDrawer as MobileDrawer
 import FeatherIcons
 import Html exposing (Html, a, button, div, footer, h3, header, img, li, nav, p, span, text, ul)
@@ -75,11 +76,15 @@ viewAuthControls authState =
     case authState of
         NotAuthenticated ->
             div [ class "flex gap-2 items-center" ]
-                [ button
-                    [ onClick LoginClicked
-                    , class "btn-primary type-caption"
-                    ]
-                    [ text (t LoginButton) ]
+                [ Button.view
+                    { label = t LoginButton
+                    , variant = Button.Primary
+                    , size = Button.Small
+                    , onClick = LoginClicked
+                    , disabled = False
+                    , loading = False
+                    , ariaPressedState = Nothing
+                    }
                 ]
 
         Authenticated user ->

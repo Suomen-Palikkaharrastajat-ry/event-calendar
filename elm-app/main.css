@@ -1,7 +1,12 @@
 @import "tailwindcss";
 @import "./public/fonts/outfit.css";
 @plugin "@tailwindcss/forms";
-@source "../vendor/design-guide/src";
+@source "./packages/ui-components/src";
+@source "./src";
+
+/* Safelist for classes constructed dynamically by Tailwind.elm helpers.
+   These never appear as bare string literals so Tailwind's scanner misses them. */
+@source inline("bg-gray-50 bg-gray-100 bg-gray-200 bg-blue-50 bg-green-50 bg-yellow-50 bg-red-50 bg-red-600 bg-red-700 text-gray-400 text-gray-500 text-gray-600 text-gray-700 text-gray-800 text-blue-700 text-blue-800 text-green-700 text-green-800 text-yellow-700 text-yellow-800 text-red-700 text-red-800 border-gray-100 border-gray-200 ring-red-500 hover:bg-gray-50 hover:bg-gray-100 hover:bg-red-600 hover:bg-red-700 hover:text-gray-600 focus-visible:ring-red-500 w-64");
 
 @theme {
   --color-brand: #05131D;
@@ -60,12 +65,6 @@ button:not([disabled]) {
 
 button[disabled] {
   cursor: not-allowed;
-}
-
-/* Primary action button / link — uses the brand primary colour.
-   Works on both <button> and <a> elements (inline-block for the latter). */
-.btn-primary {
-  @apply inline-block px-4 py-2 bg-brand text-white rounded hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2;
 }
 
 /* Calendar event chips — rounded/padding applied per-chip in Elm for multi-day continuity */

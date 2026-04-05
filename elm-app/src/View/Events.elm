@@ -1,5 +1,8 @@
 module View.Events exposing (view)
 
+import Component.Alert as Alert
+import Component.Button as Button
+import Component.Spinner as Spinner
 import DateUtils exposing (formatEventDateDisplay, parseUtcString, toHelsinkiParts)
 import FeatherIcons
 import File
@@ -40,11 +43,17 @@ view authState now evPage =
                 ]
 
           else if isAuthenticated authState then
-            button
-                [ onClick (NavigateTo RouteEventNew)
-                , class "mb-4 px-4 py-2 bg-brand text-white rounded hover:opacity-90"
+            div [ class "mb-4" ]
+                [ Button.view
+                    { label = "+ " ++ t EventListNewEvent
+                    , variant = Button.Primary
+                    , size = Button.Medium
+                    , onClick = NavigateTo RouteEventNew
+                    , disabled = False
+                    , loading = False
+                    , ariaPressedState = Nothing
+                    }
                 ]
-                [ text ("+ " ++ t EventListNewEvent) ]
 
           else
             text ""
@@ -107,10 +116,18 @@ viewEventsTable now evPage =
             text ""
 
         RemoteData.Loading ->
-            div [ class "text-text-muted text-center py-8" ] [ text (t Loading) ]
+            div [ class "flex justify-center py-8" ]
+                [ Spinner.view { size = Spinner.Medium, label = t Loading } ]
 
         RemoteData.Failure _ ->
-            div [ class "text-brand-red py-4" ] [ text (t ErrorUnknown) ]
+            div [ class "py-4" ]
+                [ Alert.view
+                    { alertType = Alert.Error
+                    , title = Nothing
+                    , body = [ text (t ErrorUnknown) ]
+                    , onDismiss = Nothing
+                    }
+                ]
 
         RemoteData.Success pbList ->
             if List.isEmpty pbList.items then

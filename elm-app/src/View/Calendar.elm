@@ -1,5 +1,7 @@
 module View.Calendar exposing (view)
 
+import Component.Alert as Alert
+import Component.Spinner as Spinner
 import DateUtils exposing (daysInMonth, finnishMonthName, formatEventDateDisplay, monthGrid, nextMonth, prevMonth, utcStringToHelsinkiDateInput)
 import FeatherIcons
 import Html exposing (Html, a, button, div, h3, p, span, text)
@@ -36,10 +38,18 @@ view authState page =
                         text ""
 
                     RemoteData.Loading ->
-                        div [ class "text-text-muted text-center py-8" ] [ text (t Loading) ]
+                        div [ class "flex justify-center py-8" ]
+                            [ Spinner.view { size = Spinner.Medium, label = t Loading } ]
 
                     RemoteData.Failure _ ->
-                        div [ class "text-brand-red text-center py-8" ] [ text (t ErrorUnknown) ]
+                        div [ class "py-4" ]
+                            [ Alert.view
+                                { alertType = Alert.Error
+                                , title = Nothing
+                                , body = [ text (t ErrorUnknown) ]
+                                , onDismiss = Nothing
+                                }
+                            ]
 
                     RemoteData.Success events ->
                         viewMonthGrid page events
@@ -50,10 +60,18 @@ view authState page =
                         text ""
 
                     RemoteData.Loading ->
-                        div [ class "text-text-muted text-center py-8" ] [ text (t Loading) ]
+                        div [ class "flex justify-center py-8" ]
+                            [ Spinner.view { size = Spinner.Medium, label = t Loading } ]
 
                     RemoteData.Failure _ ->
-                        div [ class "text-brand-red text-center py-8" ] [ text (t ErrorUnknown) ]
+                        div [ class "py-4" ]
+                            [ Alert.view
+                                { alertType = Alert.Error
+                                , title = Nothing
+                                , body = [ text (t ErrorUnknown) ]
+                                , onDismiss = Nothing
+                                }
+                            ]
 
                     RemoteData.Success events ->
                         viewListView page events
