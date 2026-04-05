@@ -10,16 +10,21 @@ let
     in
     {
       overlays = [ (import ./overlays.nix) ];
+
       languages.elm.enable = true;
+
       languages.haskell.enable = true;
       languages.haskell.package = pkgs.haskell.packages.ghc96.ghc;
+
       env.NODE_PATH = "${npmTools}/lib/node_modules";
+
       packages = [
         pkgs.cabal-install
         staticsPackage
         npmTools
         pkgs.nodejs_22
       ];
+
       enterShell = ''
         ln -sfn "${npmTools}/lib/node_modules" node_modules
         ln -sfn "${npmTools}/lib/node_modules" elm-app/node_modules
