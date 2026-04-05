@@ -36,26 +36,14 @@ jobs:
       - name: Install devenv
         run: nix profile install nixpkgs#devenv
 
-      - id: date
-        run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
-
       - uses: actions/cache@v4
         with:
-          path: ~/.cabal/packages
-          key: cabal-index-${{ runner.os }}-${{ steps.date.outputs.date }}
-          restore-keys: cabal-index-${{ runner.os }}-
-
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cabal/store
-          key: cabal-store-${{ runner.os }}-${{ hashFiles('cabal.project.freeze', 'statics/statics.cabal') }}
-          restore-keys: cabal-store-${{ runner.os }}-
-
-      - name: Update Cabal package index
-        run: devenv shell -- cabal update
+          path: elm-app/elm-stuff
+          key: elm-stuff-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
+          restore-keys: elm-stuff-${{ runner.os }}-
 
       - name: Build
-        run: devenv shell -- make dist
+        run: devenv shell --profile ci -- make dist-ci
 
       - uses: actions/configure-pages@v5
 

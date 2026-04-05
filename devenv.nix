@@ -1,4 +1,28 @@
 let
+  ci =
+    { pkgs, config, ... }:
+    let
+      npmTools = pkgs.callPackage ./pkgs/npm-tools.nix { };
+      hpkgs = pkgs.haskell.packages.ghc96.override {
+        overrides = import ./overrides.nix;
+      };
+      staticsPackage = hpkgs.callCabal2nix "statics" ./statics { };
+    in
+    {
+      overlays = [ (import ./overlays.nix) ];
+      languages.elm.enable = true;
+      env.NODE_PATH = "${npmTools}/lib/node_modules";
+      packages = [
+        staticsPackage
+        npmTools
+        pkgs.nodejs_22
+      ];
+      enterShell = ''
+        ln -sfn "${npmTools}/lib/node_modules" node_modules
+        ln -sfn "${npmTools}/lib/node_modules" elm-app/node_modules
+      '';
+    };
+
   shell =
     { pkgs, config, ... }:
     let
@@ -119,5 +143,8 @@ in
 {
   profiles.shell.module = {
     imports = [ shell ];
+  };
+  profiles.ci.module = {
+    imports = [ ci ];
   };
 }

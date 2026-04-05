@@ -108,6 +108,15 @@ build: elm-build ## Production build of Elm SPA
 dist: build/.elm-stamp build/.statics-stamp ## Full production build: Elm SPA + static files
 	cp -r static/. build/
 
+build/.statics-stamp-nix:
+	mkdir -p build
+	statics
+	touch build/.statics-stamp
+
+.PHONY: dist-ci
+dist-ci: build/.elm-stamp build/.statics-stamp-nix ## CI build: Elm SPA + statics via nix-provided binary
+	cp -r static/. build/
+
 .PHONY: dist-local
 dist-local: elm-build-local statics-local ## Full local build: Elm SPA + static files against local PocketBase
 	cp -r static/. build/
