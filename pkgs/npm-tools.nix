@@ -28,7 +28,10 @@ let
     # Computed by building with pkgs.lib.fakeHash and reading the "got:" line.
     # To update: set back to pkgs.lib.fakeHash, run `devenv shell`, replace with
     # the sha256 printed in the error output.
-    hash = "sha256-LeeZq/w/kPflICzzTo/FMR5Q3kv1GzMV2ySNQSGgDhM=";
+    # After updating package-lock.json: set to pkgs.lib.fakeHash, run `devenv shell`,
+    # then paste the sha256 from the "got:" line in the error output.
+    hash = "sha256-Jqbv4kIcAD/n+X4dyJcCVSEn5EnvTwGOrtbJuDr7zd
+U=";
   };
 in
 pkgs.stdenv.mkDerivation {
