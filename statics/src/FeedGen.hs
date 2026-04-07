@@ -44,7 +44,7 @@ feedId :: String
 feedId = "https://kalenteri.palikkaharrastajat.fi/"
 
 feedLogoUrl :: String
-feedLogoUrl = Config.siteBaseUrl ++ "/logo.png"
+feedLogoUrl = Config.siteBaseUrl ++ "/logo/square/png/square-smile.png"
 
 {- | Context passed to per-event item/entry builders.
 Using 'Map.Map' for O(log n) lookup instead of the O(n) list-of-tuples pattern.
