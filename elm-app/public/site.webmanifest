@@ -1,7 +1,8 @@
 {
-  "name": "Suomen Palikkaharrastajat — Tapahtumat",
+  "name": "Palikkakalenteri",
   "short_name": "Palikkakalenteri",
-  "start_url": "/",
+  "description": "Suomen Palikkaharrastajat ry:n tapahtumakalenteri LEGO-harrastajille.",
+  "start_url": "/#/events",
   "display": "standalone",
   "background_color": "#FFFFFF",
   "theme_color": "#05131D",
@@ -15,6 +16,12 @@
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
