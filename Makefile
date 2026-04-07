@@ -134,6 +134,8 @@ dist-ci: build/.elm-stamp build/.statics-stamp-nix ## CI build: Elm SPA + static
 dist-local: elm-build-local statics-local ## Full local build: Elm SPA + static files against local PocketBase
 	cp -r static/. build/
 
+# ── Test & quality ────────────────────────────────────────────────────────────
+
 .PHONY: test
 test: elm-test statics-test ## Run all tests (Elm + Haskell)
 
@@ -142,7 +144,10 @@ check: elm-check statics-check ## Run all linting/formatting checks
 
 .PHONY: format
 format: elm-format statics-format ## Auto-format all code
+	treefmt
+
+# ── Cleanup ───────────────────────────────────────────────────────────────────
 
 .PHONY: clean
 clean: ## Remove build output
-	$(RM) -r build
+	$(RM) -r build elm-app/.elm-tailwind

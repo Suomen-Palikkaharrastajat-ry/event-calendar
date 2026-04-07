@@ -4,7 +4,7 @@ This file provides instructions for AI coding agents working on this project.
 
 ## Project Overview
 
-Event calendar for *Suomen Palikkaharrastajat ry*, built with **Elm 0.19 SPA** (frontend) and a **Haskell static generator** (feeds, HTML, images), backed by **PocketBase**.
+Event calendar for *Suomen Palikkaharrastajat ry*, built with an **Elm 0.19 SPA** (frontend) and a **Haskell static generator** (feeds, HTML, images), backed by **PocketBase**.
 
 The project was migrated from SvelteKit 5 in early 2026. There is **no TypeScript, no Svelte, no ESLint, no Prettier, and no pnpm** in the current codebase. Ignore any references to those tools in older docs.
 
@@ -17,6 +17,7 @@ elm-app/          Elm 0.19 SPA (Vite + vite-plugin-elm + Tailwind CSS 4)
   src/View/       View helpers (Layout, Calendar, Events, EventForm, EventDetail, MapWidget, EventList)
   tests/          Elm unit tests — elm-explorations/test (81 tests)
   public/         Static assets (Leaflet marker icons, fonts, logo)
+  packages/       Symlink to shared Elm packages in vendor/master-builder
 statics/          Haskell static generator (Cabal)
   src/            Library modules (PocketBase, DateUtils, ICalGen, FeedGen, GeoJsonGen, HtmlGen, ImageFetcher)
   app/Main.hs     Executable entry point
@@ -54,6 +55,13 @@ elm-app/node_modules → same
 ```
 
 These symlinks let `vite build` and `elm-test` resolve packages when run from either the repo root or `elm-app/`.
+
+Shared package layout:
+```
+elm-app/packages -> ../vendor/master-builder/packages
+```
+
+Import shared UI as `Component.*` and shared tokens as `DesignTokens.*`.
 
 **To update npm dependencies:**
 1. Edit `pkgs/package.json`
@@ -119,7 +127,7 @@ All commands are defined in the `Makefile`. Run them from the repo root:
 
 ## Known Gotchas
 
-- **cabal vs stack**: `planet/` (reference implementation) uses Stack — it is **not** part of `cabal.project`. The `cabal.project` file manages only `statics/`.
+- **Separate Haskell build scopes**: unlike `planet`, this repo's `cabal.project` manages only `statics/`.
 - **GHC version**: 9.6.7 (via devenv/Nix). CI uses `haskell-actions/setup` with `ghc-version: '9.6'`.
 - **JSON decoders in Elm tests**: `Json.Decode.decodeString` returns `Result Json.Error a`, not `Result String a`.
 - **node_modules are symlinks**: `elm-app/node_modules` points into the Nix store (read-only). Do not run `npm install` or `pnpm install` inside `elm-app/` — it will break the symlink. Add deps via `pkgs/package.json` instead.
@@ -222,11 +230,11 @@ Use semantic token classes from `elm-app/main.css` — never hard-code hex value
 - Avoid `text-gray-400` for body or label text — its contrast on white (~2.85:1) fails AA. Use `text-gray-500` (4.6:1) as the minimum for muted text.
 - Max content width is **1024 px** (`max-w-5xl` in Tailwind). Do not use `max-w-4xl` (896 px) for full-page containers.
 
-### Component Library (design-guide)
+### Shared Component Library
 
-The association maintains a shared UI component library in the **design-guide** repository (`git@github.com:Suomen-Palikkaharrastajat-ry/design-guide.git`). It contains 32 reusable Elm components under `src/Component/`.
+The association maintains shared Elm design tokens and UI components through the vendored package workspace in [`vendor/master-builder/packages`](/workspaces/web/event-calendar/vendor/master-builder/packages). The frontend consumes them through the symlink at [`elm-app/packages`](/workspaces/web/event-calendar/elm-app/packages).
 
-This project uses the design-guide as a **git submodule** at `vendor/design-guide/`. The path is already included in `elm-app/elm.json` source-directories, so components are imported directly:
+Import components directly:
 
 ```elm
 import Component.Button as Button
@@ -234,20 +242,21 @@ import Component.Card as Card
 import Component.Alert as Alert
 ```
 
-**Submodule management:**
+The package workspace is supplied by the pinned `vendor/master-builder` submodule:
+
 ```bash
 # After cloning event-calendar:
 git submodule update --init
 
-# To pull latest design-guide changes:
-git submodule update --remote vendor/design-guide
+# To refresh the shared package workspace:
+git submodule update --remote vendor/master-builder
 ```
 
 Note: `Component.Alert`, `Component.Dialog`, and `Component.Toast` each depend on `Component.CloseButton`.
 
 **Focus ring convention:** Use `focus-visible:ring-2 focus-visible:ring-brand` (keyboard-only — no ring on mouse click). Do NOT use `focus:ring-*`.
 
-**Available components:** Alert, Accordion, Badge, Breadcrumb, Button (with `ariaPressedState` for toggles), ButtonGroup, Card, CloseButton, Collapse, Dialog, DownloadButton, Dropdown, FeatureGrid, Footer, Hero, ListGroup, Navbar, Pagination, Placeholder, Pricing, Progress, SectionHeader, Spinner, Stats, Tabs, Tag, Timeline, Toast, Toggle, Tooltip — plus ColorSwatch and LogoCard (design-guide-specific).
+**Available components:** Alert, Accordion, Badge, Breadcrumb, Button (with `ariaPressedState` for toggles), ButtonGroup, Card, CloseButton, Collapse, Dialog, DownloadButton, Dropdown, FeatureGrid, Footer, Hero, ListGroup, Navbar, Pagination, Placeholder, Pricing, Progress, SectionHeader, Spinner, Stats, Tabs, Tag, Timeline, Toast, Toggle, Tooltip — plus ColorSwatch and LogoCard.
 
 ### Rules for AI agents
 

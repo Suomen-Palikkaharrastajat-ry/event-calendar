@@ -23,6 +23,8 @@ let
         staticsPackage
         npmTools
         pkgs.nodejs_22
+        hpkgs.hlint
+        hpkgs.fourmolu
       ];
 
       enterShell = ''
@@ -130,15 +132,16 @@ let
         ln -sfn "${npmTools}/lib/node_modules" elm-app/node_modules
 
         echo ""
-        echo "── event-calendar dev environment ───────────────────"
+        echo "── event-calendar dev environment ────────────────────────"
         echo "  GHC:    $(ghc --version)"
         echo "  Cabal:  $(cabal --version | head -1)"
         echo "  Elm:    $(elm --version)"
         echo "  Node:   $(node --version)"
         echo "  Vite:   $(vite --version)"
         echo ""
-        echo "  make dist  — build statics + Elm app"
-        echo "  devenv up  — start all services"
+        echo "  make dist     — build statics + Elm app"
+        echo "  make dist-ci  — build CI/deploy output in build/"
+        echo "  devenv up     — start local services"
         echo "    PocketBase: http://127.0.0.1:8090"
         echo "    Keycloak:   http://localhost:8080"
         echo ""
