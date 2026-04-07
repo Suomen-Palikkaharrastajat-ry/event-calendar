@@ -84,7 +84,7 @@ calendarCss :: String
 calendarCss =
     unlines
         [ ":root { --color-brand-primary: #000000; --color-brand-accent: #000000; }"
-        , "body { font-family: Arial, sans-serif; margin: 20px; }"
+        , "body { font-family: 'Outfit', Arial, sans-serif; margin: 20px; }"
         , ".month { page-break-inside: avoid; break-inside: avoid; }"
         , ".month-header { font-size: 1.5em; font-weight: bold;"
             ++ " color: var(--color-brand-primary);"
@@ -147,7 +147,7 @@ calendarJs =
 eventPageCss :: String
 eventPageCss =
     unlines
-        [ "body { font-family: Arial, sans-serif; margin: 20px; max-width: 400px; padding: 0 1em; margin: 0 auto; text-align: center; }"
+        [ "body { font-family: 'Outfit', Arial, sans-serif; margin: 20px; max-width: 400px; padding: 0 1em; margin: 0 auto; text-align: center; }"
         , "h1 { color: #333; }"
         , "p { margin: 2ex 0; }"
         , "a { color: #0077cc; }"
@@ -236,6 +236,7 @@ generateCalendarHtml events = do
             H.meta ! A.charset "UTF-8"
             H.title "Palikkakalenteri"
             H.meta ! A.name "build-date" ! A.content (H.toValue buildDate)
+            H.link ! A.rel "stylesheet" ! A.href "/fonts/outfit.css"
             H.style $ H.toHtml calendarCss
         H.body $ do
             H.h1 "Palikkakalenteri"
@@ -259,6 +260,7 @@ generateEventHtml ev = do
             H.title $ do
                 H.toHtml (PB.eventTitle ev)
                 H.toHtml (" - Palikkakalenteri" :: String)
+            H.link ! A.rel "stylesheet" ! A.href "/fonts/outfit.css"
             H.style $ H.toHtml eventPageCss
         H.body $ do
             H.h1 (H.toHtml (PB.eventTitle ev))
