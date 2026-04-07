@@ -47,8 +47,10 @@
 /* ── Base ─────────────────────────────────────────────────────────────────── */
 
 @layer base {
+  html,
   body {
     font-family: var(--font-sans);
+    overflow-x: hidden;
   }
 }
 

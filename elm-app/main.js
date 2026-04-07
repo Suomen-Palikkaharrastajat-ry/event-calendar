@@ -128,6 +128,111 @@ app.ports.destroyMap.subscribe((containerId) => {
 
 // ── KML parsing port ──────────────────────────────────────────────────────────
 
+// ── Pull-to-refresh ───────────────────────────────────────────────────────────
+
+function setupPullToRefresh() {
+  if (window.__pullToRefreshSetup) return
+  window.__pullToRefreshSetup = true
+
+  const isStandalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true
+  if (!isStandalone) return
+
+  const HINT_THRESHOLD = 24
+  const RELEASE_THRESHOLD = 128
+  const MAX_INDICATOR_HEIGHT = 72
+  const MIN_INDICATOR_HEIGHT = 44
+  let startY = 0
+  let currentY = 0
+  let isPulling = false
+  let isReloading = false
+
+  const indicator = document.createElement('div')
+  indicator.setAttribute('aria-hidden', 'true')
+  indicator.style.cssText = [
+    'position:fixed',
+    'top:0',
+    'left:0',
+    'right:0',
+    'height:0',
+    'overflow:hidden',
+    'display:flex',
+    'align-items:center',
+    'justify-content:center',
+    'background:#fff',
+    'color:#05131D',
+    'font-family:system-ui,sans-serif',
+    'font-size:1.75rem',
+    'z-index:9999',
+    'transition:height 0.15s ease',
+    'pointer-events:none',
+    'user-select:none',
+  ].join(';')
+  document.documentElement.appendChild(indicator)
+
+  function clearPullState() {
+    isPulling = false
+    startY = 0
+    currentY = 0
+    indicator.style.height = '0'
+  }
+
+  function navigateForRefresh() {
+    isReloading = true
+    window.location.reload()
+  }
+
+  document.addEventListener('touchstart', function (e) {
+    if (isReloading) return
+    if (e.touches.length !== 1) { clearPullState(); return }
+    if (window.scrollY === 0) {
+      startY = e.touches[0].clientY
+      currentY = startY
+      isPulling = true
+    }
+  }, { passive: true })
+
+  document.addEventListener('touchmove', function (e) {
+    if (!isPulling) return
+    currentY = e.touches[0].clientY
+    const delta = currentY - startY
+    if (delta > 0) {
+      if (delta <= HINT_THRESHOLD) {
+        indicator.style.height = '0'
+        indicator.textContent = ''
+        return
+      }
+      const progress = Math.min(
+        (delta - HINT_THRESHOLD) / (RELEASE_THRESHOLD - HINT_THRESHOLD),
+        1
+      )
+      const height = MIN_INDICATOR_HEIGHT + ((MAX_INDICATOR_HEIGHT - MIN_INDICATOR_HEIGHT) * progress)
+      indicator.style.height = height + 'px'
+      indicator.textContent = delta >= RELEASE_THRESHOLD
+        ? '✓ Vapauta päivittämään'
+        : '↓ Vedä päivittääksesi'
+    } else {
+      clearPullState()
+    }
+  }, { passive: true })
+
+  document.addEventListener('touchend', function () {
+    if (!isPulling) return
+    const delta = currentY - startY
+    clearPullState()
+    if (delta >= RELEASE_THRESHOLD && !isReloading) {
+      setTimeout(navigateForRefresh, 150)
+    }
+  }, { passive: true })
+
+  document.addEventListener('touchcancel', clearPullState, { passive: true })
+}
+
+setupPullToRefresh()
+
+// ── KML ───────────────────────────────────────────────────────────────────────
+
 app.ports.parseKml.subscribe((kmlContent) => {
   const parser = new DOMParser()
   const doc = parser.parseFromString(kmlContent, 'text/xml')
