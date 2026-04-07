@@ -1,69 +1,65 @@
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Palikkakalenteri — Suomen Palikkaharrastajat ry</title>
 
   <!-- SEO -->
-  <title>Palikkakalenteri — Suomen Palikkaharrastajat ry</title>
-  <meta name="description" content="Suomen Palikkaharrastajat ry:n tapahtumakalenteri. Löydä LEGO-harrastajien tapahtumat, näyttelyt ja kokoukset ympäri Suomea." />
-  <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://suomen-palikkaharrastajat-ry.github.io/event-calendar" />
+  <meta name="description" content="Suomen Palikkaharrastajat ry:n tuottama syötekooste">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://kalenteri.palikkaharrastajat.fi">
 
   <!-- Open Graph -->
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://suomen-palikkaharrastajat-ry.github.io/event-calendar" />
-  <meta property="og:site_name" content="Suomen Palikkaharrastajat ry" />
-  <meta property="og:locale" content="fi_FI" />
-  <meta property="og:title" content="Palikkakalenteri — Suomen Palikkaharrastajat ry" />
-  <meta property="og:description" content="Suomen Palikkaharrastajat ry:n tapahtumakalenteri. Löydä LEGO-harrastajien tapahtumat, näyttelyt ja kokoukset ympäri Suomea." />
-  <meta property="og:image" content="https://suomen-palikkaharrastajat-ry.github.io/event-calendar/og-image.png" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="Palikkakalenteri — Suomen Palikkaharrastajat ry" />
+  <meta property="og:title" content="Palikkakalenteri — Suomen Palikkaharrastajat ry">
+  <meta property="og:description" content="Suomen Palikkaharrastajat ry:n ylläpitämä tapahtumakalenteri">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://kalenteri.palikkaharrastajat.fi">
+  <meta property="og:image" content="/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Palikkakalenteri — Suomen Palikkaharrastajat ry">
+  <meta property="og:site_name" content="Palikkakalenteri">
+  <meta property="og:locale" content="fi_FI">
 
-  <!-- Twitter Cards -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Palikkakalenteri — Suomen Palikkaharrastajat ry" />
-  <meta name="twitter:description" content="Suomen Palikkaharrastajat ry:n tapahtumakalenteri. Löydä LEGO-harrastajien tapahtumat, näyttelyt ja kokoukset ympäri Suomea." />
-  <meta name="twitter:image" content="https://suomen-palikkaharrastajat-ry.github.io/event-calendar/og-image.png" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Palikkakalenteri — Suomen Palikkaharrastajat ry">
+  <meta name="twitter:description" content="Suomen Palikkaharrastajat ry:n ylläpitämä tapahtumakalenteri">
+  <meta name="twitter:image" content="https://kalenteri.palikkaharrastajat.fi/og-image.png">
 
-  <!-- Browser / Theme -->
-  <meta name="theme-color" content="#05131D" />
-  <meta name="color-scheme" content="light dark" />
-  <meta name="format-detection" content="telephone=no" />
+  <!-- Browser / platform -->
+  <meta name="theme-color" content="#ffffff">
+  <meta name="color-scheme" content="light dark">
+  <meta name="format-detection" content="telephone=no">
+
+  <!-- Apple iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Palikkakalenteri">
+
+  <!-- Android / Chrome -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="Palikkakalenteri">
+
+  <!-- PWA manifest -->
+  <link rel="manifest" href="/site.webmanifest">
 
   <!-- Favicons -->
-  <link rel="icon" href="/favicon.ico" sizes="any" />
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16" />
-  <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
-  <link rel="icon" href="/favicon-48x48.png" type="image/png" sizes="48x48" />
-  <link rel="icon" href="/android-chrome-192x192.png" type="image/png" sizes="192x192" />
-  <link rel="icon" href="/android-chrome-512x512.png" type="image/png" sizes="512x512" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-
-  <!-- PWA -->
-  <link rel="manifest" href="/site.webmanifest" />
-
-  <!-- Apple (iOS) -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Palikkakalenteri" />
-
-  <!-- Android -->
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="application-name" content="Palikkakalenteri" />
-
-  <!-- JSON-LD -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "Suomen Palikkaharrastajat ry — Tapahtumat",
-    "url": "https://suomen-palikkaharrastajat-ry.github.io/event-calendar"
-  }
-  </script>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="/apple-touch-icon-167.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/apple-touch-icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/apple-touch-icon-512.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
 </head>
 <body>
   <div id="app"></div>
