@@ -90,6 +90,7 @@ viewEdit editPage =
                     { alertType = Alert.Error
                     , title = Nothing
                     , body = [ text (t ErrorUnknown) ]
+                    , customIcon = Nothing
                     , onDismiss = Nothing
                     }
 

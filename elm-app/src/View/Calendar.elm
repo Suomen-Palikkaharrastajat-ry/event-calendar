@@ -47,6 +47,7 @@ view authState page =
                                 { alertType = Alert.Error
                                 , title = Nothing
                                 , body = [ text (t ErrorUnknown) ]
+                                , customIcon = Nothing
                                 , onDismiss = Nothing
                                 }
                             ]
@@ -69,6 +70,7 @@ view authState page =
                                 { alertType = Alert.Error
                                 , title = Nothing
                                 , body = [ text (t ErrorUnknown) ]
+                                , customIcon = Nothing
                                 , onDismiss = Nothing
                                 }
                             ]

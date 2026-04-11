@@ -38,6 +38,7 @@ view pbBaseUrl authState _ detPage =
                         { alertType = Alert.Error
                         , title = Nothing
                         , body = [ text (t ErrorUnknown) ]
+                        , customIcon = Nothing
                         , onDismiss = Nothing
                         }
                     ]
@@ -98,6 +99,7 @@ view pbBaseUrl authState _ detPage =
                                             }
                                         ]
                                     ]
+                                , customIcon = Nothing
                                 , onDismiss = Nothing
                                 }
                             ]

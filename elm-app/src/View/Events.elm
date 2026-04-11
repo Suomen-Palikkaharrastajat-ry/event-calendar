@@ -125,6 +125,7 @@ viewEventsTable now evPage =
                     { alertType = Alert.Error
                     , title = Nothing
                     , body = [ text (t ErrorUnknown) ]
+                    , customIcon = Nothing
                     , onDismiss = Nothing
                     }
                 ]
