@@ -18,11 +18,66 @@ L.Icon.Default.mergeOptions({
 
 // ── App init ─────────────────────────────────────────────────────────────────
 
+const pbBaseUrl = import.meta.env.VITE_POCKETBASE_URL || 'https://data.palikkaharrastajat.fi'
+
+function readStoredAuth() {
+  return {
+    authToken: localStorage.getItem('pb_auth_token') || null,
+    authModel: localStorage.getItem('pb_auth_model') || null,
+  }
+}
+
+function clearStoredAuth() {
+  localStorage.removeItem('pb_auth_token')
+  localStorage.removeItem('pb_auth_model')
+}
+
+function saveStoredAuth(token, model) {
+  localStorage.setItem('pb_auth_token', token)
+  localStorage.setItem('pb_auth_model', model)
+}
+
+function isInvalidAuthError(err) {
+  return err?.status === 401 || err?.status === 403
+}
+
+async function resolveInitAuth(pbUrl) {
+  const stored = readStoredAuth()
+  if (!stored.authToken || !stored.authModel) {
+    return { authToken: null, authModel: null }
+  }
+
+  const pb = new PocketBase(pbUrl)
+  pb.authStore.save(stored.authToken, null)
+
+  try {
+    const authData = await pb.collection('users').authRefresh()
+    const refreshedModel = JSON.stringify({
+      id: authData.record.id,
+      name: authData.record.name || '',
+      email: authData.record.email || '',
+    })
+
+    saveStoredAuth(authData.token, refreshedModel)
+    return { authToken: authData.token, authModel: refreshedModel }
+  } catch (err) {
+    if (isInvalidAuthError(err)) {
+      clearStoredAuth()
+      return { authToken: null, authModel: null }
+    }
+
+    console.warn('Auth refresh failed during app init, keeping stored auth:', err)
+    return stored
+  }
+}
+
+const initAuth = await resolveInitAuth(pbBaseUrl)
+
 const flags = {
-  authToken: localStorage.getItem('pb_auth_token') || null,
-  authModel: localStorage.getItem('pb_auth_model') || null,
+  authToken: initAuth.authToken,
+  authModel: initAuth.authModel,
   now: Date.now(),
-  pbBaseUrl: import.meta.env.VITE_POCKETBASE_URL || 'https://data.palikkaharrastajat.fi',
+  pbBaseUrl,
 }
 
 const app = Elm.Main.init({
