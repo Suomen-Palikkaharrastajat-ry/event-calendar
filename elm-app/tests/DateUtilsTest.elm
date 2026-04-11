@@ -83,4 +83,24 @@ suite =
             , test "December" <|
                 \_ -> finnishMonthName 12 |> Expect.equal "Joulukuu"
             ]
+        , describe "Finnish/ISO date input conversion"
+            [ test "ISO date formats to Finnish display" <|
+                \_ ->
+                    isoDateToFinnishDateInput "2026-03-09"
+                        |> Expect.equal "09.03.2026"
+            , test "Finnish display parses to ISO date" <|
+                \_ ->
+                    finnishDateInputToIsoDate "09.03.2026"
+                        |> Expect.equal (Just "2026-03-09")
+            , test "round-trips a leap-day date" <|
+                \_ ->
+                    "2024-02-29"
+                        |> isoDateToFinnishDateInput
+                        |> finnishDateInputToIsoDate
+                        |> Expect.equal (Just "2024-02-29")
+            , test "invalid Finnish date returns Nothing" <|
+                \_ ->
+                    finnishDateInputToIsoDate "31.02.2026"
+                        |> Expect.equal Nothing
+            ]
         ]

@@ -3,10 +3,11 @@ module View.EventForm exposing (view, viewEdit)
 import Component.Alert as Alert
 import Component.Button as Button
 import Component.Spinner as Spinner
+import DatePicker
 import FeatherIcons
 import File exposing (File)
-import Html exposing (Html, button, div, h2, img, input, label, option, p, select, text, textarea)
-import Html.Attributes exposing (accept, alt, checked, class, disabled, for, id, selected, src, step, type_, value)
+import Html exposing (Html, button, div, h2, img, input, label, p, text, textarea)
+import Html.Attributes exposing (accept, alt, checked, class, disabled, for, id, name, src, step, type_, value)
 import Html.Events exposing (on, onCheck, onClick, onInput)
 import I18n exposing (MsgKey(..), stateLabel, t)
 import Json.Decode as Json
@@ -21,6 +22,7 @@ import Types
         , FormStatus(..)
         , Msg(..)
         )
+import View.FinnishDatePicker as FinnishDatePicker
 import View.Icons exposing (featherIcon)
 import View.MapWidget
 
@@ -31,11 +33,15 @@ Parametrizing these avoids duplicating every view section.
 type alias FormMsgs =
     { onFieldChanged : String -> String -> Msg
     , onDateChanged : String -> String -> Msg
+    , onStartDatePickerChanged : DatePicker.Msg -> Msg
+    , onEndDatePickerChanged : DatePicker.Msg -> Msg
     , onFileSelected : File -> Msg
     , onToggleAllDay : Msg
     , onToggleGeocode : Msg
     , onGeocode : Msg
     , allDayCheckboxId : String
+    , startDateInputId : String
+    , endDateInputId : String
     , mapContainerId : String
     }
 
@@ -44,11 +50,15 @@ createFormMsgs : FormMsgs
 createFormMsgs =
     { onFieldChanged = EventsFormFieldChanged
     , onDateChanged = EventsFormDateChanged
+    , onStartDatePickerChanged = EventsStartDatePickerChanged
+    , onEndDatePickerChanged = EventsEndDatePickerChanged
     , onFileSelected = EventsFormFileSelected
     , onToggleAllDay = EventsFormToggleAllDay
     , onToggleGeocode = EventsFormToggleGeocode
     , onGeocode = EventsFormGeocode
     , allDayCheckboxId = "allday-create"
+    , startDateInputId = "start-date-create"
+    , endDateInputId = "end-date-create"
     , mapContainerId = "create-map"
     }
 
@@ -57,11 +67,15 @@ editFormMsgs : FormMsgs
 editFormMsgs =
     { onFieldChanged = EditFormFieldChanged
     , onDateChanged = EditFormDateChanged
+    , onStartDatePickerChanged = EditStartDatePickerChanged
+    , onEndDatePickerChanged = EditEndDatePickerChanged
     , onFileSelected = EditFormFileSelected
     , onToggleAllDay = EditFormToggleAllDay
     , onToggleGeocode = EditFormToggleGeocode
     , onGeocode = EditFormGeocode
     , allDayCheckboxId = "allday-edit"
+    , startDateInputId = "start-date-edit"
+    , endDateInputId = "end-date-edit"
     , mapContainerId = "edit-map"
     }
 
@@ -69,9 +83,9 @@ editFormMsgs =
 {-| Create-event form (used inside the events management page).
 Field messages use `EventsForm*` prefix.
 -}
-view : EventFormData -> FormStatus -> Bool -> Html Msg
-view formData formStatus isEdit =
-    viewSharedFields createFormMsgs formData formStatus isEdit
+view : EventFormData -> DatePicker.DatePicker -> DatePicker.DatePicker -> FormStatus -> Bool -> Html Msg
+view formData startDatePicker endDatePicker formStatus isEdit =
+    viewSharedFields createFormMsgs formData startDatePicker endDatePicker formStatus isEdit
 
 
 {-| Standalone edit-event page, wrapping the shared form fields with Edit-prefix messages.
@@ -95,7 +109,7 @@ viewEdit editPage =
                     }
 
             _ ->
-                viewSharedFields editFormMsgs editPage.form editPage.formStatus True
+                viewSharedFields editFormMsgs editPage.form editPage.startDatePicker editPage.endDatePicker editPage.formStatus True
         ]
 
 
@@ -106,8 +120,8 @@ viewEdit editPage =
 {-| Renders all form fields using the given message set.
 `isEdit` controls the submit button label and whether to show existing-image previews.
 -}
-viewSharedFields : FormMsgs -> EventFormData -> FormStatus -> Bool -> Html Msg
-viewSharedFields msgs form formStatus isEdit =
+viewSharedFields : FormMsgs -> EventFormData -> DatePicker.DatePicker -> DatePicker.DatePicker -> FormStatus -> Bool -> Html Msg
+viewSharedFields msgs form startDatePicker endDatePicker formStatus isEdit =
     div [ class "flex flex-col gap-4" ]
         [ fieldText "title" (t FormTitle) form.title True msgs.onFieldChanged
         , fieldText "location" (t FormLocation) form.location False msgs.onFieldChanged
@@ -115,7 +129,7 @@ viewSharedFields msgs form formStatus isEdit =
         , fieldTextarea "description" (t FormDescription) form.description msgs.onFieldChanged
         , fieldText "url" (t FormUrl) form.url False msgs.onFieldChanged
         , viewImageSection msgs isEdit form
-        , viewDateSection msgs form
+        , viewDateSection msgs form startDatePicker endDatePicker
         , viewStateSelect form.state (\v -> msgs.onFieldChanged "state" v)
         , viewFormButtons formStatus isEdit
         ]
@@ -130,57 +144,36 @@ viewGeocodeSection msgs form =
     div [ class "flex flex-col gap-2" ]
         [ div [ class "flex items-center gap-2" ]
             [ button
-                [ onClick msgs.onToggleGeocode
-                , class "type-caption px-2 py-1 border rounded hover:bg-bg-subtle"
+                [ onClick msgs.onGeocode
+                , class "type-caption inline-flex items-center gap-1 whitespace-nowrap px-2 py-1 bg-brand-yellow text-brand rounded hover:opacity-90 disabled:opacity-60"
+                , disabled (String.isEmpty (String.trim form.location))
                 ]
-                (if form.geocodingEnabled then
-                    [ featherIcon FeatherIcons.mapPin 14, text (" " ++ t FormGeocode) ]
-
-                 else
-                    [ featherIcon FeatherIcons.map 14, text (" " ++ t FormManualCoords) ]
-                )
-            , if form.geocodingEnabled && not (String.isEmpty form.location) then
-                button
-                    [ onClick msgs.onGeocode
-                    , class "type-caption px-2 py-1 bg-brand-yellow text-brand rounded hover:opacity-90"
-                    ]
-                    [ text (t FormGeocode) ]
-
-              else
-                text ""
+                [ featherIcon FeatherIcons.mapPin 14, text (t FormGeocode) ]
             ]
-        , if not form.geocodingEnabled then
-            div [ class "flex gap-2" ]
-                [ div [ class "flex-1" ]
-                    [ label [ class "type-caption text-text-muted block mb-1" ] [ text (t FormLat) ]
-                    , input
-                        [ type_ "number"
-                        , value form.lat
-                        , step "0.000001"
-                        , onInput (msgs.onFieldChanged "lat")
-                        , class "w-full border rounded px-2 py-1 type-caption"
-                        ]
-                        []
+        , div [ class "flex gap-2" ]
+            [ div [ class "flex-1" ]
+                [ label [ class "type-caption text-text-muted block mb-1" ] [ text (t FormLat) ]
+                , input
+                    [ type_ "number"
+                    , value form.lat
+                    , step "0.000001"
+                    , onInput (msgs.onFieldChanged "lat")
+                    , class "w-full border rounded px-2 py-1 type-caption"
                     ]
-                , div [ class "flex-1" ]
-                    [ label [ class "type-caption text-text-muted block mb-1" ] [ text (t FormLon) ]
-                    , input
-                        [ type_ "number"
-                        , value form.lon
-                        , step "0.000001"
-                        , onInput (msgs.onFieldChanged "lon")
-                        , class "w-full border rounded px-2 py-1 type-caption"
-                        ]
-                        []
-                    ]
+                    []
                 ]
-
-          else if not (String.isEmpty form.lat) && not (String.isEmpty form.lon) then
-            p [ class "type-caption text-text-muted" ]
-                [ text (form.lat ++ ", " ++ form.lon) ]
-
-          else
-            text ""
+            , div [ class "flex-1" ]
+                [ label [ class "type-caption text-text-muted block mb-1" ] [ text (t FormLon) ]
+                , input
+                    [ type_ "number"
+                    , value form.lon
+                    , step "0.000001"
+                    , onInput (msgs.onFieldChanged "lon")
+                    , class "w-full border rounded px-2 py-1 type-caption"
+                    ]
+                    []
+                ]
+            ]
         , View.MapWidget.view { containerId = msgs.mapContainerId }
         ]
 
@@ -211,7 +204,7 @@ viewImageSection msgs showExistingIfPresent form =
             [ type_ "file"
             , accept "image/*"
             , on "change" (Json.map msgs.onFileSelected fileDecoder)
-            , class "type-caption"
+            , class "type-caption file:mr-3 file:px-3 file:py-2 file:rounded file:border file:border-border-default file:bg-bg-subtle file:text-text-primary file:font-medium hover:file:bg-brand-yellow hover:file:text-brand focus-visible:ring-2 focus-visible:ring-brand"
             ]
             []
         , input
@@ -225,8 +218,8 @@ viewImageSection msgs showExistingIfPresent form =
         ]
 
 
-viewDateSection : FormMsgs -> EventFormData -> Html Msg
-viewDateSection msgs form =
+viewDateSection : FormMsgs -> EventFormData -> DatePicker.DatePicker -> DatePicker.DatePicker -> Html Msg
+viewDateSection msgs form startDatePicker endDatePicker =
     div [ class "flex flex-col gap-2" ]
         [ div [ class "flex items-center gap-2" ]
             [ input
@@ -240,14 +233,17 @@ viewDateSection msgs form =
             ]
         , div [ class "flex gap-2 flex-wrap" ]
             [ div []
-                [ label [ class "type-caption text-text-muted block mb-1" ] [ text (t FormStartDate) ]
-                , input
-                    [ type_ "date"
-                    , value form.startDate
-                    , onInput (msgs.onDateChanged "startDate")
-                    , class "border rounded px-2 py-1"
+                [ label
+                    [ class "type-caption text-text-muted block mb-1"
+                    , for msgs.startDateInputId
                     ]
-                    []
+                    [ text (t FormStartDate) ]
+                , FinnishDatePicker.view
+                    { picker = startDatePicker
+                    , selectedIsoDate = form.startDate
+                    , inputId = msgs.startDateInputId
+                    }
+                    |> Html.map msgs.onStartDatePickerChanged
                 ]
             , if not form.allDay then
                 div []
@@ -264,14 +260,17 @@ viewDateSection msgs form =
               else
                 text ""
             , div []
-                [ label [ class "type-caption text-text-muted block mb-1" ] [ text (t FormEndDate) ]
-                , input
-                    [ type_ "date"
-                    , value form.endDate
-                    , onInput (msgs.onDateChanged "endDate")
-                    , class "border rounded px-2 py-1"
+                [ label
+                    [ class "type-caption text-text-muted block mb-1"
+                    , for msgs.endDateInputId
                     ]
-                    []
+                    [ text (t FormEndDate) ]
+                , FinnishDatePicker.view
+                    { picker = endDatePicker
+                    , selectedIsoDate = form.endDate
+                    , inputId = msgs.endDateInputId
+                    }
+                    |> Html.map msgs.onEndDatePickerChanged
                 ]
             , if not form.allDay then
                 div []
@@ -291,22 +290,37 @@ viewDateSection msgs form =
         ]
 
 
-{-| State dropdown for the form.
+{-| State radios for the form.
 Note: `Deleted` is intentionally absent — deletion is a separate action
 (via the event-detail page), not a state the user sets while creating/editing.
 -}
 viewStateSelect : EventState -> (String -> Msg) -> Html Msg
 viewStateSelect currentState toMsg =
-    div []
-        [ label [ class "type-body-small block mb-1" ] [ text (t FormStatus) ]
-        , select
-            [ onInput toMsg
-            , class "appearance-auto border rounded px-2 py-1"
+    div [ class "flex flex-col gap-2" ]
+        [ label [ class "type-body-small" ] [ text (t FormStatus) ]
+        , div [ class "flex flex-wrap gap-3" ]
+            [ viewStateRadio "event-state-draft" "event-state" Draft currentState toMsg
+            , viewStateRadio "event-state-pending" "event-state" Pending currentState toMsg
+            , viewStateRadio "event-state-published" "event-state" Published currentState toMsg
             ]
-            [ option [ value "draft", selected (currentState == Draft) ] [ text (stateLabel Draft) ]
-            , option [ value "pending", selected (currentState == Pending) ] [ text (stateLabel Pending) ]
-            , option [ value "published", selected (currentState == Published) ] [ text (stateLabel Published) ]
+        ]
+
+
+viewStateRadio : String -> String -> EventState -> EventState -> (String -> Msg) -> Html Msg
+viewStateRadio inputId groupName radioState currentState toMsg =
+    label
+        [ for inputId
+        , class "inline-flex items-center gap-2 border border-border-default rounded px-3 py-2 type-caption"
+        ]
+        [ input
+            [ type_ "radio"
+            , id inputId
+            , name groupName
+            , checked (currentState == radioState)
+            , onClick (toMsg (Types.eventStateToString radioState))
             ]
+            []
+        , text (stateLabel radioState)
         ]
 
 

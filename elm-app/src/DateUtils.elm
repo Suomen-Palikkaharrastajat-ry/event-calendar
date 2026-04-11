@@ -1,5 +1,6 @@
 module DateUtils exposing
     ( daysInMonth
+    , finnishDateInputToIsoDate
     , finnishMonthName
     , finnishWeekdayAbbr
     , firstDayOfWeek
@@ -10,6 +11,7 @@ module DateUtils exposing
     , formatTime
     , helsinkiOffset
     , isDst
+    , isoDateToFinnishDateInput
     , monthGrid
     , monthToInt
     , nextMonth
@@ -20,6 +22,7 @@ module DateUtils exposing
     , utcStringToHelsinkiTimeInput
     )
 
+import Date
 import Iso8601
 import Time exposing (Month(..), Posix, Weekday(..), Zone)
 import Types exposing (Event)
@@ -548,6 +551,58 @@ utcStringToHelsinkiTimeInput utcStr =
                     toHelsinkiParts posix
             in
             pad2 parts.hour ++ ":" ++ pad2 parts.minute
+
+
+{-| Convert an ISO date string (`YYYY-MM-DD`) to Finnish display format (`DD.MM.YYYY`).
+Returns an empty string for invalid input.
+-}
+isoDateToFinnishDateInput : String -> String
+isoDateToFinnishDateInput isoDate =
+    case Date.fromIsoString isoDate of
+        Ok date ->
+            pad2 (Date.day date)
+                ++ "."
+                ++ pad2 (Date.monthNumber date)
+                ++ "."
+                ++ String.fromInt (Date.year date)
+
+        Err _ ->
+            ""
+
+
+{-| Convert Finnish display format (`DD.MM.YYYY`) to ISO date (`YYYY-MM-DD`).
+Returns `Nothing` for invalid input.
+-}
+finnishDateInputToIsoDate : String -> Maybe String
+finnishDateInputToIsoDate finnishDate =
+    let
+        trimmed =
+            String.trim finnishDate
+    in
+    case String.split "." trimmed of
+        [ dayStr, monthStr, yearStr ] ->
+            case ( String.toInt dayStr, String.toInt monthStr, String.toInt yearStr ) of
+                ( Just day, Just month, Just year ) ->
+                    let
+                        isoCandidate =
+                            String.fromInt year
+                                ++ "-"
+                                ++ pad2 month
+                                ++ "-"
+                                ++ pad2 day
+                    in
+                    case Date.fromIsoString isoCandidate of
+                        Ok validDate ->
+                            Just (Date.toIsoString validDate)
+
+                        Err _ ->
+                            Nothing
+
+                _ ->
+                    Nothing
+
+        _ ->
+            Nothing
 
 
 pad2 : Int -> String

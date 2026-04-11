@@ -31,6 +31,7 @@ module Types exposing
 
 import Browser
 import Browser.Navigation as Nav
+import DatePicker
 import File exposing (File)
 import Http
 import Json.Decode as Json
@@ -281,6 +282,8 @@ type alias KmlPlacemark =
 
 type alias EventsPage =
     { form : EventFormData
+    , startDatePicker : DatePicker.DatePicker
+    , endDatePicker : DatePicker.DatePicker
     , formStatus : FormStatus
     , kmlImportStatus : KmlImportStatus
     , kmlQueue : List KmlPlacemark
@@ -296,6 +299,8 @@ type alias EventDetailPage =
 type alias EventEditPage =
     { event : RemoteData Http.Error Event
     , form : EventFormData
+    , startDatePicker : DatePicker.DatePicker
+    , endDatePicker : DatePicker.DatePicker
     , formStatus : FormStatus
     }
 
@@ -400,6 +405,8 @@ type
       -- Events page
     | EventsFormFieldChanged String String
     | EventsFormDateChanged String String
+    | EventsStartDatePickerChanged DatePicker.Msg
+    | EventsEndDatePickerChanged DatePicker.Msg
     | EventsFormFileSelected File
     | EventsFormToggleAllDay
     | EventsFormToggleGeocode
@@ -422,6 +429,8 @@ type
     | EditGotEvent (Result Http.Error Event)
     | EditFormFieldChanged String String
     | EditFormDateChanged String String
+    | EditStartDatePickerChanged DatePicker.Msg
+    | EditEndDatePickerChanged DatePicker.Msg
     | EditFormFileSelected File
     | EditFormToggleAllDay
     | EditFormToggleGeocode

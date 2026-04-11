@@ -17,7 +17,7 @@ view authState _ evPage =
         [ h2 [ class "type-h3 mb-4" ] [ text (t EventListNewEvent) ]
         , viewKmlSection authState evPage
         , div [ class "mb-6 p-4 border rounded bg-bg-subtle" ]
-            [ View.EventForm.view evPage.form evPage.formStatus False ]
+            [ View.EventForm.view evPage.form evPage.startDatePicker evPage.endDatePicker evPage.formStatus False ]
         ]
 
 

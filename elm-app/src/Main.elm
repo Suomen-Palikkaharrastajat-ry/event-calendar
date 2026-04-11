@@ -26,6 +26,7 @@ import Auth
 import Browser
 import Browser.Events
 import Browser.Navigation as Nav
+import DatePicker
 import DateUtils exposing (utcStringToHelsinkiDateInput, utcStringToHelsinkiTimeInput)
 import File
 import Geocoding
@@ -64,6 +65,7 @@ import View.EventDetail
 import View.EventForm
 import View.EventList
 import View.Events
+import View.FinnishDatePicker as FinnishDatePicker
 import View.Layout
 
 
@@ -149,21 +151,23 @@ initPage pbBaseUrl key route authState url now =
         RouteEventNew ->
             case authState of
                 Authenticated _ ->
-                    ( PageEvents
-                        { form = emptyEventFormData
-                        , formStatus = Types.FormIdle
-                        , kmlImportStatus = KmlIdle
-                        , kmlQueue = []
-                        }
-                    , Ports.initMap
-                        { containerId = "create-map"
-                        , lat = helsinkiLat
-                        , lon = helsinkiLon
-                        , zoom = defaultMapZoom
-                        , markerLat = Nothing
-                        , markerLon = Nothing
-                        , draggable = True
-                        }
+                    let
+                        ( eventsPage, eventsCmd ) =
+                            Page.Events.init pbBaseUrl (getToken authState)
+                    in
+                    ( PageEvents eventsPage
+                    , Cmd.batch
+                        [ eventsCmd
+                        , Ports.initMap
+                            { containerId = "create-map"
+                            , lat = helsinkiLat
+                            , lon = helsinkiLon
+                            , zoom = defaultMapZoom
+                            , markerLat = Nothing
+                            , markerLon = Nothing
+                            , draggable = True
+                            }
+                        ]
                     )
 
                 NotAuthenticated ->
@@ -411,6 +415,50 @@ update msg model =
         EventsFormDateChanged field val ->
             updateEventsForm model (applyFormDate field val)
 
+        EventsStartDatePickerChanged datePickerMsg ->
+            case model.page of
+                PageEvents evPage ->
+                    let
+                        ( nextStartDatePicker, maybeIsoDate ) =
+                            FinnishDatePicker.update datePickerMsg evPage.startDatePicker
+
+                        nextForm =
+                            case maybeIsoDate of
+                                Just isoDate ->
+                                    applyFormDate "startDate" isoDate evPage.form
+
+                                Nothing ->
+                                    evPage.form
+                    in
+                    ( { model | page = PageEvents { evPage | startDatePicker = nextStartDatePicker, form = nextForm } }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        EventsEndDatePickerChanged datePickerMsg ->
+            case model.page of
+                PageEvents evPage ->
+                    let
+                        ( nextEndDatePicker, maybeIsoDate ) =
+                            FinnishDatePicker.update datePickerMsg evPage.endDatePicker
+
+                        nextForm =
+                            case maybeIsoDate of
+                                Just isoDate ->
+                                    applyFormDate "endDate" isoDate evPage.form
+
+                                Nothing ->
+                                    evPage.form
+                    in
+                    ( { model | page = PageEvents { evPage | endDatePicker = nextEndDatePicker, form = nextForm } }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
         EventsFormFileSelected file ->
             let
                 ( model1, _ ) =
@@ -482,6 +530,12 @@ update msg model =
                     case result of
                         Ok _ ->
                             let
+                                ( freshStartDatePicker, freshStartDatePickerCmd ) =
+                                    DatePicker.init
+
+                                ( freshEndDatePicker, freshEndDatePickerCmd ) =
+                                    DatePicker.init
+
                                 ( model1, toastCmd ) =
                                     addToast
                                         { model
@@ -490,6 +544,8 @@ update msg model =
                                                     { evPage
                                                         | formStatus = Types.FormSuccess
                                                         , form = emptyEventFormData
+                                                        , startDatePicker = freshStartDatePicker
+                                                        , endDatePicker = freshEndDatePicker
                                                     }
                                         }
                                         ToastSuccess
@@ -498,6 +554,8 @@ update msg model =
                             ( model1
                             , Cmd.batch
                                 [ toastCmd
+                                , Cmd.map EventsStartDatePickerChanged freshStartDatePickerCmd
+                                , Cmd.map EventsEndDatePickerChanged freshEndDatePickerCmd
                                 , Nav.pushUrl model.key (toHref RouteEvents)
                                 ]
                             )
@@ -769,6 +827,50 @@ update msg model =
 
         EditFormDateChanged field val ->
             updateEditForm model (applyFormDate field val)
+
+        EditStartDatePickerChanged datePickerMsg ->
+            case model.page of
+                PageEventEdit id editPage ->
+                    let
+                        ( nextStartDatePicker, maybeIsoDate ) =
+                            FinnishDatePicker.update datePickerMsg editPage.startDatePicker
+
+                        nextForm =
+                            case maybeIsoDate of
+                                Just isoDate ->
+                                    applyFormDate "startDate" isoDate editPage.form
+
+                                Nothing ->
+                                    editPage.form
+                    in
+                    ( { model | page = PageEventEdit id { editPage | startDatePicker = nextStartDatePicker, form = nextForm } }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        EditEndDatePickerChanged datePickerMsg ->
+            case model.page of
+                PageEventEdit id editPage ->
+                    let
+                        ( nextEndDatePicker, maybeIsoDate ) =
+                            FinnishDatePicker.update datePickerMsg editPage.endDatePicker
+
+                        nextForm =
+                            case maybeIsoDate of
+                                Just isoDate ->
+                                    applyFormDate "endDate" isoDate editPage.form
+
+                                Nothing ->
+                                    editPage.form
+                    in
+                    ( { model | page = PageEventEdit id { editPage | endDatePicker = nextEndDatePicker, form = nextForm } }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         EditFormFileSelected file ->
             let

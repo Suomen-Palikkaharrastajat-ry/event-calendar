@@ -10,6 +10,7 @@
     "dependencies": {
         "direct": {
             "1602/elm-feather": "2.3.5",
+            "CurrySoftware/elm-datepicker": "4.0.0",
             "elm/browser": "1.0.2",
             "elm/bytes": "1.0.8",
             "elm/core": "1.0.5",
@@ -20,6 +21,7 @@
             "elm/svg": "1.0.1",
             "elm/time": "1.0.0",
             "elm/url": "1.0.0",
+            "justinmimbs/date": "3.2.1",
             "krisajenkins/remotedata": "6.0.1",
             "rtfeldman/elm-iso8601-date-strings": "1.1.3"
         },
