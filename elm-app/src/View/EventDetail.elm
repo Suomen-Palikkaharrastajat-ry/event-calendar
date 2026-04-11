@@ -125,9 +125,11 @@ view pbBaseUrl authState _ detPage =
                                                     ++ "&zoom=15"
                                                 )
                                             , target "_blank"
-                                            , class "text-brand hover:underline"
+                                            , class "text-brand underline inline-flex items-center gap-1"
                                             ]
-                                            [ text loc ]
+                                            [ text loc
+                                            , featherIcon FeatherIcons.externalLink 14
+                                            ]
 
                                     Nothing ->
                                         span [] [ text loc ]
@@ -160,9 +162,11 @@ view pbBaseUrl authState _ detPage =
                                 [ a
                                     [ href url
                                     , target "_blank"
-                                    , class "text-brand hover:underline"
+                                    , class "text-brand underline inline-flex items-center gap-1"
                                     ]
-                                    [ text (t DetailMoreInfo) ]
+                                    [ text (t DetailMoreInfo)
+                                    , featherIcon FeatherIcons.externalLink 14
+                                    ]
                                 ]
                     ]
         ]
