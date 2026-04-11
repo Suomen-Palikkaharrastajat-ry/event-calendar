@@ -128,7 +128,7 @@ view pbBaseUrl authState _ detPage =
                                             , class "text-brand underline inline-flex items-center gap-1"
                                             ]
                                             [ text loc
-                                            , featherIcon FeatherIcons.externalLink 14
+                                            , featherIcon FeatherIcons.globe 14
                                             ]
 
                                     Nothing ->

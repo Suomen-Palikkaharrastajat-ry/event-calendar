@@ -8,40 +8,21 @@
 
 module Page.Events exposing (init, view)
 
-import Api
 import Html exposing (Html)
-import RemoteData
 import Time exposing (Posix)
 import Types exposing (AuthState, EventsPage, FormStatus(..), KmlImportStatus(..), Msg, emptyEventFormData)
 import View.Events
 
 
 init : String -> Maybe String -> ( EventsPage, Cmd Msg )
-init pbBaseUrl maybeToken =
-    case maybeToken of
-        Just token ->
-            ( { events = RemoteData.Loading
-              , currentPage = 1
-              , form = emptyEventFormData
-              , formStatus = FormIdle
-              , kmlImportStatus = KmlIdle
-              , kmlQueue = []
-              , showNewForm = False
-              }
-            , Api.fetchAllEvents pbBaseUrl token 1 Types.EventsGotEvents
-            )
-
-        Nothing ->
-            ( { events = RemoteData.NotAsked
-              , currentPage = 1
-              , form = emptyEventFormData
-              , formStatus = FormIdle
-              , kmlImportStatus = KmlIdle
-              , kmlQueue = []
-              , showNewForm = False
-              }
-            , Cmd.none
-            )
+init _ _ =
+    ( { form = emptyEventFormData
+      , formStatus = FormIdle
+      , kmlImportStatus = KmlIdle
+      , kmlQueue = []
+      }
+    , Cmd.none
+    )
 
 
 view : AuthState -> Posix -> EventsPage -> Html Msg

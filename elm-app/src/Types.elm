@@ -280,13 +280,10 @@ type alias KmlPlacemark =
 
 
 type alias EventsPage =
-    { events : RemoteData Http.Error (PbList Event)
-    , currentPage : Int
-    , form : EventFormData
+    { form : EventFormData
     , formStatus : FormStatus
     , kmlImportStatus : KmlImportStatus
     , kmlQueue : List KmlPlacemark
-    , showNewForm : Bool
     }
 
 
@@ -401,8 +398,6 @@ type
     | CalendarSetView CalendarViewMode
     | CalendarClickEvent String
       -- Events page
-    | EventsGotEvents (Result Http.Error (PbList Event))
-    | EventsSetPage Int
     | EventsFormFieldChanged String String
     | EventsFormDateChanged String String
     | EventsFormFileSelected File
@@ -412,8 +407,6 @@ type
     | EventsFormGotGeocode (Result Http.Error (Maybe GeoPoint))
     | EventsFormSubmit
     | EventsFormGotSave (Result Http.Error Event)
-    | EventsStatusChanged String EventState
-    | EventsGotStatusChange (Result Http.Error Event)
     | EventsKmlFileSelected File
     | EventsKmlGotContent String
     | EventsKmlParsed Json.Value

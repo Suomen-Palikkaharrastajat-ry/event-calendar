@@ -150,13 +150,10 @@ initPage pbBaseUrl key route authState url now =
             case authState of
                 Authenticated _ ->
                     ( PageEvents
-                        { events = NotAsked
-                        , currentPage = 1
-                        , form = emptyEventFormData
+                        { form = emptyEventFormData
                         , formStatus = Types.FormIdle
                         , kmlImportStatus = KmlIdle
                         , kmlQueue = []
-                        , showNewForm = True
                         }
                     , Ports.initMap
                         { containerId = "create-map"
@@ -224,12 +221,8 @@ update msg model =
                 -- Destroy any Leaflet map when navigating away from a page that owns one.
                 mapCleanupCmd =
                     case model.page of
-                        PageEvents evPage ->
-                            if evPage.showNewForm then
-                                Ports.destroyMap "create-map"
-
-                            else
-                                Cmd.none
+                        PageEvents _ ->
+                            Ports.destroyMap "create-map"
 
                         PageEventEdit _ _ ->
                             Ports.destroyMap "edit-map"
@@ -412,33 +405,6 @@ update msg model =
             ( model, Nav.pushUrl model.key (toHref (RouteEventDetail id)) )
 
         -- ── Events page ──────────────────────────────────────────────────────────
-        EventsGotEvents result ->
-            case model.page of
-                PageEvents evPage ->
-                    case result of
-                        Ok pbList ->
-                            ( { model | page = PageEvents { evPage | events = Success pbList } }
-                            , Cmd.none
-                            )
-
-                        Err err ->
-                            ( { model | page = PageEvents { evPage | events = Failure err } }
-                            , Cmd.none
-                            )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        EventsSetPage n ->
-            case ( model.page, getToken model.authState ) of
-                ( PageEvents evPage, Just token ) ->
-                    ( { model | page = PageEvents { evPage | currentPage = n, events = Loading } }
-                    , Api.fetchAllEvents model.pbBaseUrl token n EventsGotEvents
-                    )
-
-                _ ->
-                    ( model, Cmd.none )
-
         EventsFormFieldChanged field val ->
             updateEventsForm model (applyFormField field val)
 
@@ -523,9 +489,7 @@ update msg model =
                                                 PageEvents
                                                     { evPage
                                                         | formStatus = Types.FormSuccess
-                                                        , showNewForm = False
                                                         , form = emptyEventFormData
-                                                        , events = Loading
                                                     }
                                         }
                                         ToastSuccess
@@ -534,12 +498,7 @@ update msg model =
                             ( model1
                             , Cmd.batch
                                 [ toastCmd
-                                , case getToken model.authState of
-                                    Just token ->
-                                        Api.fetchAllEvents model.pbBaseUrl token evPage.currentPage EventsGotEvents
-
-                                    Nothing ->
-                                        Cmd.none
+                                , Nav.pushUrl model.key (toHref RouteEvents)
                                 ]
                             )
 
@@ -552,48 +511,6 @@ update msg model =
                                         (Api.httpErrorToString err)
                             in
                             ( model1, toastCmd )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        EventsStatusChanged eventId newState ->
-            case getToken model.authState of
-                Just token ->
-                    ( model, Api.updateEventState model.pbBaseUrl token eventId newState EventsGotStatusChange )
-
-                Nothing ->
-                    ( model, Cmd.none )
-
-        EventsGotStatusChange result ->
-            case ( model.page, result ) of
-                ( PageEvents evPage, Ok updatedEvent ) ->
-                    let
-                        updatedEvents =
-                            case evPage.events of
-                                Success pbList ->
-                                    Success
-                                        { pbList
-                                            | items =
-                                                List.map
-                                                    (\e ->
-                                                        if e.id == updatedEvent.id then
-                                                            updatedEvent
-
-                                                        else
-                                                            e
-                                                    )
-                                                    pbList.items
-                                        }
-
-                                other ->
-                                    other
-                    in
-                    ( { model | page = PageEvents { evPage | events = updatedEvents } }
-                    , Cmd.none
-                    )
-
-                ( PageEvents _, Err err ) ->
-                    addToast model ToastError (Api.httpErrorToString err)
 
                 _ ->
                     ( model, Cmd.none )

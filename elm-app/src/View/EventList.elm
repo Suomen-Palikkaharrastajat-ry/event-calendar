@@ -4,13 +4,15 @@ import Component.Alert as Alert
 import Component.Button as Button
 import Component.Spinner as Spinner
 import DateUtils exposing (formatEventDateDisplay, parseUtcString, toHelsinkiParts)
+import FeatherIcons
 import Html exposing (Html, a, div, h1, h3, p, text)
-import Html.Attributes exposing (class, href)
+import Html.Attributes exposing (class, href, target)
 import I18n exposing (MsgKey(..), t)
 import RemoteData exposing (RemoteData)
 import Route exposing (Route(..), toHref)
 import Time exposing (Posix, posixToMillis)
 import Types exposing (AuthState(..), Event, EventListPage, Msg(..))
+import View.Icons exposing (featherIcon)
 
 
 view : AuthState -> Posix -> EventListPage -> Html Msg
@@ -203,15 +205,45 @@ viewEvent now authState event =
                     Just loc ->
                         p [ class "type-caption text-text-muted" ] [ text loc ]
                 ]
-            , case authState of
-                Authenticated _ ->
-                    a
-                        [ href (toHref (RouteEventEdit event.id))
-                        , class "type-caption text-primary hover:underline shrink-0"
-                        ]
-                        [ text (t EventListEdit) ]
+            , div [ class "flex items-center gap-2 shrink-0" ]
+                [ case event.point of
+                    Nothing ->
+                        text ""
 
-                NotAuthenticated ->
-                    text ""
+                    Just pt ->
+                        a
+                            [ href
+                                ("https://www.openstreetmap.org/?mlat="
+                                    ++ String.fromFloat pt.lat
+                                    ++ "&mlon="
+                                    ++ String.fromFloat pt.lon
+                                    ++ "&zoom=15"
+                                )
+                            , target "_blank"
+                            , class "text-brand hover:text-brand-yellow transition-colors"
+                            ]
+                            [ featherIcon FeatherIcons.globe 16 ]
+                , case event.url of
+                    Nothing ->
+                        text ""
+
+                    Just url ->
+                        a
+                            [ href url
+                            , target "_blank"
+                            , class "text-brand hover:text-brand-yellow transition-colors"
+                            ]
+                            [ featherIcon FeatherIcons.externalLink 16 ]
+                , case authState of
+                    Authenticated _ ->
+                        a
+                            [ href (toHref (RouteEventEdit event.id))
+                            , class "type-caption text-primary hover:underline"
+                            ]
+                            [ text (t EventListEdit) ]
+
+                    NotAuthenticated ->
+                        text ""
+                ]
             ]
         ]
