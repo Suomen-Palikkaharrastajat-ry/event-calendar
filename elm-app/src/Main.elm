@@ -1050,9 +1050,7 @@ update msg model =
 
 
 
-
 -- PAGE-SPECIFIC UPDATE HELPERS
-
 
 
 updateCalendarPage : Msg -> Model -> ( Model, Cmd Msg )
