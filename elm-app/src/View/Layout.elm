@@ -291,7 +291,7 @@ viewBrandFooter =
                     [ div [ class "space-y-1 text-xs text-white/50" ]
                         [ p [] [ text "© 2026 Suomen Palikkaharrastajat ry" ]
                         , p [] [ text "LEGO® on LEGO Groupin rekisteröity tavaramerkki." ]
-                        , p [] [ text "LEGO Group ei ole valtuuttanut tai tukenut tätä sivustoa." ]
+                        , p [] [ text "LEGO Group ei ylläpidä tai tue tätä itsenäistä sivustoa." ]
                         ]
                     ]
                 ]
