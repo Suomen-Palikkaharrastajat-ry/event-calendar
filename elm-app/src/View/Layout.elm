@@ -8,7 +8,7 @@ import Html.Attributes exposing (alt, attribute, class, href, src, style)
 import Html.Events exposing (onClick)
 import I18n exposing (MsgKey(..), t)
 import Route exposing (Route(..), toHref)
-import Types exposing (AuthState(..), Msg(..), Toast, ToastKind(..))
+import Types exposing (AuthState(..), AuthUser, Msg(..), Toast, ToastKind(..))
 import View.Icons exposing (featherIcon)
 
 
@@ -81,7 +81,8 @@ viewDesktopAuthControls authState =
         Authenticated user ->
             div [ class "flex gap-2 items-center" ]
                 [ span [ class "type-caption text-white/80" ] [ text user.name ]
-                , authButton LogOut (t LogoutButton)
+                , span [ attribute "title" (userTooltip user), class "inline-flex" ]
+                    [ authButton LogOut (t LogoutButton) ]
                 ]
 
 
@@ -95,7 +96,8 @@ viewMobileAuthControls authState =
         Authenticated user ->
             div [ class "flex flex-col items-start gap-3" ]
                 [ span [ class "type-caption text-text-muted" ] [ text user.name ]
-                , authButton LogOut (t LogoutButton)
+                , span [ attribute "title" (userTooltip user), class "inline-flex" ]
+                    [ authButton LogOut (t LogoutButton) ]
                 ]
 
 
@@ -110,6 +112,25 @@ authButton msg label =
         , loading = False
         , ariaPressedState = Nothing
         }
+
+
+userTooltip : AuthUser -> String
+userTooltip user =
+    let
+        namePart =
+            String.trim user.name
+
+        emailPart =
+            String.trim user.email
+    in
+    if String.isEmpty namePart then
+        "Kirjautunut: " ++ emailPart
+
+    else if String.isEmpty emailPart then
+        "Kirjautunut: " ++ namePart
+
+    else
+        "Kirjautunut: " ++ namePart ++ " (" ++ emailPart ++ ")"
 
 
 viewFooter : Html Msg

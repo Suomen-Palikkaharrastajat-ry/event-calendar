@@ -140,7 +140,7 @@ viewDayCell page events maybeDay =
             in
             div
                 [ class
-                    ("border-r border-b min-h-24 p-1 relative overflow-hidden"
+                    ("border-r border-b min-h-24 relative overflow-hidden"
                         ++ (if isToday then
                                 " bg-brand-yellow/10"
 
@@ -221,16 +221,16 @@ viewEventChip pos event =
         shapeClass =
             case pos of
                 ChipSingle ->
-                    "rounded mx-1 px-1"
+                    "mx-1 px-1"
 
                 ChipStart ->
-                    "rounded-l ml-1 mr-0 pl-1"
+                    "ml-1 mr-0 pl-1"
 
                 ChipMiddle ->
                     "mx-0 px-0"
 
                 ChipEnd ->
-                    "rounded-r ml-0 mr-1 pr-1"
+                    "ml-0 mr-1 pr-1"
 
         label =
             case pos of
@@ -252,6 +252,7 @@ viewEventChip pos event =
         , onClick (CalendarClickEvent event.id)
         , tabindex 0
         , attribute "role" "button"
+        , attribute "title" event.title
         , attribute "aria-label" event.title
         ]
         [ text label ]
