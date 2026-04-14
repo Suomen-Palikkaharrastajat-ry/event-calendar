@@ -11,7 +11,7 @@ import I18n exposing (MsgKey(..), t)
 import RemoteData exposing (RemoteData)
 import Route exposing (Route(..), toHref)
 import Time exposing (Posix, posixToMillis)
-import Types exposing (AuthState(..), Event, EventListPage, Msg(..))
+import Types exposing (AuthState(..), Event, EventListPage, EventState(..), Msg(..))
 import View.Icons exposing (featherIcon)
 
 
@@ -181,7 +181,7 @@ viewEvent now authState event =
                                 False
 
         classes =
-            if isPast event then
+            if isPast event || event.state /= Published then
                 "border rounded p-3 hover:bg-bg-subtle opacity-50"
 
             else

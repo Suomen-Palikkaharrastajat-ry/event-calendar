@@ -4,6 +4,7 @@ module Api exposing
     , deleteEvent
     , fetchAllEvents
     , fetchEvent
+    , fetchEventsForList
     , fetchPublishedEvents
     , httpErrorToString
     , imageUrl
@@ -137,6 +138,43 @@ fetchPublishedEvents pbBaseUrl toMsg =
                 ++ Url.percentEncode "(state=\"published\")"
                 ++ "&sort=start_date&perPage=500"
         , expect = Http.expectJson toMsg (Json.field "items" (Json.list decodeEvent))
+        }
+
+
+fetchEventsForList : String -> Maybe String -> (Result Http.Error (List Event) -> Msg) -> Cmd Msg
+fetchEventsForList pbBaseUrl maybeToken toMsg =
+    let
+        baseUrl =
+            pbBaseUrl
+                ++ "/api/collections/events/records"
+                ++ "?sort=start_date&perPage=500"
+
+        url =
+            case maybeToken of
+                Just _ ->
+                    baseUrl
+
+                Nothing ->
+                    baseUrl
+                        ++ "&filter="
+                        ++ Url.percentEncode "(state=\"published\")"
+
+        headers =
+            case maybeToken of
+                Just token ->
+                    [ Http.header "Authorization" token ]
+
+                Nothing ->
+                    []
+    in
+    Http.request
+        { method = "GET"
+        , headers = headers
+        , url = url
+        , body = Http.emptyBody
+        , expect = Http.expectJson toMsg (Json.field "items" (Json.list decodeEvent))
+        , timeout = Nothing
+        , tracker = Nothing
         }
 
 

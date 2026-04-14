@@ -145,7 +145,7 @@ initPage pbBaseUrl key route authState url now =
 
         RouteEvents ->
             ( PageEventList { events = RemoteData.Loading }
-            , Api.fetchPublishedEvents pbBaseUrl EventListGotEvents
+            , Api.fetchEventsForList pbBaseUrl (getToken authState) EventListGotEvents
             )
 
         RouteEventNew ->
