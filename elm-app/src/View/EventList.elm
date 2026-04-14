@@ -222,7 +222,7 @@ viewEvent now authState event =
                             , target "_blank"
                             , class "text-brand hover:text-brand-yellow transition-colors"
                             ]
-                            [ featherIcon FeatherIcons.globe 16 ]
+                            [ featherIcon FeatherIcons.mapPin 16 ]
                 , case event.url of
                     Nothing ->
                         text ""
