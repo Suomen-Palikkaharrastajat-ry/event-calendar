@@ -19,6 +19,7 @@ import qualified Data.Text as T
 import Data.Time (LocalTime (..), ZonedTime (..), getCurrentTime, toGregorian)
 import Data.Time.Format (defaultTimeLocale, formatTime)
 import qualified DateUtils as DU
+import qualified DescriptionHtml as DH
 import qualified ICalGen
 import qualified PocketBase as PB
 import Text.Blaze.Html.Renderer.String (renderHtml)
@@ -200,7 +201,9 @@ renderCalendarEvent icsList ev = do
             -- Description
             case PB.eventDescription ev of
                 Nothing -> return ()
-                Just d -> H.p $ H.toHtml d
+                Just d ->
+                    H.p $
+                        H.preEscapedToMarkup (DH.textToHtmlWithBreaks (T.unpack d))
             -- Screen-only links (hidden when printing)
             H.p ! A.class_ "readmore" $ do
                 H.a
@@ -271,7 +274,9 @@ generateEventHtml ev = do
                     H.p $ H.strong (H.toHtml l)
             case PB.eventDescription ev of
                 Nothing -> return ()
-                Just d -> H.p $ H.toHtml d
+                Just d ->
+                    H.p $
+                        H.preEscapedToMarkup (DH.textToHtmlWithBreaks (T.unpack d))
             H.p
                 $ H.a
                     ! A.href (H.toValue (icsDataUri ics))

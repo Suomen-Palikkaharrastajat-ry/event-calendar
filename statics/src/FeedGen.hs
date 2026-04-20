@@ -21,6 +21,7 @@ import qualified Data.Text.Lazy.Encoding as TLE
 import Data.Time (UTCTime, getCurrentTime)
 import Data.Time.Format (defaultTimeLocale, formatTime)
 import qualified DateUtils as DU
+import qualified DescriptionHtml as DH
 import qualified PocketBase as PB
 import System.Directory (getFileSize)
 
@@ -130,9 +131,7 @@ rssItemTitle = feedItemTitle
 -- | Description: body text first, formatted date appended on a new paragraph.
 rssItemDescription :: PB.Event -> String
 rssItemDescription ev =
-    let date = DU.formatEventDate ev
-        desc = maybe "" T.unpack (PB.eventDescription ev)
-     in if null desc then date else desc ++ "\n\n" ++ date
+    DH.descriptionWithDateHtml (PB.eventDescription ev) (DU.formatEventDate ev)
 
 -- | Build a single RSS item.
 buildRssItem :: GeneratorContext -> PB.Event -> IO String
@@ -246,10 +245,7 @@ buildAtomEntry ctx ev = do
                         ++ "\" length=\""
                         ++ show fileSize
                         ++ "\"/>"
-    let summaryContent =
-            let desc = maybe "" T.unpack (PB.eventDescription ev)
-                date = DU.formatEventDate ev
-             in if null desc then date else desc ++ "\n\n" ++ date
+    let summaryContent = DH.descriptionWithDateHtml (PB.eventDescription ev) (DU.formatEventDate ev)
     return $
         unlines $
             [ "  <entry>"
@@ -299,9 +295,7 @@ generateAtom ctx events = do
 jsonFeedItem :: PB.Event -> Value
 jsonFeedItem ev =
     let contentHtml =
-            let desc = maybe "" T.unpack (PB.eventDescription ev)
-                date = DU.formatEventDate ev
-             in if null desc then date else desc ++ "\n\n" ++ date
+            DH.descriptionWithDateHtml (PB.eventDescription ev) (DU.formatEventDate ev)
         baseFields =
             [ "id" .= (Config.siteBaseUrl ++ "/#/events/" ++ PB.eventId ev)
             , "title" .= feedItemTitle ev

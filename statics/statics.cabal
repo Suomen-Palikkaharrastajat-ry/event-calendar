@@ -25,6 +25,7 @@ library
     Config
     PocketBase
     DateUtils
+    DescriptionHtml
     ICalGen
     FeedGen
     GeoJsonGen
