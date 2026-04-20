@@ -12,6 +12,7 @@ import qualified Data.Map.Strict as Map
 import qualified DateUtils as DU
 import qualified FeedGen
 import qualified GeoJsonGen
+import qualified HtmlGen
 import qualified ICalGen
 import qualified PocketBase as PB
 
@@ -102,6 +103,13 @@ allDayEvent = decodeEvent allDayEventJson
 crossMonthEvent :: PB.Event
 crossMonthEvent = decodeEvent crossMonthEventJson
 
+multilineDescEvent :: PB.Event
+multilineDescEvent =
+    timedEvent
+        { PB.eventDescription =
+            Just "Rivi 1\r\n\rRivi 2\n\n<script>\"'&</script>"
+        }
+
 -- 2026-01-15 10:00 UTC — Helsinki EET (UTC+2, winter), no DST
 winterTime :: UTCTime
 winterTime = UTCTime (fromGregorian 2026 1 15) (secondsToDiffTime (10 * 3600))
@@ -124,6 +132,7 @@ main =
             , testGroup "ICalGen" icalGenTests
             , testGroup "GeoJsonGen" geoJsonTests
             , testGroup "FeedGen" feedGenTests
+            , testGroup "HtmlGen" htmlGenTests
             ]
 
 -- ---------------------------------------------------------------------------
@@ -358,6 +367,13 @@ feedGenTests =
     , testCase "RSS empty events produces no <item>" $ do
         rss <- FeedGen.generateRss emptyCtx []
         assertBool "no <item>" (not ("<item>" `isInfixOf` rss))
+    , testCase "RSS multiline description uses <br/> and escapes HTML" $ do
+        rss <- FeedGen.generateRss emptyCtx [multilineDescEvent]
+        assertBool "line breaks converted" ("Rivi 1<br/><br/>Rivi 2" `isInfixOf` rss)
+        assertBool "special chars escaped" ("&lt;script&gt;&quot;&apos;&amp;&lt;/script&gt;" `isInfixOf` rss)
+    , testCase "RSS empty description falls back to date text" $ do
+        rss <- FeedGen.generateRss emptyCtx [allDayEvent]
+        assertBool "contains date only" ("ti 16.6." `isInfixOf` rss)
     , -- Atom 1.0
       testCase "Atom has <?xml declaration" $ do
         atom <- FeedGen.generateAtom emptyCtx [timedEvent]
@@ -381,6 +397,10 @@ feedGenTests =
     , testCase "Atom empty events produces no <entry>" $ do
         atom <- FeedGen.generateAtom emptyCtx []
         assertBool "no <entry>" (not ("<entry>" `isInfixOf` atom))
+    , testCase "Atom summary uses <br/> and escapes HTML" $ do
+        atom <- FeedGen.generateAtom emptyCtx [multilineDescEvent]
+        assertBool "line breaks converted" ("Rivi 1<br/><br/>Rivi 2" `isInfixOf` atom)
+        assertBool "special chars escaped" ("&lt;script&gt;&quot;&apos;&amp;&lt;/script&gt;" `isInfixOf` atom)
     , -- JSON Feed 1.0
       testCase "JSON Feed has version field" $ do
         jf <- FeedGen.generateJsonFeed [timedEvent]
@@ -400,4 +420,30 @@ feedGenTests =
     , testCase "JSON Feed empty events has empty items" $ do
         jf <- FeedGen.generateJsonFeed []
         assertBool "empty items" ("\"items\":[]" `isInfixOf` jf)
+    , testCase "JSON Feed content_html uses <br/> and escapes HTML" $ do
+        jf <- FeedGen.generateJsonFeed [multilineDescEvent]
+        assertBool "line breaks converted" ("Rivi 1<br/><br/>Rivi 2" `isInfixOf` jf)
+        assertBool "special chars escaped" ("&lt;script&gt;&quot;&apos;&amp;&lt;/script&gt;" `isInfixOf` jf)
+    ]
+
+-- ---------------------------------------------------------------------------
+-- HtmlGen tests
+-- ---------------------------------------------------------------------------
+
+htmlGenTests :: [TestTree]
+htmlGenTests =
+    [ testCase "calendar HTML converts multiline descriptions to <br/>" $ do
+        html <- HtmlGen.generateCalendarHtml [multilineDescEvent]
+        assertBool "line breaks converted" ("Rivi 1<br/><br/>Rivi 2" `isInfixOf` html)
+    , testCase "calendar HTML escapes description HTML tags" $ do
+        html <- HtmlGen.generateCalendarHtml [multilineDescEvent]
+        assertBool "escaped script tag" ("&lt;script&gt;&quot;&apos;&amp;&lt;/script&gt;" `isInfixOf` html)
+        assertBool "no raw script tag" (not ("<script>\"'&</script>" `isInfixOf` html))
+    , testCase "event page HTML converts multiline descriptions to <br/>" $ do
+        html <- HtmlGen.generateEventHtml multilineDescEvent
+        assertBool "line breaks converted" ("Rivi 1<br/><br/>Rivi 2" `isInfixOf` html)
+    , testCase "event page HTML escapes description HTML tags" $ do
+        html <- HtmlGen.generateEventHtml multilineDescEvent
+        assertBool "escaped script tag" ("&lt;script&gt;&quot;&apos;&amp;&lt;/script&gt;" `isInfixOf` html)
+        assertBool "no raw script tag" (not ("<script>\"'&</script>" `isInfixOf` html))
     ]
