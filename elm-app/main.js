@@ -166,10 +166,18 @@ app.ports.initMap.subscribe(({ containerId, lat, lon, zoom, markerLat, markerLon
 })
 
 app.ports.setMapMarker.subscribe(({ lat, lon }) => {
-  Object.values(maps).forEach(({ map, marker }) => {
-    if (marker) {
-      marker.setLatLng([lat, lon])
-      map.panTo([lat, lon])
+  Object.entries(maps).forEach(([, entry]) => {
+    if (entry.marker) {
+      entry.marker.setLatLng([lat, lon])
+      entry.map.panTo([lat, lon])
+    } else {
+      const newMarker = L.marker([lat, lon], { draggable: true }).addTo(entry.map)
+      newMarker.on('dragend', (e) => {
+        const { lat: mlat, lng: mlon } = e.target.getLatLng()
+        app.ports.mapMarkerMoved.send({ lat: mlat, lon: mlon })
+      })
+      entry.marker = newMarker
+      entry.map.panTo([lat, lon])
     }
   })
 })
