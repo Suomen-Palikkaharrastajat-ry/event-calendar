@@ -239,12 +239,10 @@ update msg model =
                     -- Calendar month-nav already updated the model; only re-init when
                     -- the URL refers to a *different* month (e.g. browser back/forward).
                     let
-                        currentDateStr =
-                            String.fromInt calPage.year
-                                ++ "-"
-                                ++ String.padLeft 2 '0' (String.fromInt calPage.month)
+                        targetMonth =
+                            Page.Calendar.dateQueryToYearMonth model.now maybeDate
                     in
-                    if maybeDate == Just currentDateStr then
+                    if targetMonth == ( calPage.year, calPage.month ) then
                         ( { model | url = url }, Cmd.none )
 
                     else
@@ -398,7 +396,10 @@ update msg model =
                     updateCalendarPage msg model
 
                 dateStr =
-                    String.fromInt year ++ "-" ++ String.padLeft 2 '0' (String.fromInt month)
+                    String.fromInt year
+                        ++ "-"
+                        ++ String.padLeft 2 '0' (String.fromInt month)
+                        ++ "-01"
             in
             ( model1, Cmd.batch [ calCmd, Nav.replaceUrl model.key (toHref (RouteCalendar (Just dateStr))) ] )
 

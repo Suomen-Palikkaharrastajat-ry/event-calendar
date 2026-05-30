@@ -1,10 +1,10 @@
-module View.EventDetail exposing (view)
+module View.EventDetail exposing (eventCalendarRoute, view)
 
 import Api
 import Component.Alert as Alert
 import Component.Button as Button
 import Component.Spinner as Spinner
-import DateUtils exposing (formatEventDateDisplay)
+import DateUtils exposing (formatEventDateDisplay, utcStringToHelsinkiDateInput)
 import FeatherIcons
 import Html exposing (Html, a, button, div, h1, img, p, span, text)
 import Html.Attributes exposing (alt, class, href, src, target)
@@ -19,33 +19,38 @@ import View.Icons exposing (featherIcon)
 view : String -> AuthState -> String -> EventDetailPage -> Html Msg
 view pbBaseUrl authState _ detPage =
     div [ class "max-w-2xl mx-auto p-4" ]
-        [ button
-            [ onClick (NavigateTo (RouteCalendar Nothing))
-            , class "flex items-center gap-1 type-caption text-brand hover:underline mb-4"
-            ]
-            [ featherIcon FeatherIcons.arrowLeft 14, text (t DetailBack) ]
-        , case detPage.event of
+        [ case detPage.event of
             RemoteData.NotAsked ->
-                text ""
+                div []
+                    [ backButton (RouteCalendar Nothing)
+                    , text ""
+                    ]
 
             RemoteData.Loading ->
-                div [ class "flex justify-center py-8" ]
-                    [ Spinner.view { size = Spinner.Medium, label = t Loading } ]
+                div []
+                    [ backButton (RouteCalendar Nothing)
+                    , div [ class "flex justify-center py-8" ]
+                        [ Spinner.view { size = Spinner.Medium, label = t Loading } ]
+                    ]
 
             RemoteData.Failure _ ->
-                div [ class "py-4" ]
-                    [ Alert.view
-                        { alertType = Alert.Error
-                        , title = Nothing
-                        , body = [ text (t ErrorUnknown) ]
-                        , customIcon = Nothing
-                        , onDismiss = Nothing
-                        }
+                div []
+                    [ backButton (RouteCalendar Nothing)
+                    , div [ class "py-4" ]
+                        [ Alert.view
+                            { alertType = Alert.Error
+                            , title = Nothing
+                            , body = [ text (t ErrorUnknown) ]
+                            , customIcon = Nothing
+                            , onDismiss = Nothing
+                            }
+                        ]
                     ]
 
             RemoteData.Success event ->
                 div []
-                    [ div [ class "flex justify-between items-start mb-2" ]
+                    [ backButton (eventCalendarRoute event)
+                    , div [ class "flex justify-between items-start mb-2" ]
                         [ h1 [ class "type-h1" ] [ text event.title ]
                         , if isAuthenticated authState then
                             div [ class "flex gap-2 ml-4 shrink-0" ]
@@ -170,3 +175,23 @@ view pbBaseUrl authState _ detPage =
                                 ]
                     ]
         ]
+
+
+backButton : Route -> Html Msg
+backButton route =
+    a
+        [ href (toHref route)
+        , onClick (NavigateTo route)
+        , class "flex items-center gap-1 type-caption text-brand hover:underline mb-4"
+        ]
+        [ featherIcon FeatherIcons.arrowLeft 14, text (t DetailBack) ]
+
+
+eventCalendarRoute : Types.Event -> Route
+eventCalendarRoute event =
+    case utcStringToHelsinkiDateInput event.startDate of
+        "" ->
+            RouteCalendar Nothing
+
+        dateStr ->
+            RouteCalendar (Just dateStr)

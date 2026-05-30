@@ -2,9 +2,12 @@ module CalendarTest exposing (suite)
 
 import DateUtils exposing (..)
 import Expect
+import Page.Calendar as PageCalendar
+import Route exposing (toHref)
 import Test exposing (Test, describe, test)
 import Time
 import Types exposing (Event, EventState(..))
+import View.EventDetail as EventDetail
 
 
 {-| Build a minimal Event record for testing formatEventDateDisplay.
@@ -113,6 +116,32 @@ suite =
                 \_ ->
                     utcStringToHelsinkiDateInput "not-a-date"
                         |> Expect.equal ""
+            ]
+        , describe "calendar date query"
+            [ test "valid full date opens that month" <|
+                \_ ->
+                    PageCalendar.dateQueryToYearMonth (Time.millisToPosix 0) (Just "2026-05-05")
+                        |> Expect.equal ( 2026, 5 )
+            , test "year-month without day falls back to current Helsinki month" <|
+                \_ ->
+                    PageCalendar.dateQueryToYearMonth (Time.millisToPosix 0) (Just "2026-05")
+                        |> Expect.equal ( 1970, 1 )
+            , test "invalid date falls back to current Helsinki month" <|
+                \_ ->
+                    PageCalendar.dateQueryToYearMonth (Time.millisToPosix 0) (Just "bad-date")
+                        |> Expect.equal ( 1970, 1 )
+            ]
+        , describe "event detail calendar back link"
+            [ test "uses Helsinki-local start date" <|
+                \_ ->
+                    makeEvent
+                        { start = "2026-06-15T21:00:00.000Z"
+                        , end = Nothing
+                        , allDay = True
+                        }
+                        |> EventDetail.eventCalendarRoute
+                        |> toHref
+                        |> Expect.equal "#/?date=2026-06-16"
             ]
         , describe "utcStringToHelsinkiTimeInput"
             [ test "converts UTC to Helsinki time (EEST = UTC+3)" <|

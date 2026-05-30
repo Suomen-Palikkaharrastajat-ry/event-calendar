@@ -6,7 +6,7 @@
 -}
 
 
-module Page.Calendar exposing (init, update, view)
+module Page.Calendar exposing (dateQueryToYearMonth, init, update, view)
 
 import Api
 import DateUtils
@@ -29,14 +29,7 @@ init pbBaseUrl maybeDate now =
             Time.customZone helsinkiOffsetMin []
 
         ( year, month ) =
-            case maybeDate of
-                Just dateStr ->
-                    parseYearMonth dateStr
-
-                Nothing ->
-                    ( Time.toYear helsinkiZone now
-                    , DateUtils.monthToInt (Time.toMonth helsinkiZone now)
-                    )
+            dateQueryToYearMonth now maybeDate
     in
     ( { events = RemoteData.Loading
       , year = year
@@ -78,13 +71,56 @@ view =
 -- HELPERS
 
 
-parseYearMonth : String -> ( Int, Int )
+dateQueryToYearMonth : Time.Posix -> Maybe String -> ( Int, Int )
+dateQueryToYearMonth now maybeDate =
+    let
+        helsinkiOffsetMin =
+            DateUtils.helsinkiOffset now
+
+        helsinkiZone =
+            Time.customZone helsinkiOffsetMin []
+
+        currentMonth =
+            ( Time.toYear helsinkiZone now
+            , DateUtils.monthToInt (Time.toMonth helsinkiZone now)
+            )
+    in
+    maybeDate
+        |> Maybe.andThen parseYearMonth
+        |> Maybe.withDefault currentMonth
+
+
+parseYearMonth : String -> Maybe ( Int, Int )
 parseYearMonth dateStr =
     case String.split "-" dateStr of
-        y :: m :: _ ->
-            ( Maybe.withDefault 2025 (String.toInt y)
-            , Maybe.withDefault 1 (String.toInt m)
-            )
+        y :: m :: d :: [] ->
+            Maybe.map3
+                (\year month day ->
+                    if
+                        String.length y
+                            == 4
+                            && String.length m
+                            == 2
+                            && String.length d
+                            == 2
+                            && month
+                            >= 1
+                            && month
+                            <= 12
+                            && day
+                            >= 1
+                            && day
+                            <= DateUtils.daysInMonth year month
+                    then
+                        Just ( year, month )
+
+                    else
+                        Nothing
+                )
+                (String.toInt y)
+                (String.toInt m)
+                (String.toInt d)
+                |> Maybe.andThen identity
 
         _ ->
-            ( 2025, 1 )
+            Nothing
