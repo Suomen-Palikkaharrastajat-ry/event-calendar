@@ -95,7 +95,7 @@ viewCalendarNav page =
             , class "px-2 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
             ]
             [ featherIcon FeatherIcons.chevronLeft 16 ]
-        , span [ class "type-h3" ]
+        , span [ class "type-h3 w-52 text-center shrink-0" ]
             [ text (finnishMonthName page.month ++ " " ++ String.fromInt page.year) ]
         , button
             [ onClick (CalendarSetMonth nextY nextM)
