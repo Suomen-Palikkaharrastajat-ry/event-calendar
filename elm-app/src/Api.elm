@@ -224,7 +224,13 @@ createEvent pbBaseUrl token formData toMsg =
         { method = "POST"
         , headers = [ Http.header "Authorization" token ]
         , url = pbBaseUrl ++ "/api/collections/events/records"
-        , body = eventFormToMultipart formData
+        , body =
+            case formData.imageFile of
+                Just _ ->
+                    eventFormToMultipart formData
+
+                Nothing ->
+                    Http.jsonBody (eventFormToJson formData)
         , expect = Http.expectJson toMsg decodeEvent
         , timeout = Nothing
         , tracker = Nothing
@@ -237,7 +243,13 @@ updateEvent pbBaseUrl token eventId formData toMsg =
         { method = "PATCH"
         , headers = [ Http.header "Authorization" token ]
         , url = pbBaseUrl ++ "/api/collections/events/records/" ++ eventId
-        , body = eventFormToMultipart formData
+        , body =
+            case formData.imageFile of
+                Just _ ->
+                    eventFormToMultipart formData
+
+                Nothing ->
+                    Http.jsonBody (eventFormToJson formData)
         , expect = Http.expectJson toMsg decodeEvent
         , timeout = Nothing
         , tracker = Nothing
@@ -274,6 +286,45 @@ deleteEvent pbBaseUrl token eventId toMsg =
 
 
 -- MULTIPART FORM
+
+
+eventFormToJson : EventFormData -> Encode.Value
+eventFormToJson formData =
+    let
+        startDatePart =
+            Maybe.withDefault formData.startDate (formDateTimeToUtc formData.startDate formData.startTime formData.allDay)
+
+        endDatePart =
+            if String.isEmpty formData.endDate then
+                ""
+
+            else
+                Maybe.withDefault formData.endDate (formDateTimeToUtc formData.endDate formData.endTime formData.allDay)
+
+        pointJson =
+            if formData.geocodingEnabled then
+                case ( String.toFloat formData.lat, String.toFloat formData.lon ) of
+                    ( Just lat, Just lon ) ->
+                        Encode.object [ ( "lat", Encode.float lat ), ( "lon", Encode.float lon ) ]
+
+                    _ ->
+                        Encode.null
+
+            else
+                Encode.null
+    in
+    Encode.object
+        [ ( "title", Encode.string formData.title )
+        , ( "description", Encode.string formData.description )
+        , ( "location", Encode.string formData.location )
+        , ( "url", Encode.string formData.url )
+        , ( "start_date", Encode.string startDatePart )
+        , ( "end_date", Encode.string endDatePart )
+        , ( "all_day", Encode.bool formData.allDay )
+        , ( "state", Encode.string (eventStateToString formData.state) )
+        , ( "image_description", Encode.string formData.imageDescription )
+        , ( "point", pointJson )
+        ]
 
 
 eventFormToMultipart : EventFormData -> Http.Body
