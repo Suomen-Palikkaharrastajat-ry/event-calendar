@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 !.env.test
+.devcontainer/
 .devcontainer.json
 .devenv*
 devenv.local.nix
