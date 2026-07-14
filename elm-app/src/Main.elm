@@ -26,6 +26,7 @@ import Auth
 import Browser
 import Browser.Events
 import Browser.Navigation as Nav
+import Date
 import DatePicker
 import DateUtils exposing (utcStringToHelsinkiDateInput, utcStringToHelsinkiTimeInput)
 import File
@@ -793,13 +794,29 @@ update msg model =
                                 form =
                                     eventToForm model.pbBaseUrl event
 
+                                nextStartDatePicker =
+                                    case Date.fromIsoString form.startDate of
+                                        Ok d ->
+                                            DatePicker.initFromDate d
+
+                                        Err _ ->
+                                            editPage.startDatePicker
+
+                                nextEndDatePicker =
+                                    case Date.fromIsoString form.endDate of
+                                        Ok d ->
+                                            DatePicker.initFromDate d
+
+                                        Err _ ->
+                                            editPage.endDatePicker
+
                                 mapLat =
                                     Maybe.map .lat event.point |> Maybe.withDefault helsinkiLat
 
                                 mapLon =
                                     Maybe.map .lon event.point |> Maybe.withDefault helsinkiLon
                             in
-                            ( { model | page = PageEventEdit id { editPage | event = Success event, form = form } }
+                            ( { model | page = PageEventEdit id { editPage | event = Success event, form = form, startDatePicker = nextStartDatePicker, endDatePicker = nextEndDatePicker } }
                             , Ports.initMap
                                 { containerId = "edit-map"
                                 , lat = mapLat
@@ -1438,6 +1455,12 @@ subscriptions model =
                         Browser.Events.onKeyDown
                             (Json.map DetailKeyPressed (Json.field "key" Json.string))
 
+                    PageEvents _ ->
+                        Browser.Events.onKeyDown (formSubmitDecoder EventsFormSubmit)
+
+                    PageEventEdit _ _ ->
+                        Browser.Events.onKeyDown (formSubmitDecoder EditFormSubmit)
+
                     _ ->
                         Sub.none
     in
@@ -1449,3 +1472,19 @@ subscriptions model =
         , Ports.kmlParsed EventsKmlParsed
         , keyboardSub
         ]
+
+
+formSubmitDecoder : Msg -> Json.Decoder Msg
+formSubmitDecoder msg =
+    Json.map3 (\key ctrl meta -> { key = key, ctrl = ctrl, meta = meta })
+        (Json.field "key" Json.string)
+        (Json.field "ctrlKey" Json.bool)
+        (Json.field "metaKey" Json.bool)
+        |> Json.andThen
+            (\info ->
+                if info.key == "Enter" && (info.ctrl || info.meta) then
+                    Json.succeed msg
+
+                else
+                    Json.fail "not ctrl+enter"
+            )

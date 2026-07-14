@@ -299,7 +299,15 @@ eventFormToJson formData =
                 ""
 
             else
-                Maybe.withDefault formData.endDate (formDateTimeToUtc formData.endDate formData.endTime formData.allDay)
+                let
+                    ( endT, isAllDayForEnd ) =
+                        if formData.allDay then
+                            ( "23:59", False )
+
+                        else
+                            ( formData.endTime, formData.allDay )
+                in
+                Maybe.withDefault formData.endDate (formDateTimeToUtc formData.endDate endT isAllDayForEnd)
 
         pointJson =
             if formData.geocodingEnabled then
@@ -343,7 +351,15 @@ eventFormToMultipart formData =
                 ""
 
             else
-                case formDateTimeToUtc formData.endDate formData.endTime formData.allDay of
+                let
+                    ( endT, isAllDayForEnd ) =
+                        if formData.allDay then
+                            ( "23:59", False )
+
+                        else
+                            ( formData.endTime, formData.allDay )
+                in
+                case formDateTimeToUtc formData.endDate endT isAllDayForEnd of
                     Just s ->
                         s
 
