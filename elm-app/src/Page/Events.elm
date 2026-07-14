@@ -8,21 +8,26 @@
 
 module Page.Events exposing (init, view)
 
+import Date
 import DatePicker
+import DateUtils
 import Html exposing (Html)
 import Time exposing (Posix)
 import Types exposing (AuthState, EventsPage, FormStatus(..), KmlImportStatus(..), Msg(..), emptyEventFormData)
 import View.Events
 
 
-init : String -> Maybe String -> ( EventsPage, Cmd Msg )
-init _ _ =
+init : Posix -> String -> Maybe String -> ( EventsPage, Cmd Msg )
+init now _ _ =
     let
-        ( startDatePicker, startDatePickerCmd ) =
-            DatePicker.init
+        currentDate =
+            Date.fromPosix (DateUtils.helsinkiZone now) now
 
-        ( endDatePicker, endDatePickerCmd ) =
-            DatePicker.init
+        startDatePicker =
+            DatePicker.initFromDate currentDate
+
+        endDatePicker =
+            DatePicker.initFromDate currentDate
     in
     ( { form = emptyEventFormData
       , startDatePicker = startDatePicker
@@ -31,10 +36,7 @@ init _ _ =
       , kmlImportStatus = KmlIdle
       , kmlQueue = []
       }
-    , Cmd.batch
-        [ Cmd.map EventsStartDatePickerChanged startDatePickerCmd
-        , Cmd.map EventsEndDatePickerChanged endDatePickerCmd
-        ]
+    , Cmd.none
     )
 
 

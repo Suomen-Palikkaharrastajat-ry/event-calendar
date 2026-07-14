@@ -154,7 +154,7 @@ initPage pbBaseUrl key route authState url now =
                 Authenticated _ ->
                     let
                         ( eventsPage, eventsCmd ) =
-                            Page.Events.init pbBaseUrl (getToken authState)
+                            Page.Events.init now pbBaseUrl (getToken authState)
                     in
                     ( PageEvents eventsPage
                     , Cmd.batch
@@ -191,7 +191,7 @@ initPage pbBaseUrl key route authState url now =
                 Authenticated _ ->
                     let
                         ( editPage, editCmd ) =
-                            Page.EventEdit.init pbBaseUrl (getToken authState) id
+                            Page.EventEdit.init now pbBaseUrl (getToken authState) id
                     in
                     ( PageEventEdit id editPage, editCmd )
 
@@ -519,8 +519,28 @@ update msg model =
                         ( model, Cmd.none )
 
                     else
+                        let
+                            formToSend =
+                                if evPage.form.allDay then
+                                    let
+                                        f =
+                                            evPage.form
+                                    in
+                                    { f
+                                        | endDate =
+                                            if String.isEmpty f.endDate then
+                                                f.startDate
+
+                                            else
+                                                f.endDate
+                                        , endTime = "23:59"
+                                    }
+
+                                else
+                                    evPage.form
+                        in
                         ( { model | page = PageEvents { evPage | formStatus = Types.FormSubmitting } }
-                        , Api.createEvent model.pbBaseUrl token evPage.form EventsFormGotSave
+                        , Api.createEvent model.pbBaseUrl token formToSend EventsFormGotSave
                         )
 
                 _ ->
@@ -532,11 +552,14 @@ update msg model =
                     case result of
                         Ok _ ->
                             let
-                                ( freshStartDatePicker, freshStartDatePickerCmd ) =
-                                    DatePicker.init
+                                currentDate =
+                                    Date.fromPosix (DateUtils.helsinkiZone model.now) model.now
 
-                                ( freshEndDatePicker, freshEndDatePickerCmd ) =
-                                    DatePicker.init
+                                freshStartDatePicker =
+                                    DatePicker.initFromDate currentDate
+
+                                freshEndDatePicker =
+                                    DatePicker.initFromDate currentDate
 
                                 ( model1, toastCmd ) =
                                     addToast
@@ -556,8 +579,6 @@ update msg model =
                             ( model1
                             , Cmd.batch
                                 [ toastCmd
-                                , Cmd.map EventsStartDatePickerChanged freshStartDatePickerCmd
-                                , Cmd.map EventsEndDatePickerChanged freshEndDatePickerCmd
                                 , Nav.pushUrl model.key (toHref RouteEvents)
                                 ]
                             )
@@ -948,8 +969,28 @@ update msg model =
                         ( model, Cmd.none )
 
                     else
+                        let
+                            formToSend =
+                                if editPage.form.allDay then
+                                    let
+                                        f =
+                                            editPage.form
+                                    in
+                                    { f
+                                        | endDate =
+                                            if String.isEmpty f.endDate then
+                                                f.startDate
+
+                                            else
+                                                f.endDate
+                                        , endTime = "23:59"
+                                    }
+
+                                else
+                                    editPage.form
+                        in
                         ( { model | page = PageEventEdit id { editPage | formStatus = Types.FormSubmitting } }
-                        , Api.updateEvent model.pbBaseUrl token id editPage.form EditFormGotSave
+                        , Api.updateEvent model.pbBaseUrl token id formToSend EditFormGotSave
                         )
 
                 _ ->

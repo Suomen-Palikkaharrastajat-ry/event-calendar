@@ -10,6 +10,7 @@ module DateUtils exposing
     , formatShortDate
     , formatTime
     , helsinkiOffset
+    , helsinkiZone
     , isDst
     , isoDateToFinnishDateInput
     , monthGrid

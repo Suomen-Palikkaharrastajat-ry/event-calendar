@@ -9,21 +9,27 @@
 module Page.EventEdit exposing (init, view)
 
 import Api
+import Date
 import DatePicker
+import DateUtils
 import Html exposing (Html)
 import RemoteData
+import Time exposing (Posix)
 import Types exposing (AuthState, EventEditPage, FormStatus(..), Msg(..), emptyEventFormData)
 import View.EventForm
 
 
-init : String -> Maybe String -> String -> ( EventEditPage, Cmd Msg )
-init pbBaseUrl maybeToken id =
+init : Posix -> String -> Maybe String -> String -> ( EventEditPage, Cmd Msg )
+init now pbBaseUrl maybeToken id =
     let
-        ( startDatePicker, startDatePickerCmd ) =
-            DatePicker.init
+        currentDate =
+            Date.fromPosix (DateUtils.helsinkiZone now) now
 
-        ( endDatePicker, endDatePickerCmd ) =
-            DatePicker.init
+        startDatePicker =
+            DatePicker.initFromDate currentDate
+
+        endDatePicker =
+            DatePicker.initFromDate currentDate
     in
     ( { event = RemoteData.Loading
       , form = emptyEventFormData
@@ -31,11 +37,7 @@ init pbBaseUrl maybeToken id =
       , endDatePicker = endDatePicker
       , formStatus = FormIdle
       }
-    , Cmd.batch
-        [ Api.fetchEvent pbBaseUrl maybeToken id EditGotEvent
-        , Cmd.map EditStartDatePickerChanged startDatePickerCmd
-        , Cmd.map EditEndDatePickerChanged endDatePickerCmd
-        ]
+    , Api.fetchEvent pbBaseUrl maybeToken id EditGotEvent
     )
 
 
