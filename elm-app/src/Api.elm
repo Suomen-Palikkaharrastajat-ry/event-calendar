@@ -1,7 +1,6 @@
 module Api exposing
     ( createEvent
     , decodeEvent
-    , deleteEvent
     , fetchAllEvents
     , fetchEvent
     , fetchEventsForList
@@ -271,17 +270,6 @@ updateEventState pbBaseUrl token eventId newState toMsg =
         }
 
 
-deleteEvent : String -> String -> String -> (Result Http.Error () -> Msg) -> Cmd Msg
-deleteEvent pbBaseUrl token eventId toMsg =
-    Http.request
-        { method = "DELETE"
-        , headers = [ Http.header "Authorization" token ]
-        , url = pbBaseUrl ++ "/api/collections/events/records/" ++ eventId
-        , body = Http.emptyBody
-        , expect = Http.expectWhatever toMsg
-        , timeout = Nothing
-        , tracker = Nothing
-        }
 
 
 

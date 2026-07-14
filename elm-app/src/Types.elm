@@ -423,7 +423,7 @@ type
     | DetailGotEvent (Result Http.Error Event)
     | DetailRequestDelete
     | DetailConfirmDelete
-    | DetailGotDelete (Result Http.Error ())
+    | DetailGotDelete (Result Http.Error Event)
     | DetailKeyPressed String
       -- Event edit page
     | EditGotEvent (Result Http.Error Event)

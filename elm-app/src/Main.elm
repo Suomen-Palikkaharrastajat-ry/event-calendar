@@ -759,7 +759,7 @@ update msg model =
                 ( PageEventDetail _ detPage, Just token ) ->
                     case detPage.event of
                         Success event ->
-                            ( model, Api.deleteEvent model.pbBaseUrl token event.id DetailGotDelete )
+                            ( model, Api.updateEventState model.pbBaseUrl token event.id Types.Deleted DetailGotDelete )
 
                         _ ->
                             ( model, Cmd.none )
@@ -769,7 +769,7 @@ update msg model =
 
         DetailGotDelete result ->
             case result of
-                Ok () ->
+                Ok _ ->
                     let
                         ( model1, toastCmd ) =
                             addToast model ToastSuccess "Tapahtuma poistettu"
