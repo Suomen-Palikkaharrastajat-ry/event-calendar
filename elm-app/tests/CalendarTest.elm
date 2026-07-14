@@ -31,6 +31,7 @@ makeEvent { start, end, allDay } =
     , image = Nothing
     , imageDescription = Nothing
     , point = Nothing
+    , tags = []
     , created = ""
     , updated = ""
     }

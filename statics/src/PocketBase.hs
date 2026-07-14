@@ -7,7 +7,7 @@ module PocketBase (
 ) where
 
 import qualified Config
-import Data.Aeson (FromJSON (..), eitherDecode, withObject, (.:), (.:?))
+import Data.Aeson (FromJSON (..), eitherDecode, withObject, (.:), (.:?), (.!=))
 import Data.Char (isAsciiLower, isAsciiUpper, isDigit)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -58,6 +58,7 @@ data Event = Event
     , eventImage :: Maybe Text -- filename only
     , eventImageDesc :: Maybe Text
     , eventPoint :: Maybe GeoPoint
+    , eventTags :: [Text]
     , eventCreated :: UTCTime
     , eventUpdated :: UTCTime
     }
@@ -78,6 +79,7 @@ instance FromJSON Event where
             <*> (nullableText <$> o .:? "image")
             <*> (nullableText <$> o .:? "image_description")
             <*> o .:? "point"
+            <*> o .:? "tags" .!= []
             <*> o .: "created"
             <*> o .: "updated"
 

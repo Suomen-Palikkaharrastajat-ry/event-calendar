@@ -32,6 +32,11 @@ type MsgKey
     | FormEndTime
     | FormAllDay
     | FormStatus
+    | FormTag
+    | TagNone
+    | TagExhibition
+    | TagEvent
+    | TagCompetition
     | FormSave
     | FormCancel
     | FormGeocode
@@ -167,6 +172,21 @@ t key =
 
         FormStatus ->
             "Tila"
+
+        FormTag ->
+            "Tunniste"
+
+        TagNone ->
+            "Ei mikään"
+
+        TagExhibition ->
+            "Näyttely"
+
+        TagEvent ->
+            "Tapahtuma"
+
+        TagCompetition ->
+            "Kilpailu"
 
         FormSave ->
             "Tallenna"

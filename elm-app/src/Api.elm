@@ -75,6 +75,7 @@ decodeEvent =
             , image = Nothing
             , imageDescription = Nothing
             , point = Nothing
+            , tags = []
             , created = ""
             , updated = ""
             }
@@ -107,9 +108,10 @@ decodeEvent =
             )
         |> Json.andThen
             (\partial ->
-                Json.map
-                    (\updated -> { partial | updated = updated })
+                Json.map2
+                    (\updated tags -> { partial | updated = updated, tags = Maybe.withDefault [] tags })
                     (Json.field "updated" Json.string)
+                    (Json.maybe (Json.field "tags" (Json.list Json.string)))
             )
 
 
@@ -320,6 +322,13 @@ eventFormToJson formData =
         , ( "state", Encode.string (eventStateToString formData.state) )
         , ( "image_description", Encode.string formData.imageDescription )
         , ( "point", pointJson )
+        , ( "tags"
+          , if String.isEmpty formData.tag then
+                Encode.list Encode.string []
+
+            else
+                Encode.list Encode.string [ formData.tag ]
+          )
         ]
 
 
@@ -371,6 +380,13 @@ eventFormToMultipart formData =
             , Http.stringPart "state" (eventStateToString formData.state)
             , Http.stringPart "image_description" formData.imageDescription
             , Http.stringPart "point" (encodePointForPb formData)
+            , Http.stringPart "tags"
+                (if String.isEmpty formData.tag then
+                    "[]"
+
+                 else
+                    "[\"" ++ formData.tag ++ "\"]"
+                )
             ]
 
         fileParts =

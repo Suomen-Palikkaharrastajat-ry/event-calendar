@@ -1193,6 +1193,9 @@ applyFormField field val form =
         "lon" ->
             { form | lon = val }
 
+        "tag" ->
+            { form | tag = val }
+
         "state" ->
             case Types.eventStateFromString val of
                 Just s ->
@@ -1333,6 +1336,7 @@ eventToForm pbBaseUrl event =
     , endTime = endTime
     , allDay = event.allDay
     , state = event.state
+    , tag = List.head event.tags |> Maybe.withDefault "event"
     , imageFile = Nothing
     , imageDescription = Maybe.withDefault "" event.imageDescription
     , hasExistingImage = event.image /= Nothing

@@ -130,6 +130,7 @@ viewSharedFields msgs form startDatePicker endDatePicker formStatus isEdit =
         , fieldText "url" (t FormUrl) form.url False msgs.onFieldChanged
         , viewImageSection msgs isEdit form
         , viewDateSection msgs form startDatePicker endDatePicker
+        , viewTagSelect form.tag (\v -> msgs.onFieldChanged "tag" v)
         , viewStateSelect form.state (\v -> msgs.onFieldChanged "state" v)
         , viewFormButtons formStatus isEdit
         ]
@@ -287,6 +288,38 @@ viewDateSection msgs form startDatePicker endDatePicker =
               else
                 text ""
             ]
+        ]
+
+
+viewTagSelect : String -> (String -> Msg) -> Html Msg
+viewTagSelect currentTag toMsg =
+    div [ class "flex flex-col gap-2" ]
+        [ label [ class "type-body-small" ] [ text (t FormTag) ]
+        , div [ class "flex flex-wrap gap-3" ]
+            [ viewTagRadio "event-tag-none" "event-tag" "" (t TagNone) currentTag toMsg
+            , viewTagRadio "event-tag-exhibition" "event-tag" "exhibition" (t TagExhibition) currentTag toMsg
+            , viewTagRadio "event-tag-event" "event-tag" "event" (t TagEvent) currentTag toMsg
+            , viewTagRadio "event-tag-competition" "event-tag" "competition" (t TagCompetition) currentTag toMsg
+            ]
+        ]
+
+
+viewTagRadio : String -> String -> String -> String -> String -> (String -> Msg) -> Html Msg
+viewTagRadio inputId groupName radioValue labelText currentValue toMsg =
+    label
+        [ for inputId
+        , class "inline-flex items-center gap-2 border border-border-default rounded px-3 py-2 type-caption"
+        ]
+        [ input
+            [ type_ "radio"
+            , id inputId
+            , name groupName
+            , value radioValue
+            , checked (currentValue == radioValue)
+            , onClick (toMsg radioValue)
+            ]
+            []
+        , text labelText
         ]
 
 

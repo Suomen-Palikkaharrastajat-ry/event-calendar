@@ -155,6 +155,7 @@ type alias Event =
     , image : Maybe String
     , imageDescription : Maybe String
     , point : Maybe GeoPoint
+    , tags : List String
     , created : String
     , updated : String
     }
@@ -196,6 +197,7 @@ type alias EventFormData =
     , hasExistingImage : Bool
     , existingImageUrl : Maybe String
     , imagePreviewUrl : Maybe String
+    , tag : String
     }
 
 
@@ -229,6 +231,7 @@ emptyEventFormData =
     , hasExistingImage = False
     , existingImageUrl = Nothing
     , imagePreviewUrl = Nothing
+    , tag = "event"
     }
 
 
