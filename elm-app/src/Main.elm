@@ -1456,10 +1456,10 @@ subscriptions model =
                             (Json.map DetailKeyPressed (Json.field "key" Json.string))
 
                     PageEvents _ ->
-                        Browser.Events.onKeyDown (formSubmitDecoder EventsFormSubmit)
+                        Browser.Events.onKeyDown (formKeyDecoder EventsFormSubmit)
 
                     PageEventEdit _ _ ->
-                        Browser.Events.onKeyDown (formSubmitDecoder EditFormSubmit)
+                        Browser.Events.onKeyDown (formKeyDecoder EditFormSubmit)
 
                     _ ->
                         Sub.none
@@ -1474,8 +1474,8 @@ subscriptions model =
         ]
 
 
-formSubmitDecoder : Msg -> Json.Decoder Msg
-formSubmitDecoder msg =
+formKeyDecoder : Msg -> Json.Decoder Msg
+formKeyDecoder saveMsg =
     Json.map3 (\key ctrl meta -> { key = key, ctrl = ctrl, meta = meta })
         (Json.field "key" Json.string)
         (Json.field "ctrlKey" Json.bool)
@@ -1483,8 +1483,11 @@ formSubmitDecoder msg =
         |> Json.andThen
             (\info ->
                 if info.key == "Enter" && (info.ctrl || info.meta) then
-                    Json.succeed msg
+                    Json.succeed saveMsg
+
+                else if info.key == "Escape" then
+                    Json.succeed (NavigateTo RouteEvents)
 
                 else
-                    Json.fail "not ctrl+enter"
+                    Json.fail "not handled"
             )
