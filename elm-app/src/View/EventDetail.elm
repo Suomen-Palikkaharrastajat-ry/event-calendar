@@ -121,20 +121,24 @@ view pbBaseUrl authState _ detPage =
                                 [ span [ class "type-body-small mr-1" ] [ text (t DetailLocation ++ ":") ]
                                 , case event.point of
                                     Just pt ->
-                                        a
-                                            [ href
-                                                ("https://www.openstreetmap.org/?mlat="
-                                                    ++ String.fromFloat pt.lat
-                                                    ++ "&mlon="
-                                                    ++ String.fromFloat pt.lon
-                                                    ++ "&zoom=15"
-                                                )
-                                            , target "_blank"
-                                            , class "text-brand underline inline-flex items-center gap-1"
-                                            ]
-                                            [ text loc
-                                            , featherIcon FeatherIcons.globe 14
-                                            ]
+                                        if pt.lat == 0 && pt.lon == 0 then
+                                            span [] [ text loc ]
+
+                                        else
+                                            a
+                                                [ href
+                                                    ("https://www.openstreetmap.org/?mlat="
+                                                        ++ String.fromFloat pt.lat
+                                                        ++ "&mlon="
+                                                        ++ String.fromFloat pt.lon
+                                                        ++ "&zoom=15"
+                                                    )
+                                                , target "_blank"
+                                                , class "text-brand underline inline-flex items-center gap-1"
+                                                ]
+                                                [ text loc
+                                                , featherIcon FeatherIcons.globe 14
+                                                ]
 
                                     Nothing ->
                                         span [] [ text loc ]

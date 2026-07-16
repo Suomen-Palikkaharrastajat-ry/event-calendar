@@ -26,6 +26,7 @@ module Types exposing
     , eventStateFromString
     , eventStateToString
     , getToken
+    , hasValidCoordinates
     , isAuthenticated
     )
 
@@ -98,6 +99,16 @@ type alias GeoPoint =
     { lat : Float
     , lon : Float
     }
+
+
+hasValidCoordinates : Maybe GeoPoint -> Bool
+hasValidCoordinates point =
+    case point of
+        Just { lat, lon } ->
+            lat /= 0 || lon /= 0
+
+        Nothing ->
+            False
 
 
 type EventState

@@ -7,7 +7,7 @@ module PocketBase (
 ) where
 
 import qualified Config
-import Data.Aeson (FromJSON (..), eitherDecode, withObject, (.:), (.:?), (.!=))
+import Data.Aeson (FromJSON (..), eitherDecode, withObject, (.!=), (.:), (.:?))
 import Data.Char (isAsciiLower, isAsciiUpper, isDigit)
 import Data.Text (Text)
 import qualified Data.Text as T

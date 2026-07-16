@@ -211,18 +211,22 @@ viewEvent now authState event =
                         text ""
 
                     Just pt ->
-                        a
-                            [ href
-                                ("https://www.openstreetmap.org/?mlat="
-                                    ++ String.fromFloat pt.lat
-                                    ++ "&mlon="
-                                    ++ String.fromFloat pt.lon
-                                    ++ "&zoom=15"
-                                )
-                            , target "_blank"
-                            , class "text-brand hover:text-brand-yellow transition-colors"
-                            ]
-                            [ featherIcon FeatherIcons.mapPin 16 ]
+                        if pt.lat == 0 && pt.lon == 0 then
+                            text ""
+
+                        else
+                            a
+                                [ href
+                                    ("https://www.openstreetmap.org/?mlat="
+                                        ++ String.fromFloat pt.lat
+                                        ++ "&mlon="
+                                        ++ String.fromFloat pt.lon
+                                        ++ "&zoom=15"
+                                    )
+                                , target "_blank"
+                                , class "text-brand hover:text-brand-yellow transition-colors"
+                                ]
+                                [ featherIcon FeatherIcons.mapPin 16 ]
                 , case event.url of
                     Nothing ->
                         text ""

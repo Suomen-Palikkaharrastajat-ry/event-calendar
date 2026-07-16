@@ -117,7 +117,9 @@ eventToVEventLines now ev =
         Just l -> ["LOCATION:" ++ escapeIcal (T.unpack l)]
     geoLine = case PB.eventPoint ev of
         Nothing -> []
-        Just pt -> ["GEO:" ++ show (PB.geoLat pt) ++ ";" ++ show (PB.geoLon pt)]
+        Just pt
+            | PB.geoLat pt == 0 && PB.geoLon pt == 0 -> []
+            | otherwise -> ["GEO:" ++ show (PB.geoLat pt) ++ ";" ++ show (PB.geoLon pt)]
 
 -- | Helsinki VTIMEZONE component (simplified fixed rules valid from 1996 onward).
 helsinkiVTimezone :: [String]

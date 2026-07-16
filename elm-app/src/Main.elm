@@ -832,10 +832,50 @@ update msg model =
                                             editPage.endDatePicker
 
                                 mapLat =
-                                    Maybe.map .lat event.point |> Maybe.withDefault helsinkiLat
+                                    Maybe.map .lat event.point
+                                        |> Maybe.andThen
+                                            (\lat ->
+                                                if lat == 0 && (Maybe.map .lon event.point |> Maybe.withDefault 0) == 0 then
+                                                    Nothing
+
+                                                else
+                                                    Just lat
+                                            )
+                                        |> Maybe.withDefault helsinkiLat
 
                                 mapLon =
-                                    Maybe.map .lon event.point |> Maybe.withDefault helsinkiLon
+                                    Maybe.map .lon event.point
+                                        |> Maybe.andThen
+                                            (\lon ->
+                                                if lon == 0 && (Maybe.map .lat event.point |> Maybe.withDefault 0) == 0 then
+                                                    Nothing
+
+                                                else
+                                                    Just lon
+                                            )
+                                        |> Maybe.withDefault helsinkiLon
+
+                                markerLat =
+                                    Maybe.andThen
+                                        (\p ->
+                                            if p.lat == 0 && p.lon == 0 then
+                                                Nothing
+
+                                            else
+                                                Just p.lat
+                                        )
+                                        event.point
+
+                                markerLon =
+                                    Maybe.andThen
+                                        (\p ->
+                                            if p.lat == 0 && p.lon == 0 then
+                                                Nothing
+
+                                            else
+                                                Just p.lon
+                                        )
+                                        event.point
                             in
                             ( { model | page = PageEventEdit id { editPage | event = Success event, form = form, startDatePicker = nextStartDatePicker, endDatePicker = nextEndDatePicker } }
                             , Ports.initMap
@@ -843,8 +883,8 @@ update msg model =
                                 , lat = mapLat
                                 , lon = mapLon
                                 , zoom = 12
-                                , markerLat = Maybe.map .lat event.point
-                                , markerLon = Maybe.map .lon event.point
+                                , markerLat = markerLat
+                                , markerLon = markerLon
                                 , draggable = True
                                 }
                             )

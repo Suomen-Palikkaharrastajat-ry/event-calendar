@@ -103,6 +103,31 @@ allDayEvent = decodeEvent allDayEventJson
 crossMonthEvent :: PB.Event
 crossMonthEvent = decodeEvent crossMonthEventJson
 
+{- | Timed event with zero coordinates (lat=0, lon=0). Should be treated as
+unlocated in all output except forms. -}
+zeroPointEventJson :: BLC.ByteString
+zeroPointEventJson =
+    BLC.pack $
+        concat
+            [ "{\"id\":\"zero001\","
+            , "\"title\":\"Null Island Event\","
+            , "\"description\":\"Should be excluded from geo output\","
+            , "\"start_date\":\"2026-05-05T11:00:00.000Z\","
+            , "\"end_date\":null,"
+            , "\"all_day\":false,"
+            , "\"url\":\"\","
+            , "\"location\":\"Null Island\","
+            , "\"state\":\"published\","
+            , "\"image\":\"\","
+            , "\"image_description\":\"\","
+            , "\"point\":{\"lat\":0,\"lon\":0},"
+            , "\"created\":\"2026-01-01T00:00:00.000Z\","
+            , "\"updated\":\"2026-01-02T00:00:00.000Z\"}"
+            ]
+
+zeroPointEvent :: PB.Event
+zeroPointEvent = decodeEvent zeroPointEventJson
+
 multilineDescEvent :: PB.Event
 multilineDescEvent =
     timedEvent
@@ -269,6 +294,9 @@ icalGenTests =
     , testCase "GEO field absent when no coordinates" $ do
         ics <- ICalGen.generateEventIcs allDayEvent
         assertBool "no GEO:" (not ("GEO:" `isInfixOf` ics))
+    , testCase "GEO field absent when zero coordinates" $ do
+        ics <- ICalGen.generateEventIcs zeroPointEvent
+        assertBool "no GEO:" (not ("GEO:" `isInfixOf` ics))
     , testCase "DTSTAMP not hardcoded to epoch" $ do
         ics <- ICalGen.generateEventIcs timedEvent
         assertBool
@@ -327,6 +355,11 @@ geoJsonTests =
     , testCase "empty features when no geolocated events" $ do
         geo <- GeoJsonGen.generateGeoJson [allDayEvent]
         assertBool "empty features" ("\"features\":[]" `isInfixOf` geo)
+    , testCase "event with zero coordinates excluded" $ do
+        geo <- GeoJsonGen.generateGeoJson [zeroPointEvent]
+        assertBool
+            "no zero001 in output"
+            (not ("zero001" `isInfixOf` geo))
     ]
 
 -- ---------------------------------------------------------------------------

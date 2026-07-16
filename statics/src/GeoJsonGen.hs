@@ -24,30 +24,32 @@ toRfc3339 (Just t) = toJSON (formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%SZ" t
 eventToFeature :: Map.Map String String -> PB.Event -> Maybe Value
 eventToFeature icsMap ev = case PB.eventPoint ev of
     Nothing -> Nothing
-    Just pt ->
-        let ics = Map.findWithDefault "" (PB.eventId ev) icsMap
-         in Just $
-                object
-                    [ "type" .= ("Feature" :: String)
-                    , "geometry"
-                        .= object
-                            [ "type" .= ("Point" :: String)
-                            , -- GeoJSON coordinate order: [longitude, latitude]
-                              "coordinates" .= toJSON [PB.geoLon pt, PB.geoLat pt]
-                            ]
-                    , "properties"
-                        .= object
-                            [ "id" .= PB.eventId ev
-                            , "title" .= T.unpack (PB.eventTitle ev)
-                            , "description" .= maybe Null (toJSON . T.unpack) (PB.eventDescription ev)
-                            , "start" .= formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%SZ" (PB.eventStartDate ev)
-                            , "end" .= toRfc3339 (PB.eventEndDate ev)
-                            , "all_day" .= PB.eventAllDay ev
-                            , "location" .= maybe Null (toJSON . T.unpack) (PB.eventLocation ev)
-                            , "url" .= maybe Null (toJSON . T.unpack) (PB.eventUrl ev)
-                            , "ics" .= ics
-                            ]
-                    ]
+    Just pt
+        | PB.geoLat pt == 0 && PB.geoLon pt == 0 -> Nothing
+        | otherwise ->
+            let ics = Map.findWithDefault "" (PB.eventId ev) icsMap
+             in Just $
+                    object
+                        [ "type" .= ("Feature" :: String)
+                        , "geometry"
+                            .= object
+                                [ "type" .= ("Point" :: String)
+                                , -- GeoJSON coordinate order: [longitude, latitude]
+                                  "coordinates" .= toJSON [PB.geoLon pt, PB.geoLat pt]
+                                ]
+                        , "properties"
+                            .= object
+                                [ "id" .= PB.eventId ev
+                                , "title" .= T.unpack (PB.eventTitle ev)
+                                , "description" .= maybe Null (toJSON . T.unpack) (PB.eventDescription ev)
+                                , "start" .= formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%SZ" (PB.eventStartDate ev)
+                                , "end" .= toRfc3339 (PB.eventEndDate ev)
+                                , "all_day" .= PB.eventAllDay ev
+                                , "location" .= maybe Null (toJSON . T.unpack) (PB.eventLocation ev)
+                                , "url" .= maybe Null (toJSON . T.unpack) (PB.eventUrl ev)
+                                , "ics" .= ics
+                                ]
+                        ]
 
 -- | Generate a GeoJSON FeatureCollection for events with coordinates.
 generateGeoJson :: [PB.Event] -> IO String
