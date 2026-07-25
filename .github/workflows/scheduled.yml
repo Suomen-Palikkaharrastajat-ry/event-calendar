@@ -15,26 +15,19 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  update:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
 
-      - uses: cachix/install-nix-action@v31
+      - name: Restore Native Binary
+        uses: actions/cache/restore@v4
         with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: cachix/cachix-action@v16
-        with:
-          name: palikkaharrastajat
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-          extraPullNames: devenv
-
-      - name: Install devenv
-        run: nix profile install "github:cachix/devenv/v2.0.6"
+          path: .bin
+          key: statics-native-bin-${{ github.sha }}
+          restore-keys: statics-native-bin-
 
       - name: Restore Elm cache
         uses: actions/cache/restore@v4
@@ -45,8 +38,45 @@ jobs:
           key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
           restore-keys: elm-${{ runner.os }}-
 
-      - name: Build
-        run: devenv shell --profile ci -- make dist-ci
+      - name: Setup Node (Native)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: pkgs/package-lock.json
+
+      - name: Node Modules Cache
+        id: node-cache
+        uses: actions/cache@v4
+        with:
+          path: pkgs/node_modules
+          key: node-${{ runner.os }}-${{ hashFiles('pkgs/package-lock.json') }}
+
+      - name: Install Frontend Dependencies
+        if: steps.node-cache.outputs.cache-hit != 'true'
+        run: |
+          cd pkgs
+          npm ci
+          npm install --no-save elm@0.19.1 elm-review
+
+      - name: Link Node Modules
+        run: |
+          cd elm-app
+          ln -sfn ../pkgs/node_modules node_modules
+
+      - name: Build Frontend
+        run: |
+          export PATH=$PWD/pkgs/node_modules/.bin:$PATH
+          cd elm-app
+          elm-tailwind-classes gen
+          mkdir -p .elm-tailwind
+          touch .elm-tailwind/.stamp
+          vite build
+
+      - name: Prepare Output
+        run: |
+          cp -r static/. build/
+          ./.bin/statics
 
       - uses: actions/configure-pages@v5
 
@@ -54,6 +84,15 @@ jobs:
         with:
           path: ./build
 
+  deploy:
+    needs: update
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
