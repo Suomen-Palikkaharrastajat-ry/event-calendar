@@ -614,12 +614,11 @@ update msg model =
                 PageEvents evPage ->
                     let
                         placemarkDecoder =
-                            Json.map5 KmlPlacemark
+                            Json.map4 KmlPlacemark
                                 (Json.field "name" Json.string)
                                 (Json.field "description" Json.string)
-                                (Json.field "lat" (Json.nullable Json.float))
-                                (Json.field "lon" (Json.nullable Json.float))
-                                (Json.field "dateStr" (Json.nullable Json.string))
+                                (Json.maybe (Json.field "lat" Json.float))
+                                (Json.maybe (Json.field "lon" Json.float))
 
                         placemarks =
                             case Json.decodeValue (Json.list placemarkDecoder) json of
@@ -1405,7 +1404,7 @@ placemarkToForm pm =
     { emptyEventFormData
         | title = pm.name
         , description = pm.description
-        , startDate = Maybe.withDefault "" pm.dateStr
+        , startDate = ""
         , lat = Maybe.map String.fromFloat pm.lat |> Maybe.withDefault ""
         , lon = Maybe.map String.fromFloat pm.lon |> Maybe.withDefault ""
         , geocodingEnabled = pm.lat /= Nothing

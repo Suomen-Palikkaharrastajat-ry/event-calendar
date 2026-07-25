@@ -15,6 +15,7 @@ import qualified GeoJsonGen
 import qualified HtmlGen
 import qualified ICalGen
 import qualified PocketBase as PB
+import qualified Data.Text as T
 
 -- ---------------------------------------------------------------------------
 -- Test fixtures
@@ -134,6 +135,9 @@ multilineDescEvent =
         { PB.eventDescription =
             Just "Rivi 1\r\n\rRivi 2\n\n<script>\"'&</script>"
         }
+
+eventWithImage :: String -> PB.Event
+eventWithImage fname = timedEvent { PB.eventImage = Just (T.pack fname) }
 
 -- 2026-01-15 10:00 UTC — Helsinki EET (UTC+2, winter), no DST
 winterTime :: UTCTime
@@ -407,6 +411,21 @@ feedGenTests =
     , testCase "RSS empty description falls back to date text" $ do
         rss <- FeedGen.generateRss emptyCtx [allDayEvent]
         assertBool "contains date only" ("ti 16.6." `isInfixOf` rss)
+    , testCase "RSS image MIME type jpg" $ do
+        rss <- FeedGen.generateRss emptyCtx [eventWithImage "test.jpg"]
+        assertBool "image/jpeg" ("type=\"image/jpeg\"" `isInfixOf` rss)
+    , testCase "RSS image MIME type png" $ do
+        rss <- FeedGen.generateRss emptyCtx [eventWithImage "test.png"]
+        assertBool "image/png" ("type=\"image/png\"" `isInfixOf` rss)
+    , testCase "RSS image MIME type webp" $ do
+        rss <- FeedGen.generateRss emptyCtx [eventWithImage "test.webp"]
+        assertBool "image/webp" ("type=\"image/webp\"" `isInfixOf` rss)
+    , testCase "RSS image MIME type gif" $ do
+        rss <- FeedGen.generateRss emptyCtx [eventWithImage "test.gif"]
+        assertBool "image/gif" ("type=\"image/gif\"" `isInfixOf` rss)
+    , testCase "RSS image MIME type unknown" $ do
+        rss <- FeedGen.generateRss emptyCtx [eventWithImage "test.xyz"]
+        assertBool "application/octet-stream" ("type=\"application/octet-stream\"" `isInfixOf` rss)
     , -- Atom 1.0
       testCase "Atom has <?xml declaration" $ do
         atom <- FeedGen.generateAtom emptyCtx [timedEvent]

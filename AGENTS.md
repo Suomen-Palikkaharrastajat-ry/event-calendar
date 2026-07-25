@@ -27,7 +27,7 @@ pkgs/             Nix-managed npm packages (vite, elm-test, Tailwind, etc.)
   npm-tools.nix   Nix derivation — wraps vite and elm-test as standalone binaries
   package.json    npm manifest for pkgs/npm-tools.nix
   package-lock.json  Lockfile for pkgs/npm-tools.nix
-.github/workflows CI/CD: deploy.yml (push to main → GitHub Pages), scheduled.yml (hourly build)
+.github/workflows CI/CD: deploy.yml (push to main → GitHub Pages), scheduled.yml (build 4×/day)
 ```
 
 ## Development Environment
@@ -232,7 +232,7 @@ Use semantic token classes from `elm-app/main.css` — never hard-code hex value
 
 ### Shared Component Library
 
-The association maintains shared Elm design tokens and UI components through the vendored package workspace in [`vendor/master-builder/packages`](/workspaces/web/event-calendar/vendor/master-builder/packages). The frontend consumes them through the symlink at [`elm-app/packages`](/workspaces/web/event-calendar/elm-app/packages).
+The association maintains shared Elm design tokens and UI components through the vendored package workspace in [`vendor/master-builder/packages`](vendor/master-builder/packages). The frontend consumes them through the symlink at [`elm-app/packages`](elm-app/packages).
 
 Import components directly:
 

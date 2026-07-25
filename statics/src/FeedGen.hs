@@ -12,6 +12,7 @@ module FeedGen (
 import qualified Config
 import Control.Exception (SomeException, try)
 import Data.Aeson (Value, encode, object, (.=))
+import Data.Char (toLower)
 import Data.Either (fromRight)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (maybeToList)
@@ -24,10 +25,20 @@ import qualified DateUtils as DU
 import qualified DescriptionHtml as DH
 import qualified PocketBase as PB
 import System.Directory (getFileSize)
+import System.FilePath (takeExtension)
 
 -- ---------------------------------------------------------------------------
 -- Feed metadata
 -- ---------------------------------------------------------------------------
+
+imageMimeType :: String -> String
+imageMimeType fname = case map toLower (takeExtension fname) of
+    ".jpg" -> "image/jpeg"
+    ".jpeg" -> "image/jpeg"
+    ".png" -> "image/png"
+    ".gif" -> "image/gif"
+    ".webp" -> "image/webp"
+    _ -> "application/octet-stream"
 
 feedTitle :: String
 feedTitle = "Palikkakalenteri"
@@ -146,9 +157,8 @@ buildRssItem ctx ev = do
                 ++ show icsLen
                 ++ "\" type=\"text/calendar\"/>"
     -- Image enclosure (secondary, only when event has an image)
-    imgEncl <- case eventImageUrl ev of
-        Nothing -> return Nothing
-        Just imgUrl -> do
+    imgEncl <- case (eventImageUrl ev, PB.eventImage ev) of
+        (Just imgUrl, Just fname) -> do
             let maybeLocalPath = Map.lookup (PB.eventId ev) (imageMap ctx)
             fileSize <- case maybeLocalPath of
                 Nothing -> return (0 :: Integer)
@@ -161,7 +171,10 @@ buildRssItem ctx ev = do
                         ++ xmlEscape imgUrl
                         ++ "\" length=\""
                         ++ show fileSize
-                        ++ "\" type=\"image/jpeg\"/>"
+                        ++ "\" type=\""
+                        ++ imageMimeType (T.unpack fname)
+                        ++ "\"/>"
+        _ -> return Nothing
     return $
         unlines $
             [ "    <item>"
@@ -229,9 +242,8 @@ buildAtomEntry ctx ev = do
                 ++ show icsLen
                 ++ "\"/>"
     -- Image enclosure link
-    imgLink <- case eventImageUrl ev of
-        Nothing -> return Nothing
-        Just imgUrl -> do
+    imgLink <- case (eventImageUrl ev, PB.eventImage ev) of
+        (Just imgUrl, Just fname) -> do
             let maybeLocalPath = Map.lookup (PB.eventId ev) (imageMap ctx)
             fileSize <- case maybeLocalPath of
                 Nothing -> return (0 :: Integer)
@@ -240,11 +252,14 @@ buildAtomEntry ctx ev = do
                     return (fromRight 0 result)
             return $
                 Just $
-                    "    <link rel=\"enclosure\" type=\"image/jpeg\" href=\""
+                    "    <link rel=\"enclosure\" type=\""
+                        ++ imageMimeType (T.unpack fname)
+                        ++ "\" href=\""
                         ++ xmlEscape imgUrl
                         ++ "\" length=\""
                         ++ show fileSize
                         ++ "\"/>"
+        _ -> return Nothing
     let summaryContent = DH.descriptionWithDateHtml (PB.eventDescription ev) (DU.formatEventDate ev)
     return $
         unlines $

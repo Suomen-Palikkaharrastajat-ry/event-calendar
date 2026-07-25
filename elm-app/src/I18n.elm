@@ -20,6 +20,7 @@ type MsgKey
     | StatePending
     | StatePublished
     | StateDeleted
+    | FormEditTitle
     | FormTitle
     | FormLocation
     | FormDescription
@@ -136,6 +137,9 @@ t key =
 
         StateDeleted ->
             "Poistettu"
+
+        FormEditTitle ->
+            "Muokkaa tapahtumaa"
 
         FormTitle ->
             "Tapahtuman nimi"

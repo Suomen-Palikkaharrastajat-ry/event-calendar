@@ -352,7 +352,6 @@ app.ports.parseKml.subscribe((kmlContent) => {
       description: pm.querySelector('description')?.textContent || '',
       lat: coords.length >= 2 ? parseFloat(coords[1]) : null,
       lon: coords.length >= 1 ? parseFloat(coords[0]) : null,
-      dateStr: null,  // TODO: extract date from description if present
     }
   })
   app.ports.kmlParsed.send(placemarks)

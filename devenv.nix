@@ -107,7 +107,7 @@ let
 
       # ── Keycloak OIDC provider ───────────────────────────────────────────────────
       # Admin UI: http://localhost:8080  (admin / admin)
-      # Realm "pocketbase" imported from devenv-fixtures-keycloak.json
+      # Realm "pocketbase" imported from fixtures/keycloak-pocketbase-realm.json
       services.keycloak = {
         enable = true;
         initialAdminPassword = "admin";
@@ -118,7 +118,7 @@ let
           http-relative-path = "/";
         };
         realms.pocketbase = {
-          path = "./devenv-fixtures-keycloak.json";
+          path = "./fixtures/keycloak-pocketbase-realm.json";
           import = true;
         };
       };

@@ -93,7 +93,7 @@ view formData startDatePicker endDatePicker formStatus isEdit =
 viewEdit : EventEditPage -> Html Msg
 viewEdit editPage =
     div [ class "max-w-2xl mx-auto p-4" ]
-        [ h2 [ class "type-h3 mb-4" ] [ text "Muokkaa tapahtumaa" ]
+        [ h2 [ class "type-h3 mb-4" ] [ text (t FormEditTitle) ]
         , case editPage.event of
             RemoteData.Loading ->
                 div [ class "flex justify-center py-8" ]

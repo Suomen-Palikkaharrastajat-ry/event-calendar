@@ -290,7 +290,6 @@ type alias KmlPlacemark =
     , description : String
     , lat : Maybe Float
     , lon : Maybe Float
-    , dateStr : Maybe String
     }
 
 
