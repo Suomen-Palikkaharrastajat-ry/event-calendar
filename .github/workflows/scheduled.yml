@@ -75,8 +75,8 @@ jobs:
 
       - name: Prepare Output
         run: |
-          cp -r static/. build/
           ./.bin/statics
+          cp -r static/. build/
 
       - uses: actions/configure-pages@v5
 
