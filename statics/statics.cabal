@@ -25,13 +25,12 @@ library
     Config
     PocketBase
     DateUtils
-    DescriptionHtml
     ICalGen
     FeedGen
     GeoJsonGen
     HtmlGen
-    ImageFetcher
   build-depends:
+    statics-common,
     base          >=4.7 && <5,
     text,
     bytestring,
@@ -63,7 +62,8 @@ executable statics
     containers,
     directory,
     time,
-    statics
+    statics,
+    statics-common
   default-language: Haskell2010
 
 test-suite statics-test

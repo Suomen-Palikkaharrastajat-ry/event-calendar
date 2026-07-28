@@ -28,6 +28,16 @@ main = do
             exitWith (ExitFailure 1)
         Right () -> putStrLn "Done."
 
+-- | Adapt PocketBase events to the shared image fetcher.
+eventImageSource :: ImageFetcher.ImageSource PocketBase.Event
+eventImageSource =
+    ImageFetcher.ImageSource
+        { ImageFetcher.sourceId = PocketBase.eventId
+        , ImageFetcher.sourceImage = PocketBase.eventImage
+        , ImageFetcher.sourceImageUrl = PocketBase.imageUrl
+        , ImageFetcher.destDir = "assets/images"
+        }
+
 run :: IO ()
 run = do
     putStrLn "Fetching events from PocketBase..."
@@ -36,12 +46,12 @@ run = do
     putStrLn $ "Fetched " ++ show (length events) ++ " events."
 
     -- Ensure output directories exist
-    createDirectoryIfMissing True "static/events"
-    createDirectoryIfMissing True "static/images"
+    createDirectoryIfMissing True "assets/events"
+    createDirectoryIfMissing True "assets/images"
 
     -- Download images concurrently
     putStrLn "Downloading images..."
-    imageMap <- ImageFetcher.downloadAllImages events
+    imageMap <- ImageFetcher.downloadAllImages eventImageSource events
 
     -- Determine upcoming events (used for all feeds and the calendar HTML)
     now <- getCurrentTime
@@ -55,14 +65,14 @@ run = do
         mapM
             ( \ev -> do
                 ics <- ICalGen.generateEventIcs ev
-                writeStaticFile ("static/events/" ++ PocketBase.eventId ev ++ ".ics") ics
+                writeStaticFile ("assets/events/" ++ PocketBase.eventId ev ++ ".ics") ics
                 return (PocketBase.eventId ev, ics)
             )
             events
 
     -- Master ICS: upcoming events only
     masterIcs <- ICalGen.generateMasterIcs upcomingEvents
-    writeStaticFile "static/kalenteri.ics" masterIcs
+    writeStaticFile "assets/kalenteri.ics" masterIcs
 
     -- Build generator context (Map lookups are O(log n) vs O(n) for list-of-tuples)
     let genCtx =
@@ -76,27 +86,27 @@ run = do
     rss <- FeedGen.generateRss genCtx upcomingEvents
     atom <- FeedGen.generateAtom genCtx upcomingEvents
     json <- FeedGen.generateJsonFeed upcomingEvents
-    writeStaticFile "static/kalenteri.rss" rss
-    writeStaticFile "static/kalenteri.atom" atom
-    writeStaticFile "static/kalenteri.json" json
+    writeStaticFile "assets/kalenteri.rss" rss
+    writeStaticFile "assets/kalenteri.atom" atom
+    writeStaticFile "assets/kalenteri.json" json
 
     -- Generate GeoJSON (upcoming events only)
     putStrLn "Generating GeoJSON..."
     geo <- GeoJsonGen.generateGeoJson upcomingEvents
-    writeStaticFile "static/kalenteri.geo.json" geo
+    writeStaticFile "assets/kalenteri.geo.json" geo
 
     -- Generate HTML (upcoming events only)
     putStrLn "Generating HTML..."
     html <- HtmlGen.generateCalendarHtml upcomingEvents
-    writeStaticFile "static/kalenteri.html" html
+    writeStaticFile "assets/kalenteri.html" html
     mapM_
         ( \ev -> do
             evHtml <- HtmlGen.generateEventHtml ev
-            writeStaticFile ("static/events/" ++ PocketBase.eventId ev ++ ".html") evHtml
+            writeStaticFile ("assets/events/" ++ PocketBase.eventId ev ++ ".html") evHtml
         )
         events
 
--- | Write a file to static/ (and build/ if it exists).
+-- | Write a file to assets/ (and dist/ if it exists).
 writeStaticFile :: FilePath -> String -> IO ()
 writeStaticFile path content = do
     writeFile path content

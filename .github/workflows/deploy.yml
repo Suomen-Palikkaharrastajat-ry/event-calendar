@@ -23,18 +23,11 @@ jobs:
         with:
           submodules: true
 
-      - uses: cachix/install-nix-action@v31
+      - name: Setup Nix + devenv
+        uses: ./vendor/master-builder/.github/actions/setup-nix
         with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: cachix/cachix-action@v16
-        with:
-          name: palikkaharrastajat
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-          extraPullNames: devenv
-
-      - name: Install devenv
-        run: nix profile install "github:cachix/devenv/v2.0.6"
+          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Restore Cabal index cache
         uses: actions/cache@v4
@@ -82,7 +75,7 @@ jobs:
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./build
+          path: ./dist
 
   deploy:
     needs: build

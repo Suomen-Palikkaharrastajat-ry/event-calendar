@@ -1,5 +1,4 @@
 -- Cabal project for the statics/ Haskell package.
--- Note: planet/ uses Stack (see planet/stack.yaml), not Cabal.
 --
 -- Usage:
 --   cabal build statics       -- build the static generator library + executable
@@ -8,3 +7,4 @@
 
 packages:
   statics/
+  vendor/master-builder/packages-hs/statics-common/

@@ -30,7 +30,7 @@ The default PocketBase URL is `https://data.palikkaharrastajat.fi`. For local de
 |---|---|
 | `make shell` | Open the development shell |
 | `make elm-dev` | Start the Elm + Vite dev server |
-| `make elm-build` | Build the Elm frontend into `build/` |
+| `make elm-build` | Build the Elm frontend into `dist/` |
 | `make statics-build` | Build the Haskell static generator |
 | `make statics` | Generate static files from live events |
 | `make dist` | Build the statics and Elm app together |
@@ -50,7 +50,7 @@ elm-app/          Elm 0.19 SPA frontend
 statics/          Haskell static generator
   src/            Haskell library modules
   app/            Haskell executable entry point
-static/           Files copied verbatim into build/
+assets/           Files copied verbatim into dist/
 pkgs/             Nix-managed Node/Vite/Elm tooling manifest + lockfile
 vendor/master-builder  Shared Elm design tokens and UI components
 .github/workflows CI/CD workflows

@@ -4,7 +4,15 @@ let
     let
       npmTools = pkgs.callPackage ./pkgs/npm-tools.nix { };
       hpkgs = pkgs.haskell.packages.ghc96.override {
-        overrides = import ./overrides.nix;
+        overrides =
+          pkgs.lib.composeExtensions (import ./overrides.nix) (
+            hself: hsuper: {
+              statics-common =
+                hself.callCabal2nix "statics-common"
+                  ./vendor/master-builder/packages-hs/statics-common
+                  { };
+            }
+          );
       };
       staticsPackage = hpkgs.callCabal2nix "statics" ./statics { };
     in

@@ -76,13 +76,13 @@ jobs:
       - name: Prepare Output
         run: |
           ./.bin/statics
-          cp -r static/. build/
+          cp -r assets/. dist/
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./build
+          path: ./dist
 
   deploy:
     needs: update

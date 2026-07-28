@@ -11,7 +11,7 @@ export default defineConfig({
     tailwindcss(),
   ],
   build: {
-    outDir: '../build',
+    outDir: '../dist',
     emptyOutDir: true,
   },
   // Hash routing in Elm means no server-side rewrite needed

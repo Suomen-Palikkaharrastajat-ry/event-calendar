@@ -19,16 +19,6 @@ vendor: ## Init and update all git submodules to their pinned commits
 shell: ## Enter devenv shell
 	devenv shell
 
-.PHONY: develop
-develop: devenv.local.nix devenv.local.yaml ## Bootstrap opinionated development environment
-	devenv shell --profile=devcontainer -- code .
-
-devenv.local.nix:
-	cp devenv.local.nix.example devenv.local.nix
-
-devenv.local.yaml:
-	cp devenv.local.yaml.example devenv.local.yaml
-
 # ── Elm frontend ──────────────────────────────────────────────────────────────
 
 .PHONY: elm-dev
@@ -39,12 +29,12 @@ elm-dev: ## Start Elm + Vite dev server (hot reload)
 elm-dev-local: ## Start Elm + Vite dev server against local PocketBase
 	cd elm-app && VITE_POCKETBASE_URL=$(LOCAL_PB_URL) vite
 
-build/.elm-stamp: $(shell find elm-app/src -name '*.elm') elm-app/elm.json
+dist/.elm-stamp: $(shell find elm-app/src -name '*.elm') elm-app/elm.json
 	cd elm-app && vite build
 	touch $@
 
 .PHONY: elm-build
-elm-build: build/.elm-stamp ## Production build of Elm SPA → build/
+elm-build: dist/.elm-stamp ## Production build of Elm SPA → dist/
 
 .PHONY: elm-build-local
 elm-build-local: ## Production build of Elm SPA targeting local PocketBase
@@ -59,8 +49,13 @@ elm-test: elm-tailwind-gen ## Run Elm unit tests
 	cd elm-app && elm-test
 
 .PHONY: elm-check
-elm-check: ## Check Elm formatting (no changes)
+elm-check: ## Check Elm formatting + elm-review (no changes)
 	cd elm-app && elm-format --validate src/
+	$(MAKE) elm-review
+
+.PHONY: elm-review
+elm-review: elm-tailwind-gen ## Run elm-review with the shared LlmAgent rules from vendor/master-builder
+	cd elm-app && elm-review --config ../review
 
 .PHONY: elm-format
 elm-format: ## Auto-format Elm source files
@@ -77,13 +72,13 @@ statics/statics: $(HS_SOURCES)
 .PHONY: statics-build
 statics-build: statics/statics ## Build Haskell static generator
 
-build/.statics-stamp: statics/statics
-	mkdir -p build
+dist/.statics-stamp: statics/statics
+	mkdir -p dist
 	./statics/statics
 	touch $@
 
 .PHONY: statics
-statics: build/.statics-stamp ## Generate static files (ics, rss, atom, html, geojson, images)
+statics: dist/.statics-stamp ## Generate static files (ics, rss, atom, html, geojson, images)
 
 .PHONY: statics-local
 statics-local: ## Generate static files against local PocketBase
@@ -118,21 +113,21 @@ watch: elm-dev ## Start development server
 build: elm-build ## Production build of Elm SPA
 
 .PHONY: dist
-dist: build/.elm-stamp build/.statics-stamp ## Full production build: Elm SPA + static files
-	cp -r static/. build/
+dist: dist/.elm-stamp dist/.statics-stamp ## Full production build: Elm SPA + static files
+	cp -r assets/. dist/
 
-build/.statics-stamp-nix:
-	mkdir -p build
+dist/.statics-stamp-nix:
+	mkdir -p dist
 	statics
-	touch build/.statics-stamp
+	touch dist/.statics-stamp
 
 .PHONY: dist-ci
-dist-ci: build/.elm-stamp build/.statics-stamp-nix ## CI build: Elm SPA + statics via nix-provided binary
-	cp -r static/. build/
+dist-ci: dist/.elm-stamp dist/.statics-stamp-nix ## CI build: Elm SPA + statics via nix-provided binary
+	cp -r assets/. dist/
 
 .PHONY: dist-local
 dist-local: elm-build-local statics-local ## Full local build: Elm SPA + static files against local PocketBase
-	cp -r static/. build/
+	cp -r assets/. dist/
 
 # ── Test & quality ────────────────────────────────────────────────────────────
 
@@ -149,5 +144,5 @@ format: elm-format statics-format ## Auto-format all code
 # ── Cleanup ───────────────────────────────────────────────────────────────────
 
 .PHONY: clean
-clean: ## Remove build output
-	$(RM) -r build elm-app/.elm-tailwind
+clean: ## Remove dist output
+	$(RM) -r dist elm-app/.elm-tailwind

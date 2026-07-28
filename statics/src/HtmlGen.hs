@@ -1,5 +1,5 @@
 {- | HTML generation for the embeddable calendar and per-event landing pages.
-Generates static/kalenteri.html and static/events/{id}.html.
+Generates assets/kalenteri.html and assets/events/{id}.html.
 QR codes (PNG, base64-embedded) link to per-event landing pages for print use.
 -}
 module HtmlGen (

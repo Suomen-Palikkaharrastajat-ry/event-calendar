@@ -4,7 +4,8 @@
         ".elm-tailwind",
         "src",
         "packages/design-tokens/src",
-        "packages/ui-components/src"
+        "packages/ui-components/src",
+        "packages/app-toolkit/src"
     ],
     "elm-version": "0.19.1",
     "dependencies": {

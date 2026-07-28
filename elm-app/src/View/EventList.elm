@@ -27,6 +27,7 @@ view authState now page =
                         , variant = Button.Primary
                         , size = Button.Small
                         , href = toHref RouteEventNew
+                        , target = Nothing
                         }
 
                 NotAuthenticated ->

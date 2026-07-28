@@ -17,37 +17,6 @@
         "type": "github"
       }
     },
-    "devenv-module-devcontainer": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1783877346,
-        "narHash": "sha256-mXh8PvZ7oWliW2iRfYwirjuyhZ8Q/v6dIqduy6WTG98=",
-        "owner": "datakurre",
-        "repo": "devenv-module-devcontainer",
-        "rev": "5d8fc22384912ac7f7dfe3c1af3140fb6ff21ae0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "datakurre",
-        "repo": "devenv-module-devcontainer",
-        "type": "github"
-      }
-    },
-    "devenv-module-devcontainer-nixpkgs": {
-      "locked": {
-        "lastModified": 1784010161,
-        "narHash": "sha256-daCu+qLmIGE1iUO4nGsKb4uuKGxYsOLk+eXpaYMrKcE=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "0ab1e092aa212deb38a0deb8749dfb77acdd5218",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1784010161,
@@ -59,7 +28,6 @@
       },
       "original": {
         "owner": "nixos",
-        "ref": "master",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -67,8 +35,6 @@
     "root": {
       "inputs": {
         "devenv": "devenv",
-        "devenv-module-devcontainer": "devenv-module-devcontainer",
-        "devenv-module-devcontainer-nixpkgs": "devenv-module-devcontainer-nixpkgs",
         "nixpkgs": "nixpkgs"
       }
     }
