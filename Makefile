@@ -116,13 +116,14 @@ build: elm-build ## Production build of Elm SPA
 dist: dist/.elm-stamp dist/.statics-stamp ## Full production build: Elm SPA + static files
 	cp -r assets/. dist/
 
-dist/.statics-stamp-nix:
+dist/.statics-stamp-ci:
 	mkdir -p dist
-	statics
-	touch dist/.statics-stamp
+	cabal build statics
+	$$(cabal list-bin statics)
+	touch $@
 
 .PHONY: dist-ci
-dist-ci: dist/.elm-stamp dist/.statics-stamp-nix ## CI build: Elm SPA + statics via nix-provided binary
+dist-ci: dist/.elm-stamp dist/.statics-stamp-ci ## CI build: Elm SPA + statics via cabal
 	cp -r assets/. dist/
 
 .PHONY: dist-local

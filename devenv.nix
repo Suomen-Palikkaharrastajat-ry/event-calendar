@@ -3,18 +3,6 @@ let
     { pkgs, config, ... }:
     let
       npmTools = pkgs.callPackage ./pkgs/npm-tools.nix { };
-      hpkgs = pkgs.haskell.packages.ghc96.override {
-        overrides =
-          pkgs.lib.composeExtensions (import ./overrides.nix) (
-            hself: hsuper: {
-              statics-common =
-                hself.callCabal2nix "statics-common"
-                  ./vendor/master-builder/packages-hs/statics-common
-                  { };
-            }
-          );
-      };
-      staticsPackage = hpkgs.callCabal2nix "statics" ./statics { };
     in
     {
       overlays = [ (import ./overlays.nix) ];
@@ -28,11 +16,10 @@ let
 
       packages = [
         pkgs.cabal-install
-        staticsPackage
         npmTools
         pkgs.nodejs_22
-        hpkgs.hlint
-        hpkgs.fourmolu
+        pkgs.haskell.packages.ghc96.hlint
+        pkgs.haskell.packages.ghc96.fourmolu
       ];
 
       enterShell = ''
