@@ -1,0 +1,6 @@
+# HLint configuration file
+# https://github.com/ndmitchell/hlint
+
+- warn: {hint: Use explicit imports}
+- warn: {hint: Avoid lambda}
+- warn: {hint: Reduce duplication}

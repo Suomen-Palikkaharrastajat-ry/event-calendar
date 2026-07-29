@@ -1,5 +1,19 @@
-self: super: {
-  qrcode-core = super.callPackage (
+# Repo-local Haskell package overrides, applied on top of ghc96 in devenv.nix.
+#
+# `pkgs` is passed in so overrides can reach the `pkgs.haskell.lib` helpers
+# (dontCheck, doJailbreak, callHackageDirect, …).
+#
+# statics-common is the shared package from master-builder; it is built straight
+# from the pinned submodule rather than from Hackage. qrcode-core and
+# qrcode-juicypixels are not in nixpkgs' ghc96 set, so they are pinned here.
+{ pkgs }:
+hself: hsuper: {
+  statics-common =
+    hself.callCabal2nix "statics-common"
+      ./vendor/master-builder/packages-hs/statics-common
+      { };
+
+  qrcode-core = hsuper.callPackage (
     {
       mkDerivation,
       base,
@@ -29,7 +43,7 @@ self: super: {
       ];
     }
   ) { };
-  qrcode-juicypixels = super.callPackage (
+  qrcode-juicypixels = hsuper.callPackage (
     {
       mkDerivation,
       base,

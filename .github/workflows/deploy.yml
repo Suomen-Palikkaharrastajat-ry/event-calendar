@@ -23,28 +23,14 @@ jobs:
         with:
           submodules: true
 
+      - name: Setup vendor
+        run: make vendor
+
       - name: Setup Nix + devenv
         uses: ./vendor/master-builder/.github/actions/setup-nix
         with:
           cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Restore Cabal index cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cabal/packages
-          key: cabal-index-${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
-          restore-keys: cabal-index-${{ runner.os }}-
-
-      - name: Restore Cabal store cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cabal/store
-          key: cabal-store-${{ runner.os }}-${{ hashFiles('cabal.project.freeze', 'statics/statics.cabal', 'devenv.lock', 'devenv.nix', 'overrides.nix') }}
-          restore-keys: cabal-store-${{ runner.os }}-
-
-      - name: Update Cabal package index
-        run: devenv shell --profile ci -- cabal update
 
       - name: Restore Elm cache
         id: elm-cache-restore
@@ -56,11 +42,45 @@ jobs:
           key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
           restore-keys: elm-${{ runner.os }}-
 
+      - name: Restore Cabal index cache
+        id: cabal-index-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cabal/packages
+          key: cabal-index-${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
+          restore-keys: cabal-index-${{ runner.os }}-
+
+      - name: Restore Cabal store cache
+        id: cabal-store-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cabal/store
+          key: cabal-store-${{ runner.os }}-${{ hashFiles('cabal.project.freeze', 'statics/statics.cabal', 'devenv.lock', 'devenv.nix', 'overrides.nix') }}
+          restore-keys: cabal-store-${{ runner.os }}-
+
+      - name: Update Cabal package index
+        run: devenv shell --profile ci -- cabal update
+
+      # TODO: add `make check` here once the pre-existing elm-review violations
+      # are cleared (28 errors in 28 files, mostly RequireModuleDoc on tests/).
+      # planet already runs this step; see docs/conventions.md.
       - name: Run tests
         run: devenv shell --profile ci -- make test
 
       - name: Build
         run: devenv shell --profile ci -- make dist-ci
+
+      - name: Save Cabal store cache
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cabal/store
+          key: ${{ steps.cabal-store-restore.outputs.cache-primary-key }}
+
+      - name: Save Cabal index cache
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cabal/packages
+          key: ${{ steps.cabal-index-restore.outputs.cache-primary-key }}
 
       - name: Save Elm cache
         if: steps.elm-cache-restore.outputs.cache-hit != 'true'
@@ -104,6 +124,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Setup Native Haskell
         uses: haskell-actions/setup@v2

@@ -6,13 +6,13 @@
 .devcontainer/
 .devcontainer.json
 .devenv*
+.direnv
 devenv.local.nix
 devenv.local.yaml
-.vite/
 
 # --- Dependencies ---
-node_modules/
-elm-app/node_modules/
+node_modules
+elm-app/node_modules
 .pnpm-store/
 
 # --- Haskell build artifacts ---

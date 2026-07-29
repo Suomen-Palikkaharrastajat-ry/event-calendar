@@ -1,12 +1,27 @@
 let
+  mkTools = pkgs: pkgs.callPackage ./pkgs/npm-tools.nix { };
+
+  # Haskell package set: the shared statics-common package from master-builder,
+  # composed with this repo's local overrides (qrcode-core, qrcode-juicypixels —
+  # see overrides.nix).
+  #
+  # Keep the `ci` profile free of ./overlays.nix — an overlay re-instantiates the
+  # whole package set, so every derivation hash changes and CI can no longer pull
+  # from the shared cachix cache. The PocketBase downgrade is a dev-shell concern.
+  hpkgsFor =
+    pkgs:
+    pkgs.haskell.packages.ghc96.override {
+      overrides = import ./overrides.nix { inherit pkgs; };
+    };
+
   ci =
-    { pkgs, config, ... }:
+    { pkgs, ... }:
     let
-      npmTools = pkgs.callPackage ./pkgs/npm-tools.nix { };
+      npmTools = mkTools pkgs;
+      hpkgs = hpkgsFor pkgs;
+      staticsPackage = hpkgs.callCabal2nix "statics" ./statics { };
     in
     {
-      overlays = [ (import ./overlays.nix) ];
-
       languages.elm.enable = true;
 
       languages.haskell.enable = true;
@@ -16,10 +31,13 @@ let
 
       packages = [
         pkgs.cabal-install
+        staticsPackage
         npmTools
         pkgs.nodejs_22
-        pkgs.haskell.packages.ghc96.hlint
-        pkgs.haskell.packages.ghc96.fourmolu
+        hpkgs.hlint
+        hpkgs.fourmolu
+        pkgs.elmPackages.elm-review
+        pkgs.elmPackages.elm-json
       ];
 
       enterShell = ''
@@ -31,7 +49,7 @@ let
   shell =
     { pkgs, config, ... }:
     let
-      npmTools = pkgs.callPackage ./pkgs/npm-tools.nix { };
+      npmTools = mkTools pkgs;
     in
     {
       # Downgrade PocketBase to match production (0.31.0). See overlays.nix.
