@@ -82,8 +82,8 @@ eventToVEventLines now ev =
     summaryText :: T.Text
     summaryText =
         case PB.eventLocation ev of
-            Nothing -> PB.eventTitle ev
-            Just l -> PB.eventTitle ev <> " | " <> l
+            Nothing -> PB.eventDisplayTitle ev
+            Just l -> PB.eventDisplayTitle ev <> " | " <> l
     allDay = PB.eventAllDay ev
     start = PB.eventStartDate ev
     dtstart

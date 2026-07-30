@@ -192,7 +192,7 @@ renderCalendarEvent icsList ev = do
             renderQrCode eventPageUrl
             -- Title with optional location
             H.h2 $ do
-                H.toHtml (PB.eventTitle ev)
+                H.toHtml (PB.eventDisplayTitle ev)
                 case PB.eventLocation ev of
                     Nothing -> return ()
                     Just loc ->
@@ -261,12 +261,12 @@ generateEventHtml ev = do
             H.meta ! A.charset "UTF-8"
             H.meta ! A.name "viewport" ! A.content "width=device-width, initial-scale=1.0"
             H.title $ do
-                H.toHtml (PB.eventTitle ev)
+                H.toHtml (PB.eventDisplayTitle ev)
                 H.toHtml (" - Palikkakalenteri" :: String)
             H.link ! A.rel "stylesheet" ! A.href "/fonts/outfit.css"
             H.style $ H.toHtml eventPageCss
         H.body $ do
-            H.h1 (H.toHtml (PB.eventTitle ev))
+            H.h1 (H.toHtml (PB.eventDisplayTitle ev))
             case PB.eventLocation ev of
                 Nothing -> H.p (H.strong (H.toHtml dateStr))
                 Just l -> H.div $ do

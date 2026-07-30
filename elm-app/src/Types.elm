@@ -28,6 +28,7 @@ module Types exposing
     , getToken
     , hasValidCoordinates
     , isAuthenticated
+    , displayTitle
     )
 
 import Browser
@@ -163,6 +164,7 @@ type alias Event =
     , url : Maybe String
     , location : Maybe String
     , state : EventState
+    , cancelled : Bool
     , image : Maybe String
     , imageDescription : Maybe String
     , point : Maybe GeoPoint
@@ -170,6 +172,13 @@ type alias Event =
     , created : String
     , updated : String
     }
+
+displayTitle : Event -> String
+displayTitle event =
+    if event.cancelled then
+        "PERUTTU: " ++ event.title
+    else
+        event.title
 
 
 
@@ -203,6 +212,7 @@ type alias EventFormData =
     , endTime : String
     , allDay : Bool
     , state : EventState
+    , cancelled : Bool
     , imageFile : Maybe File
     , imageDescription : String
     , hasExistingImage : Bool
@@ -237,6 +247,7 @@ emptyEventFormData =
     , endTime = ""
     , allDay = False
     , state = Draft
+    , cancelled = False
     , imageFile = Nothing
     , imageDescription = ""
     , hasExistingImage = False
@@ -422,6 +433,7 @@ type
     | EventsEndDatePickerChanged DatePicker.Msg
     | EventsFormFileSelected File
     | EventsFormToggleAllDay
+    | EventsFormToggleCancelled
     | EventsFormToggleGeocode
     | EventsFormGeocode
     | EventsFormGotGeocode (Result Http.Error (Maybe GeoPoint))
@@ -446,6 +458,7 @@ type
     | EditEndDatePickerChanged DatePicker.Msg
     | EditFormFileSelected File
     | EditFormToggleAllDay
+    | EditFormToggleCancelled
     | EditFormToggleGeocode
     | EditFormGeocode
     | EditFormGotGeocode (Result Http.Error (Maybe GeoPoint))

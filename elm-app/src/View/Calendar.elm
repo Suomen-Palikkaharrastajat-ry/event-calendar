@@ -235,10 +235,10 @@ viewEventChip pos event =
         label =
             case pos of
                 ChipSingle ->
-                    event.title
+                    Types.displayTitle event
 
                 ChipStart ->
-                    event.title
+                    Types.displayTitle event
 
                 _ ->
                     "\u{00A0}"
@@ -252,8 +252,8 @@ viewEventChip pos event =
         , onClick (CalendarClickEvent event.id)
         , tabindex 0
         , attribute "role" "button"
-        , attribute "title" event.title
-        , attribute "aria-label" event.title
+        , attribute "title" (Types.displayTitle event)
+        , attribute "aria-label" (Types.displayTitle event)
         ]
         [ text label ]
 
@@ -279,7 +279,7 @@ viewListEvent event =
         , onClick (CalendarClickEvent event.id)
         ]
         [ p [ class "type-caption text-text-muted" ] [ text (formatEventDateDisplay event) ]
-        , h3 [ class "type-h4" ] [ text event.title ]
+        , h3 [ class "type-h4" ] [ text (Types.displayTitle event) ]
         , case event.location of
             Nothing ->
                 text ""

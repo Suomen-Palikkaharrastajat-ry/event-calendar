@@ -468,6 +468,10 @@ update msg model =
             in
             ( model1, Task.perform GotImagePreview (File.toUrl file) )
 
+        EventsFormToggleCancelled ->
+            updateEventsForm model
+                (\form -> { form | cancelled = not form.cancelled })
+
         EventsFormToggleAllDay ->
             updateEventsForm model
                 (\form ->
@@ -957,6 +961,10 @@ update msg model =
             in
             ( model1, Task.perform GotImagePreview (File.toUrl file) )
 
+        EditFormToggleCancelled ->
+            updateEditForm model
+                (\form -> { form | cancelled = not form.cancelled })
+
         EditFormToggleAllDay ->
             updateEditForm model
                 (\form ->
@@ -1375,6 +1383,7 @@ eventToForm pbBaseUrl event =
     , endTime = endTime
     , allDay = event.allDay
     , state = event.state
+    , cancelled = event.cancelled
     , tag = List.head event.tags |> Maybe.withDefault "event"
     , imageFile = Nothing
     , imageDescription = Maybe.withDefault "" event.imageDescription
@@ -1500,10 +1509,10 @@ pageTitle page =
         PageEvents _ ->
             "Tulevat tapahtumat— Palikkakalenteri"
 
-        PageEventDetail _ detPage ->
-            case detPage.event of
-                Success event ->
-                    event.title ++ " — Palikkakalenteri"
+        PageEventDetail _ evPage ->
+            case evPage.event of
+                RemoteData.Success event ->
+                    Types.displayTitle event ++ " — Palikkakalenteri"
 
                 _ ->
                     "Tapahtuma — Palikkakalenteri"

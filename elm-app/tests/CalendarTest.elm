@@ -28,6 +28,7 @@ makeEvent { start, end, allDay } =
     , url = Nothing
     , location = Nothing
     , state = Published
+    , cancelled = False
     , image = Nothing
     , imageDescription = Nothing
     , point = Nothing

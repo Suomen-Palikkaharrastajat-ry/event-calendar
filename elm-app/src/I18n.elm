@@ -32,6 +32,7 @@ type MsgKey
     | FormEndDate
     | FormEndTime
     | FormAllDay
+    | FormCancelled
     | FormStatus
     | FormTag
     | TagNone
@@ -173,6 +174,9 @@ t key =
 
         FormAllDay ->
             "Koko päivän tapahtuma"
+
+        FormCancelled ->
+            "Peruttu"
 
         FormStatus ->
             "Tila"

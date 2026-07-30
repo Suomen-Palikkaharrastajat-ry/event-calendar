@@ -40,7 +40,7 @@ eventToFeature icsMap ev = case PB.eventPoint ev of
                         , "properties"
                             .= object
                                 [ "id" .= PB.eventId ev
-                                , "title" .= T.unpack (PB.eventTitle ev)
+                                , "title" .= T.unpack (PB.eventDisplayTitle ev)
                                 , "description" .= maybe Null (toJSON . T.unpack) (PB.eventDescription ev)
                                 , "start" .= formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%SZ" (PB.eventStartDate ev)
                                 , "end" .= toRfc3339 (PB.eventEndDate ev)

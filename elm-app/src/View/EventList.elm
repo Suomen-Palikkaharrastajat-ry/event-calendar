@@ -197,7 +197,7 @@ viewEvent now authState event =
                         [ href (toHref (RouteEventDetail event.id))
                         , class "hover:underline"
                         ]
-                        [ text event.title ]
+                        [ text (Types.displayTitle event) ]
                     ]
                 , case event.location of
                     Nothing ->

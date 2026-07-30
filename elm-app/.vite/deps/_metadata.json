@@ -1,0 +1,25 @@
+{
+  "hash": "9daf9ac2",
+  "configHash": "a8f2a544",
+  "lockfileHash": "cb2f1b7c",
+  "browserHash": "7718f90c",
+  "optimized": {
+    "leaflet": {
+      "src": "../../../../../../../../../nix/store/aaqjkxndm9i3kig2zmrqhsx5pjmlp9m0-event-calendar-npm-tools-1.0.0/lib/node_modules/leaflet/dist/leaflet-src.js",
+      "file": "leaflet.js",
+      "fileHash": "933e7450",
+      "needsInterop": true
+    },
+    "pocketbase": {
+      "src": "../../../../../../../../../nix/store/aaqjkxndm9i3kig2zmrqhsx5pjmlp9m0-event-calendar-npm-tools-1.0.0/lib/node_modules/pocketbase/dist/pocketbase.es.mjs",
+      "file": "pocketbase.js",
+      "fileHash": "278ba52e",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-BUSYA2B4": {
+      "file": "chunk-BUSYA2B4.js"
+    }
+  }
+}

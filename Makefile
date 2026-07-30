@@ -27,18 +27,18 @@ vendor: ## Init and update all git submodules to their pinned commits
 # ── Development environment ──────────────────────────────────────────────────
 
 .PHONY: shell
-shell: ## Enter devenv shell
+shell: vendor ## Enter devenv shell
 	devenv shell
 
 # ── Elm frontend ──────────────────────────────────────────────────────────────
 
 .PHONY: elm-dev
 elm-dev: ## Start Elm + Vite dev server (hot reload)
-	cd elm-app && vite
+	cd elm-app && vite $(VITE_FLAGS)
 
 .PHONY: elm-dev-local
 elm-dev-local: ## Start Elm + Vite dev server against local PocketBase
-	cd elm-app && VITE_POCKETBASE_URL=$(LOCAL_PB_URL) vite
+	cd elm-app && VITE_POCKETBASE_URL=$(LOCAL_PB_URL) vite $(VITE_FLAGS)
 
 dist/.elm-stamp: $(shell find elm-app/src -name '*.elm') elm-app/elm.json
 	cd elm-app && vite build $(VITE_FLAGS)

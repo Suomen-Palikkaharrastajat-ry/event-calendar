@@ -82,7 +82,7 @@ use just "D.M." (no weekday, no clock time) to match upstream format.
 -}
 feedItemTitle :: PB.Event -> String
 feedItemTitle ev =
-    let title = T.unpack (PB.eventTitle ev)
+    let title = T.unpack (PB.eventDisplayTitle ev)
         loc = maybe "" (\l -> " | " ++ T.unpack l) (PB.eventLocation ev)
         dateStr
             | PB.eventAllDay ev = DU.formatEventDate ev

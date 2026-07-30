@@ -37,9 +37,11 @@ type alias FormMsgs =
     , onEndDatePickerChanged : DatePicker.Msg -> Msg
     , onFileSelected : File -> Msg
     , onToggleAllDay : Msg
+    , onToggleCancelled : Msg
     , onToggleGeocode : Msg
     , onGeocode : Msg
     , allDayCheckboxId : String
+    , cancelledCheckboxId : String
     , startDateInputId : String
     , endDateInputId : String
     , mapContainerId : String
@@ -54,9 +56,11 @@ createFormMsgs =
     , onEndDatePickerChanged = EventsEndDatePickerChanged
     , onFileSelected = EventsFormFileSelected
     , onToggleAllDay = EventsFormToggleAllDay
+    , onToggleCancelled = EventsFormToggleCancelled
     , onToggleGeocode = EventsFormToggleGeocode
     , onGeocode = EventsFormGeocode
     , allDayCheckboxId = "allday-create"
+    , cancelledCheckboxId = "cancelled-create"
     , startDateInputId = "start-date-create"
     , endDateInputId = "end-date-create"
     , mapContainerId = "create-map"
@@ -71,9 +75,11 @@ editFormMsgs =
     , onEndDatePickerChanged = EditEndDatePickerChanged
     , onFileSelected = EditFormFileSelected
     , onToggleAllDay = EditFormToggleAllDay
+    , onToggleCancelled = EditFormToggleCancelled
     , onToggleGeocode = EditFormToggleGeocode
     , onGeocode = EditFormGeocode
     , allDayCheckboxId = "allday-edit"
+    , cancelledCheckboxId = "cancelled-edit"
     , startDateInputId = "start-date-edit"
     , endDateInputId = "end-date-edit"
     , mapContainerId = "edit-map"
@@ -131,6 +137,7 @@ viewSharedFields msgs form startDatePicker endDatePicker formStatus isEdit =
         , viewImageSection msgs isEdit form
         , viewDateSection msgs form startDatePicker endDatePicker
         , viewTagSelect form.tag (\v -> msgs.onFieldChanged "tag" v)
+        , viewCancelledCheckbox msgs form
         , viewStateSelect form.state (\v -> msgs.onFieldChanged "state" v)
         , viewFormButtons formStatus isEdit
         ]
@@ -320,6 +327,20 @@ viewTagRadio inputId groupName radioValue labelText currentValue toMsg =
             ]
             []
         , text labelText
+        ]
+
+
+viewCancelledCheckbox : FormMsgs -> EventFormData -> Html Msg
+viewCancelledCheckbox msgs form =
+    div [ class "flex items-center gap-2 mb-2" ]
+        [ input
+            [ type_ "checkbox"
+            , checked form.cancelled
+            , onCheck (\_ -> msgs.onToggleCancelled)
+            , id msgs.cancelledCheckboxId
+            ]
+            []
+        , label [ for msgs.cancelledCheckboxId, class "type-body-small" ] [ text (t FormCancelled) ]
         ]
 
 

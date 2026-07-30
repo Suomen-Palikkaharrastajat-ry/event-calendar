@@ -4,6 +4,7 @@ module PocketBase (
     PbList (..),
     fetchPublishedEvents,
     imageUrl,
+    eventDisplayTitle,
 ) where
 
 import qualified Config
@@ -55,6 +56,7 @@ data Event = Event
     , eventUrl :: Maybe Text
     , eventLocation :: Maybe Text
     , eventState :: Text -- "draft"|"pending"|"published"|"deleted"
+    , eventCancelled :: Bool
     , eventImage :: Maybe Text -- filename only
     , eventImageDesc :: Maybe Text
     , eventPoint :: Maybe GeoPoint
@@ -76,6 +78,7 @@ instance FromJSON Event where
             <*> (nullableText <$> o .:? "url")
             <*> (nullableText <$> o .:? "location")
             <*> o .: "state"
+            <*> o .:? "cancelled" .!= False
             <*> (nullableText <$> o .:? "image")
             <*> (nullableText <$> o .:? "image_description")
             <*> o .:? "point"
@@ -159,6 +162,12 @@ imageUrl ev filename =
         ++ eventId ev
         ++ "/"
         ++ T.unpack filename
+
+eventDisplayTitle :: Event -> Text
+eventDisplayTitle ev =
+    if eventCancelled ev
+        then "PERUTTU: " <> eventTitle ev
+        else eventTitle ev
 
 -- | Minimal URL percent-encoding for PocketBase filter strings.
 urlEncode :: String -> String

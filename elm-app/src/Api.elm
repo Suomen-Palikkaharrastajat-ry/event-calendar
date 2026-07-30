@@ -62,7 +62,7 @@ decodeGeoPoint =
 decodeEvent : Decoder Event
 decodeEvent =
     Json.map8
-        (\id title description startDate endDate allDay url location ->
+        (\id title description startDate endDate allDay cancelled url ->
             { id = id
             , title = title
             , description = description
@@ -70,8 +70,9 @@ decodeEvent =
             , endDate = endDate
             , allDay = allDay
             , url = url
-            , location = location
+            , location = Nothing
             , state = Types.Draft
+            , cancelled = cancelled
             , image = Nothing
             , imageDescription = Nothing
             , point = Nothing
@@ -86,20 +87,22 @@ decodeEvent =
         (Json.field "start_date" Json.string)
         (Json.maybe (Json.field "end_date" Json.string))
         (Json.field "all_day" Json.bool)
+        (Json.field "cancelled" Json.bool)
         (Json.field "url" nullableString)
-        (Json.field "location" nullableString)
         |> Json.andThen
             (\partial ->
-                Json.map5
-                    (\state image imageDesc point created ->
+                Json.map6
+                    (\location state image imageDesc point created ->
                         { partial
-                            | state = Maybe.withDefault Types.Draft (eventStateFromString state)
+                            | location = location
+                            , state = Maybe.withDefault Types.Draft (eventStateFromString state)
                             , image = image
                             , imageDescription = imageDesc
                             , point = point
                             , created = created
                         }
                     )
+                    (Json.field "location" nullableString)
                     (Json.field "state" Json.string)
                     (Json.field "image" nullableString)
                     (Json.field "image_description" nullableString)
@@ -317,6 +320,7 @@ eventFormToJson formData =
         , ( "start_date", Encode.string startDatePart )
         , ( "end_date", Encode.string endDatePart )
         , ( "all_day", Encode.bool formData.allDay )
+        , ( "cancelled", Encode.bool formData.cancelled )
         , ( "state", Encode.string (eventStateToString formData.state) )
         , ( "image_description", Encode.string formData.imageDescription )
         , ( "point", pointJson )
@@ -370,6 +374,13 @@ eventFormToMultipart formData =
             , Http.stringPart "end_date" endDatePart
             , Http.stringPart "all_day"
                 (if formData.allDay then
+                    "true"
+
+                 else
+                    "false"
+                )
+            , Http.stringPart "cancelled"
+                (if formData.cancelled then
                     "true"
 
                  else

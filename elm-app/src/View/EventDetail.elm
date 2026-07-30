@@ -51,7 +51,7 @@ view pbBaseUrl authState _ detPage =
                 div []
                     [ backButton (eventCalendarRoute event)
                     , div [ class "flex justify-between items-start mb-2" ]
-                        [ h1 [ class "type-h1" ] [ text event.title ]
+                        [ h1 [ class "type-h1" ] [ text (Types.displayTitle event) ]
                         , if isAuthenticated authState then
                             div [ class "flex gap-2 ml-4 shrink-0" ]
                                 [ Button.view
