@@ -1,5 +1,8 @@
 module I18nTest exposing (suite)
 
+{-| Unit tests for the I18n module.
+-}
+
 import Expect
 import I18n exposing (MsgKey(..), stateLabel, t)
 import Test exposing (Test, describe, test)

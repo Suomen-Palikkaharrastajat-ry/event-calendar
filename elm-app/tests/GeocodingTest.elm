@@ -1,5 +1,8 @@
 module GeocodingTest exposing (suite)
 
+{-| Unit tests for the Geocoding module.
+-}
+
 import Expect
 import Geocoding exposing (decodeGeocodeResponse, decodeReverseGeocode)
 import Json.Decode as Json

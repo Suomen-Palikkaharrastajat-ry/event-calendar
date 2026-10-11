@@ -1,5 +1,8 @@
 module CalendarTest exposing (suite)
 
+{-| Unit tests for the Calendar module.
+-}
+
 import DateUtils exposing (..)
 import Expect
 import Page.Calendar as PageCalendar

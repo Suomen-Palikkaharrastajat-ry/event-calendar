@@ -1,5 +1,8 @@
 module View.EventForm exposing (view, viewEdit)
 
+{-| Event create and edit form views.
+-}
+
 import Component.Alert as Alert
 import Component.Button as Button
 import Component.Spinner as Spinner

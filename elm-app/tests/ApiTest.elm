@@ -1,5 +1,8 @@
 module ApiTest exposing (suite)
 
+{-| Unit tests for the Api module.
+-}
+
 import Api exposing (decodeEvent, httpErrorToString, imageUrl)
 import Expect
 import Http

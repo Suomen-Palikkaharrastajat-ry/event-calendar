@@ -1,5 +1,8 @@
 module Route exposing (Route(..), parseUrl, toHref)
 
+{-| Hash-based routing: Route type, URL parsing and href generation.
+-}
+
 import Url exposing (Url)
 import Url.Parser exposing ((</>), (<?>), Parser)
 import Url.Parser.Query as Query

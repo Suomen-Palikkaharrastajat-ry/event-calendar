@@ -1,12 +1,12 @@
-{- Calendar page — owns the CalendarPage state type and init.
-
-   Page/View split: this module handles state and init; all rendering lives in
-   View.Calendar.  Reading Page.Calendar without knowing about View.Calendar gives
-   an incomplete picture of the calendar feature.
--}
-
-
 module Page.Calendar exposing (dateQueryToYearMonth, init, update, view)
+
+{-| Calendar page — owns the CalendarPage state type and init.
+
+Page/View split: this module handles state and init; all rendering lives in
+View.Calendar. Reading Page.Calendar without knowing about View.Calendar gives
+an incomplete picture of the calendar feature.
+
+-}
 
 import Api
 import DateUtils

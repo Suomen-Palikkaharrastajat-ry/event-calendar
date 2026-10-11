@@ -4,6 +4,9 @@ module Auth exposing
     , restoreAuthFromFlags
     )
 
+{-| OAuth2/OIDC authentication helpers: auth state restore from flags and PocketBase auth decoding.
+-}
+
 import Http
 import Json.Decode as Json exposing (Decoder)
 import Json.Encode as Encode

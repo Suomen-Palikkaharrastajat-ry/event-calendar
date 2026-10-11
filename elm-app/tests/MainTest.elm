@@ -1,5 +1,8 @@
 module MainTest exposing (suite)
 
+{-| Unit tests for form-update helpers in Main.
+-}
+
 import Expect
 import Main exposing (applyFormDate, applyFormField)
 import Test exposing (Test, describe, test)

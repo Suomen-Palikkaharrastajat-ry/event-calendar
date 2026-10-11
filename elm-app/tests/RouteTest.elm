@@ -1,12 +1,16 @@
 module RouteTest exposing (suite)
 
+{-| Unit tests for the Route module.
+-}
+
 import Expect
 import Route exposing (Route(..), parseUrl, toHref)
 import Test exposing (Test, describe, test)
 import Url
 
 
-{-| Helper to parse a full URL string via parseUrl. -}
+{-| Helper to parse a full URL string via parseUrl.
+-}
 parse : String -> Route
 parse urlStr =
     case Url.fromString ("http://localhost" ++ urlStr) of

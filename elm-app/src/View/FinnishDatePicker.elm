@@ -3,6 +3,9 @@ module View.FinnishDatePicker exposing
     , view
     )
 
+{-| Date and time picker with Finnish formatting.
+-}
+
 import Date
 import DatePicker exposing (DateEvent(..), InputError(..), defaultSettings)
 import DateUtils

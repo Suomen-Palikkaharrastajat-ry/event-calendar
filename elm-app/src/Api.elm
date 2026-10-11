@@ -11,6 +11,9 @@ module Api exposing
     , updateEventState
     )
 
+{-| PocketBase REST API client: request builders, JSON decoders/encoders and image URL helpers.
+-}
+
 import DateUtils exposing (formDateTimeToUtc)
 import File exposing (File)
 import Http

@@ -1,5 +1,8 @@
 module DateUtilsTest exposing (suite)
 
+{-| Unit tests for the DateUtils module.
+-}
+
 import DateUtils exposing (..)
 import Expect
 import Test exposing (Test, describe, test)

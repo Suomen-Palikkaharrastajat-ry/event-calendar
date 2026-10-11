@@ -20,6 +20,9 @@ port module Ports exposing
     , setMapMarker
     )
 
+{-| Elm ports for JavaScript interop: Leaflet maps, OAuth login and KML import.
+-}
+
 import Json.Decode as Json
 
 

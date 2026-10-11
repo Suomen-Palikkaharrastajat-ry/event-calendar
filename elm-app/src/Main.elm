@@ -1,25 +1,24 @@
-{- Application entry point.
+module Main exposing (applyFormDate, applyFormField, main)
 
-   Pages, routes, and the modules that handle them:
+{-| Application entry point.
 
-       Route               Page type          State/init module    View module
-       ──────────────────  ─────────────────  ───────────────────  ──────────────────
-       /                   PageCalendar       Page.Calendar        View.Calendar
-       /#/events           PageEventList      (inline in Main)     View.EventList
-       /#/events/new       PageEvents         Page.Events          View.Events
-       /#/events/:id       PageEventDetail    Page.EventDetail     View.EventDetail
-       /#/events/:id/edit  PageEventEdit      Page.EventEdit       View.EventForm
-       /#/callback         PageAuthCallback   (inline in Main)     (inline in Main)
-       (not found)         PageNotFound       —                    (inline in Main)
+Pages, routes, and the modules that handle them:
 
-   Update logic lives in this file's `update` function.  Page-specific helpers
-   (updateCalendarPage, updateEventsForm, updateEditForm) delegate to the relevant
-   Page module or modify the model directly.
+    Route               Page type          State/init module    View module
+    ──────────────────  ─────────────────  ───────────────────  ──────────────────
+    /                   PageCalendar       Page.Calendar        View.Calendar
+    /#/events           PageEventList      (inline in Main)     View.EventList
+    /#/events/new       PageEvents         Page.Events          View.Events
+    /#/events/:id       PageEventDetail    Page.EventDetail     View.EventDetail
+    /#/events/:id/edit  PageEventEdit      Page.EventEdit       View.EventForm
+    /#/callback         PageAuthCallback   (inline in Main)     (inline in Main)
+    (not found)         PageNotFound       —                    (inline in Main)
+
+Update logic lives in this file's `update` function. Page-specific helpers
+(updateCalendarPage, updateEventsForm, updateEditForm) delegate to the relevant
+Page module or modify the model directly.
 
 -}
-
-
-module Main exposing (applyFormDate, applyFormField, main)
 
 import Api
 import Auth

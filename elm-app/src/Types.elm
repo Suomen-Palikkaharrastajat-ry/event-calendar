@@ -21,6 +21,7 @@ module Types exposing
     , PbList
     , Toast
     , ToastKind(..)
+    , displayTitle
     , emptyEventFormData
     , emptyPbList
     , eventStateFromString
@@ -28,8 +29,10 @@ module Types exposing
     , getToken
     , hasValidCoordinates
     , isAuthenticated
-    , displayTitle
     )
+
+{-| Shared types: Event, Model, Msg, form data, auth state, toasts and PbList.
+-}
 
 import Browser
 import Browser.Navigation as Nav
@@ -173,10 +176,12 @@ type alias Event =
     , updated : String
     }
 
+
 displayTitle : Event -> String
 displayTitle event =
     if event.cancelled then
         "PERUTTU: " ++ event.title
+
     else
         event.title
 

@@ -1,5 +1,8 @@
 module View.EventDetail exposing (eventCalendarRoute, view)
 
+{-| Event detail page view.
+-}
+
 import Api
 import Component.Alert as Alert
 import Component.Button as Button

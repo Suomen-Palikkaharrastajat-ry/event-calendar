@@ -1,5 +1,8 @@
 module View.Events exposing (view)
 
+{-| Events management page view (create form and KML import).
+-}
+
 import File
 import Html exposing (Html, div, h2, input, label, span, text)
 import Html.Attributes exposing (accept, class, type_)

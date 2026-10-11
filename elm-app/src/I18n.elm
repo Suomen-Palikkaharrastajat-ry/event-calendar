@@ -1,5 +1,8 @@
 module I18n exposing (MsgKey(..), stateLabel, t)
 
+{-| Finnish UI strings, keyed by MsgKey, plus event state labels.
+-}
+
 import Types exposing (EventState(..))
 
 

@@ -23,6 +23,9 @@ module DateUtils exposing
     , utcStringToHelsinkiTimeInput
     )
 
+{-| Date and time helpers: UTC/Helsinki conversion, formatting and calendar grid computation.
+-}
+
 import Date
 import Iso8601
 import Time exposing (Month(..), Posix, Weekday(..), Zone)

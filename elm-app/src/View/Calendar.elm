@@ -1,5 +1,8 @@
 module View.Calendar exposing (view)
 
+{-| Month grid view for the calendar page.
+-}
+
 import Component.Alert as Alert
 import Component.Spinner as Spinner
 import DateUtils exposing (daysInMonth, finnishMonthName, formatEventDateDisplay, monthGrid, nextMonth, prevMonth, utcStringToHelsinkiDateInput)

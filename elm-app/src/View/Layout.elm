@@ -1,5 +1,8 @@
 module View.Layout exposing (viewBrandFooter, viewFooter, viewHeader, viewMobileDrawer, viewMobileOverlay, viewToasts)
 
+{-| Page chrome: header, mobile drawer, footers and toasts.
+-}
+
 import Component.Button as Button
 import Component.MobileDrawer as MobileDrawer
 import FeatherIcons
