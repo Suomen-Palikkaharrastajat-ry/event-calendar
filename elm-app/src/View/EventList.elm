@@ -6,7 +6,7 @@ import Component.Spinner as Spinner
 import DateUtils exposing (formatEventDateDisplay, parseUtcString, toHelsinkiParts)
 import FeatherIcons
 import Html exposing (Html, a, div, h1, h3, p, text)
-import Html.Attributes exposing (class, href, target)
+import Html.Attributes exposing (attribute, class, href, target)
 import I18n exposing (MsgKey(..), t)
 import RemoteData exposing (RemoteData)
 import Route exposing (Route(..), toHref)
@@ -226,6 +226,7 @@ viewEvent now authState event =
                                     )
                                 , target "_blank"
                                 , class "text-brand hover:text-brand-yellow transition-colors"
+                                , attribute "aria-label" "Näytä kartalla"
                                 ]
                                 [ featherIcon FeatherIcons.mapPin 16 ]
                 , case event.url of
@@ -237,6 +238,7 @@ viewEvent now authState event =
                             [ href url
                             , target "_blank"
                             , class "text-brand hover:text-brand-yellow transition-colors"
+                            , attribute "aria-label" "Avaa tapahtuman verkkosivu"
                             ]
                             [ featherIcon FeatherIcons.externalLink 16 ]
                 , case authState of

@@ -93,6 +93,7 @@ viewCalendarNav page =
         [ button
             [ onClick (CalendarSetMonth prevY prevM)
             , class "px-2 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
+            , attribute "aria-label" "Edellinen kuukausi"
             ]
             [ featherIcon FeatherIcons.chevronLeft 16 ]
         , span [ class "type-h3 w-38 text-center shrink-0" ]
@@ -100,6 +101,7 @@ viewCalendarNav page =
         , button
             [ onClick (CalendarSetMonth nextY nextM)
             , class "px-2 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
+            , attribute "aria-label" "Seuraava kuukausi"
             ]
             [ featherIcon FeatherIcons.chevronRight 16 ]
         , button

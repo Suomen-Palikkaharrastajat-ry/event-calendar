@@ -7,6 +7,7 @@ type MsgKey
     = AppTitle
     | NavbarTitle
     | NavHome
+    | A11yNavMobile
     | NavEvents
     | NavLogin
     | NavLogout
@@ -99,6 +100,9 @@ t key =
 
         NavHome ->
             "Kalenteri"
+
+        A11yNavMobile ->
+            "Mobiilivalikko"
 
         NavEvents ->
             "Tulevat tapahtumat"

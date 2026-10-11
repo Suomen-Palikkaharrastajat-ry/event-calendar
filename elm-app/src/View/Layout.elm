@@ -50,6 +50,7 @@ viewHeader authState menuOpen =
                      else
                         "Avaa valikko"
                     )
+                , attribute "aria-controls" "mobile-nav"
                 , attribute "aria-expanded"
                     (if menuOpen then
                         "true"
@@ -229,6 +230,7 @@ viewToast toast =
         , button
             [ onClick (DismissToast toast.id)
             , class "ml-2 hover:opacity-75"
+            , attribute "aria-label" "Sulje"
             ]
             [ featherIcon FeatherIcons.x 16 ]
         ]
@@ -248,10 +250,11 @@ viewMobileDrawer menuOpen activeRoute authState =
     MobileDrawer.view
         { isOpen = menuOpen
         , id = "mobile-nav"
+        , label = t A11yNavMobile
         , onClose = CloseMenu
         , breakpoint = MobileDrawer.Md
         , content =
-            [ nav [ class "p-4" ]
+            [ nav [ class "p-4", attribute "aria-label" (t A11yNavMobile) ]
                 [ ul [ class "flex flex-col gap-1 list-none m-0 p-0" ]
                     [ MobileDrawer.viewNavLink { href = toHref (RouteCalendar Nothing), label = t NavHome, isActive = isActive (RouteCalendar Nothing), onClose = CloseMenu }
                     , MobileDrawer.viewNavLink { href = toHref RouteEvents, label = t NavEvents, isActive = isActive RouteEvents, onClose = CloseMenu }
