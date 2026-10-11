@@ -40,7 +40,7 @@ elm-dev: ## Start Elm + Vite dev server (hot reload)
 elm-dev-local: ## Start Elm + Vite dev server against local PocketBase
 	cd elm-app && VITE_POCKETBASE_URL=$(LOCAL_PB_URL) vite $(VITE_FLAGS)
 
-dist/.elm-stamp: $(shell find elm-app/src -name '*.elm') elm-app/elm.json
+dist/.elm-stamp: $(shell find elm-app/src -name '*.elm') elm-app/elm.json elm-app/main.css elm-app/index.html
 	cd elm-app && vite build $(VITE_FLAGS)
 	touch $@
 
