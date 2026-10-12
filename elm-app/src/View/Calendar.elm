@@ -1,14 +1,17 @@
 module View.Calendar exposing (view)
 
-{-| Month grid view for the calendar page.
+{-| Calendar page rendering. From `md` up it is a month grid with event chips;
+below `md` the grid cannot fit readable titles, so it becomes a compact month
+strip (days marked with bars) above an agenda grouped by week.
 -}
 
+import CalendarAgenda exposing (AgendaWeek)
 import Component.Alert as Alert
 import Component.Spinner as Spinner
 import DateUtils exposing (daysInMonth, finnishMonthName, formatEventDateDisplay, monthGrid, nextMonth, prevMonth, utcStringToHelsinkiDateInput)
 import FeatherIcons
-import Html exposing (Html, a, button, div, h3, p, span, text)
-import Html.Attributes exposing (attribute, class, classList, tabindex)
+import Html exposing (Html, a, button, div, h3, li, p, section, span, text, ul)
+import Html.Attributes exposing (attribute, class, classList, id, tabindex, type_)
 import Html.Events exposing (onClick)
 import I18n exposing (MsgKey(..), t)
 import RemoteData exposing (RemoteData)
@@ -56,7 +59,14 @@ view authState page =
                             ]
 
                     RemoteData.Success events ->
-                        viewMonthGrid page events
+                        div []
+                            [ div [ attribute "data-testid" "month-grid", class "hidden md:block" ]
+                                [ viewMonthGrid page events ]
+                            , div [ attribute "data-testid" "mobile-calendar", class "md:hidden" ]
+                                [ viewMonthStrip page events
+                                , viewAgenda page events
+                                ]
+                            ]
 
             ListView ->
                 case page.events of
@@ -127,6 +137,156 @@ viewMonthGrid page events =
                 (monthGrid page.year page.month)
             )
         ]
+
+
+
+-- SMALL SCREENS
+
+
+{-| Compact month: day numbers only, with a bar under days that have events.
+A multi-day event shows as one continuous bar across its days.
+-}
+viewMonthStrip : CalendarPage -> List Event -> Html Msg
+viewMonthStrip page events =
+    div [ attribute "data-testid" "month-strip", class "mb-6" ]
+        [ div
+            [ class "grid grid-cols-7 text-center type-overline text-text-muted mb-1"
+            , attribute "aria-hidden" "true"
+            ]
+            (List.map (\d -> div [] [ text d ])
+                [ "Ma", "Ti", "Ke", "To", "Pe", "La", "Su" ]
+            )
+        , div [ class "grid grid-cols-7" ]
+            (monthGrid page.year page.month
+                |> List.filter (List.any ((/=) Nothing))
+                |> List.concatMap (List.map (viewStripCell page events))
+            )
+        ]
+
+
+viewStripCell : CalendarPage -> List Event -> Maybe Int -> Html Msg
+viewStripCell page events maybeDay =
+    case maybeDay of
+        Nothing ->
+            div [] []
+
+        Just day ->
+            let
+                mark =
+                    CalendarAgenda.dayMark page.year page.month day events
+
+                isToday =
+                    page.year == page.todayYear && page.month == page.todayMonth && day == page.todayDay
+
+                number =
+                    span
+                        [ class
+                            (if isToday then
+                                "type-body-small inline-flex items-center justify-center w-7 h-7 rounded-full bg-brand text-text-on-dark"
+
+                             else
+                                "type-body-small inline-flex items-center justify-center w-7 h-7"
+                            )
+                        ]
+                        [ text (String.fromInt day) ]
+
+                bar =
+                    span
+                        [ class
+                            ("block h-1.5 mt-0.5 bg-brand-yellow border-y border-brand"
+                                ++ (if mark.joinsPrev then
+                                        ""
+
+                                    else
+                                        " ml-1.5 rounded-l-full border-l"
+                                   )
+                                ++ (if mark.joinsNext then
+                                        ""
+
+                                    else
+                                        " mr-1.5 rounded-r-full border-r"
+                                   )
+                            )
+                        ]
+                        []
+            in
+            if mark.count == 0 then
+                div [ class "h-12 pt-1 text-center text-text-muted" ] [ number ]
+
+            else
+                button
+                    [ type_ "button"
+                    , class "h-12 pt-1 text-center cursor-pointer hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset"
+                    , attribute "data-has-events" "true"
+                    , attribute "aria-label" (dayLabel page.month day mark.count)
+                    , onClick (CalendarJumpToWeek (CalendarAgenda.weekNumberOf page.year page.month day))
+                    ]
+                    [ number, bar ]
+
+
+{-| Accessible name for a marked day, e.g. "17. lokakuuta, 2 tapahtumaa".
+-}
+dayLabel : Int -> Int -> Int -> String
+dayLabel month day count =
+    String.fromInt day
+        ++ ". "
+        ++ String.toLower (finnishMonthName month)
+        ++ "ta, "
+        ++ String.fromInt count
+        ++ (if count == 1 then
+                " tapahtuma"
+
+            else
+                " tapahtumaa"
+           )
+
+
+{-| The month's events as full-width cards under week headings.
+-}
+viewAgenda : CalendarPage -> List Event -> Html Msg
+viewAgenda page events =
+    case CalendarAgenda.agendaWeeks page.year page.month events of
+        [] ->
+            div [ class "text-text-muted text-center py-8" ] [ text (t CalNoEvents) ]
+
+        weeks ->
+            div [ class "flex flex-col gap-6" ] (List.map viewAgendaWeek weeks)
+
+
+viewAgendaWeek : AgendaWeek -> Html Msg
+viewAgendaWeek week =
+    section []
+        [ h3
+            [ id (CalendarAgenda.weekHeadingId week.weekNumber)
+            , tabindex -1
+            , class "type-overline text-text-muted mb-2 scroll-mt-4 focus:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            ]
+            [ text (CalendarAgenda.weekLabel week) ]
+        , ul [ class "flex flex-col gap-2" ]
+            (List.map (\event -> li [] [ viewAgendaEvent event ]) week.events)
+        ]
+
+
+viewAgendaEvent : Event -> Html Msg
+viewAgendaEvent event =
+    button
+        [ type_ "button"
+        , class "block w-full text-left border border-border-default border-l-4 border-l-brand-yellow rounded p-3 cursor-pointer hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+        , onClick (CalendarClickEvent event.id)
+        ]
+        [ span [ class "block type-caption text-text-muted" ] [ text (formatEventDateDisplay event) ]
+        , span [ class "block type-h4" ] [ text (Types.displayTitle event) ]
+        , case event.location of
+            Nothing ->
+                text ""
+
+            Just loc ->
+                span [ class "block type-caption text-text-muted" ] [ text loc ]
+        ]
+
+
+
+-- MONTH GRID CELLS
 
 
 viewDayCell : CalendarPage -> List Event -> Maybe Int -> Html Msg

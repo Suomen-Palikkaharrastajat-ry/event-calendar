@@ -9,9 +9,12 @@ an incomplete picture of the calendar feature.
 -}
 
 import Api
+import Browser.Dom
+import CalendarAgenda
 import DateUtils
 import Html exposing (Html)
 import RemoteData
+import Task
 import Time
 import Types exposing (AuthState, CalendarPage, CalendarViewMode(..), Msg(..))
 import View.Calendar
@@ -57,6 +60,14 @@ update msg page =
 
         CalendarSetView mode ->
             ( { page | viewMode = mode }, Cmd.none )
+
+        CalendarJumpToWeek week ->
+            -- Focusing the week heading scrolls it into view and tells screen
+            -- reader users where they landed. A missing heading is not an error.
+            ( page
+            , Browser.Dom.focus (CalendarAgenda.weekHeadingId week)
+                |> Task.attempt (\_ -> CalendarNoOp)
+            )
 
         _ ->
             ( page, Cmd.none )

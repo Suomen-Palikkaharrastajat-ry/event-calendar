@@ -431,6 +431,8 @@ type
     | CalendarSetMonth Int Int
     | CalendarSetView CalendarViewMode
     | CalendarClickEvent String
+    | CalendarJumpToWeek Int
+    | CalendarNoOp
       -- Events page
     | EventsFormFieldChanged String String
     | EventsFormDateChanged String String

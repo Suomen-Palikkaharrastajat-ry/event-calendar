@@ -406,6 +406,12 @@ update msg model =
         CalendarSetView _ ->
             updateCalendarPage msg model
 
+        CalendarJumpToWeek _ ->
+            updateCalendarPage msg model
+
+        CalendarNoOp ->
+            ( model, Cmd.none )
+
         CalendarClickEvent id ->
             ( model, Nav.pushUrl model.key (toHref (RouteEventDetail id)) )
 
