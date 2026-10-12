@@ -6,6 +6,7 @@ module EventFormTest exposing (suite)
 import DatePicker
 import Expect
 import Html.Attributes
+import Lang
 import RemoteData
 import Test exposing (Test, describe, test)
 import Test.Html.Query as Query
@@ -21,7 +22,7 @@ dummyPicker =
 
 testFormHtml : EventFormData -> FormStatus -> Query.Single Types.Msg
 testFormHtml formData formStatus =
-    EventForm.view formData dummyPicker dummyPicker formStatus False
+    EventForm.view Lang.Fi formData dummyPicker dummyPicker formStatus False
         |> Query.fromHtml
 
 
@@ -151,7 +152,7 @@ suite =
                             , formStatus = FormIdle
                             }
                     in
-                    EventForm.viewEdit editPage
+                    EventForm.viewEdit Lang.Fi editPage
                         |> Query.fromHtml
                         |> Query.has [ Selector.tag "form" ]
             ]

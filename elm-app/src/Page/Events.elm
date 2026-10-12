@@ -12,6 +12,7 @@ import Date
 import DatePicker
 import FinnishTime
 import Html exposing (Html)
+import Lang exposing (Lang)
 import Time exposing (Posix)
 import Types exposing (AuthState, EventsPage, FormStatus(..), KmlImportStatus(..), Msg(..), emptyEventFormData)
 import View.Events
@@ -40,6 +41,6 @@ init now _ _ =
     )
 
 
-view : AuthState -> Posix -> EventsPage -> Html Msg
-view =
-    View.Events.view
+view : Lang -> AuthState -> Posix -> EventsPage -> Html Msg
+view lang =
+    View.Events.view lang

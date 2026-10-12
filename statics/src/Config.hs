@@ -8,14 +8,16 @@ module Config (
     pbDefaultUrl,
 ) where
 
+import qualified SiteConfig as SC
+
 {- | Canonical site base URL (no trailing slash).
 Used for GUID/UID generation in feeds and iCal, and for building links in HTML.
 -}
 siteBaseUrl :: String
-siteBaseUrl = "https://kalenteri.palikkaharrastajat.fi"
+siteBaseUrl = SC.siteUrl
 
 {- | Default PocketBase API base URL (production).
 Used as fallback when the POCKETBASE_URL environment variable is not set.
 -}
 pbDefaultUrl :: String
-pbDefaultUrl = "https://data.palikkaharrastajat.fi"
+pbDefaultUrl = SC.appPocketbaseUrl SC.defaultLang

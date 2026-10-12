@@ -6,6 +6,7 @@ module CalendarTest exposing (suite)
 import DateUtils exposing (formatEventDateDisplay)
 import Expect
 import FinnishTime exposing (firstDayOfWeek, formDateTimeToUtc, utcStringToHelsinkiDateInput, utcStringToHelsinkiTimeInput)
+import Lang
 import Page.Calendar as PageCalendar
 import Route exposing (toHref)
 import Test exposing (Test, describe, test)
@@ -55,7 +56,7 @@ suite =
                         , end = Just "2026-05-05T14:00:00.000Z"
                         , allDay = False
                         }
-                        |> formatEventDateDisplay
+                        |> formatEventDateDisplay Lang.Fi
                         |> Expect.equal "ti 5.5. klo 14.00–17.00"
             , test "all-day single (no end): shows weekday and date" <|
                 \_ ->
@@ -65,7 +66,7 @@ suite =
                         , end = Nothing
                         , allDay = True
                         }
-                        |> formatEventDateDisplay
+                        |> formatEventDateDisplay Lang.Fi
                         |> Expect.equal "ti 16.6."
             , test "all-day cross-month range: shows D.M.–D.M." <|
                 \_ ->
@@ -75,7 +76,7 @@ suite =
                         , end = Just "2026-05-01T21:00:00.000Z"
                         , allDay = True
                         }
-                        |> formatEventDateDisplay
+                        |> formatEventDateDisplay Lang.Fi
                         |> Expect.equal "30.4.–2.5."
             , test "all-day same-month range: shows day range with weekdays" <|
                 \_ ->
@@ -85,7 +86,7 @@ suite =
                         , end = Just "2026-05-05T21:00:00.000Z"
                         , allDay = True
                         }
-                        |> formatEventDateDisplay
+                        |> formatEventDateDisplay Lang.Fi
                         |> Expect.equal "ti–ke 5.–6.5."
             , test "timed no end: shows weekday, date, and start time" <|
                 \_ ->
@@ -95,7 +96,7 @@ suite =
                         , end = Nothing
                         , allDay = False
                         }
-                        |> formatEventDateDisplay
+                        |> formatEventDateDisplay Lang.Fi
                         |> Expect.equal "ti 5.5. klo 14.00"
             , test "invalid date string falls through to raw string" <|
                 \_ ->
@@ -104,7 +105,7 @@ suite =
                         , end = Nothing
                         , allDay = False
                         }
-                        |> formatEventDateDisplay
+                        |> formatEventDateDisplay Lang.Fi
                         |> Expect.equal "not-a-date"
             ]
         , describe "utcStringToHelsinkiDateInput"

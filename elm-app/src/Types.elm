@@ -40,8 +40,10 @@ import DatePicker
 import File exposing (File)
 import Http
 import Json.Decode as Json
+import Lang exposing (Lang)
 import RemoteData exposing (RemoteData)
 import Route exposing (Route)
+import SiteSettings exposing (SiteSettings)
 import Time
 import Url exposing (Url)
 
@@ -55,6 +57,8 @@ type alias Flags =
     , authModel : Maybe String
     , now : Int
     , pbBaseUrl : String
+    , siteConfig : Json.Value
+    , requestedLang : Maybe String
     }
 
 
@@ -385,6 +389,8 @@ type alias Model =
     , now : Time.Posix
     , pbBaseUrl : String
     , menuOpen : Bool
+    , site : SiteSettings
+    , lang : Lang
     }
 
 

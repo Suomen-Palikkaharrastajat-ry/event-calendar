@@ -25,7 +25,6 @@ import Auth
 import Browser
 import Browser.Events
 import Browser.Navigation as Nav
-import Component.SkipLink as SkipLink
 import Date
 import DatePicker
 import File
@@ -37,6 +36,7 @@ import Html.Attributes exposing (attribute, class, href, id)
 import Http
 import I18n exposing (t)
 import Json.Decode as Json
+import Lang exposing (Lang)
 import Page.Calendar
 import Page.EventDetail
 import Page.EventEdit
@@ -45,6 +45,7 @@ import Ports
 import Process
 import RemoteData exposing (RemoteData(..))
 import Route exposing (Route(..), parseUrl, toHref)
+import SiteSettings
 import Task
 import Time
 import Types
@@ -118,8 +119,22 @@ init flags url key =
         now =
             Time.millisToPosix flags.now
 
+        localized =
+            Json.decodeValue SiteSettings.localizedDecoder flags.siteConfig
+
+        lang =
+            localized
+                |> Result.map (SiteSettings.pickLang flags.requestedLang)
+                |> Result.withDefault Lang.Fi
+
+        site =
+            localized
+                |> Result.toMaybe
+                |> Maybe.andThen (SiteSettings.forLang lang)
+                |> Maybe.withDefault (SiteSettings.placeholder lang)
+
         ( page, cmd ) =
-            initPage flags.pbBaseUrl key route authState url now
+            initPage lang flags.pbBaseUrl key route authState url now
     in
     ( { key = key
       , url = url
@@ -130,13 +145,15 @@ init flags url key =
       , now = now
       , pbBaseUrl = flags.pbBaseUrl
       , menuOpen = False
+      , site = site
+      , lang = lang
       }
-    , cmd
+    , Cmd.batch [ cmd, Ports.setDocumentLang (Lang.toString lang) ]
     )
 
 
-initPage : String -> Nav.Key -> Route -> Types.AuthState -> Url -> Time.Posix -> ( Page, Cmd Msg )
-initPage pbBaseUrl key route authState url now =
+initPage : Lang -> String -> Nav.Key -> Route -> Types.AuthState -> Url -> Time.Posix -> ( Page, Cmd Msg )
+initPage lang pbBaseUrl key route authState url now =
     case route of
         RouteCalendar maybeDate ->
             let
@@ -176,7 +193,7 @@ initPage pbBaseUrl key route authState url now =
                     ( PageLoading
                     , Cmd.batch
                         [ Nav.pushUrl key (toHref (RouteCalendar Nothing))
-                        , Task.perform identity (Task.succeed (AddToast ToastInfo "Kirjaudu sisään päästäksesi hallintanäkymään"))
+                        , Task.perform identity (Task.succeed (AddToast ToastInfo (t lang I18n.LoginRequired)))
                         ]
                     )
 
@@ -200,7 +217,7 @@ initPage pbBaseUrl key route authState url now =
                     ( PageLoading
                     , Cmd.batch
                         [ Nav.pushUrl key (toHref (RouteCalendar Nothing))
-                        , Task.perform identity (Task.succeed (AddToast ToastInfo "Kirjaudu sisään päästäksesi hallintanäkymään"))
+                        , Task.perform identity (Task.succeed (AddToast ToastInfo (t lang I18n.LoginRequired)))
                         ]
                     )
 
@@ -250,14 +267,14 @@ update msg model =
                     else
                         let
                             ( page, cmd ) =
-                                initPage model.pbBaseUrl model.key route model.authState url model.now
+                                initPage model.lang model.pbBaseUrl model.key route model.authState url model.now
                         in
                         ( { model | url = url, page = page }, cmd )
 
                 _ ->
                     let
                         ( page, cmd ) =
-                            initPage model.pbBaseUrl model.key route model.authState url model.now
+                            initPage model.lang model.pbBaseUrl model.key route model.authState url model.now
                     in
                     ( { model | url = url, page = page, menuOpen = False }, Cmd.batch [ mapCleanupCmd, cmd ] )
 
@@ -314,7 +331,7 @@ update msg model =
                         ++ "\"}"
 
                 ( model1, toastCmd ) =
-                    addToast { model | authState = Authenticated user } ToastSuccess "Kirjautuminen onnistui"
+                    addToast { model | authState = Authenticated user } ToastSuccess (t model.lang I18n.LoginSuccess)
             in
             ( model1
             , Cmd.batch
@@ -327,7 +344,7 @@ update msg model =
         GotAuthResult (Err _) ->
             let
                 ( model1, toastCmd ) =
-                    addToast model ToastError "Kirjautuminen epäonnistui"
+                    addToast model ToastError (t model.lang I18n.LoginFailed)
             in
             ( model1
             , Cmd.batch
@@ -340,7 +357,7 @@ update msg model =
             if String.isEmpty data.token then
                 let
                     ( model1, toastCmd ) =
-                        addToast model ToastError "Kirjautuminen epäonnistui"
+                        addToast model ToastError (t model.lang I18n.LoginFailed)
                 in
                 ( model1
                 , Cmd.batch
@@ -360,7 +377,7 @@ update msg model =
                                 addToast
                                     { model | authState = Authenticated authedUser }
                                     ToastSuccess
-                                    "Kirjautuminen onnistui"
+                                    (t model.lang I18n.LoginSuccess)
                         in
                         ( model1
                         , Cmd.batch
@@ -373,7 +390,7 @@ update msg model =
                     Err _ ->
                         let
                             ( model1, toastCmd ) =
-                                addToast model ToastError "Kirjautuminen epäonnistui"
+                                addToast model ToastError (t model.lang I18n.LoginFailed)
                         in
                         ( model1, toastCmd )
 
@@ -429,7 +446,7 @@ update msg model =
                 PageEvents evPage ->
                     let
                         ( nextStartDatePicker, maybeIsoDate ) =
-                            FinnishDatePicker.update datePickerMsg evPage.startDatePicker
+                            FinnishDatePicker.update (I18n.locale model.lang) datePickerMsg evPage.startDatePicker
 
                         nextForm =
                             case maybeIsoDate of
@@ -451,7 +468,7 @@ update msg model =
                 PageEvents evPage ->
                     let
                         ( nextEndDatePicker, maybeIsoDate ) =
-                            FinnishDatePicker.update datePickerMsg evPage.endDatePicker
+                            FinnishDatePicker.update (I18n.locale model.lang) datePickerMsg evPage.endDatePicker
 
                         nextForm =
                             case maybeIsoDate of
@@ -585,7 +602,7 @@ update msg model =
                                                     }
                                         }
                                         ToastSuccess
-                                        "Tapahtuma tallennettu"
+                                        (t model.lang I18n.EventSaved)
                             in
                             ( model1
                             , Cmd.batch
@@ -598,9 +615,9 @@ update msg model =
                             let
                                 ( model1, toastCmd ) =
                                     addToast
-                                        { model | page = PageEvents { evPage | formStatus = Types.FormError (Api.httpErrorToString err) } }
+                                        { model | page = PageEvents { evPage | formStatus = Types.FormError (Api.httpErrorToString model.lang err) } }
                                         ToastError
-                                        (Api.httpErrorToString err)
+                                        (Api.httpErrorToString model.lang err)
                             in
                             ( model1, toastCmd )
 
@@ -722,7 +739,7 @@ update msg model =
                                 )
 
                         Err err ->
-                            ( { model | page = PageEvents { evPage | kmlImportStatus = KmlError (Api.httpErrorToString err) } }
+                            ( { model | page = PageEvents { evPage | kmlImportStatus = KmlError (Api.httpErrorToString model.lang err) } }
                             , Cmd.none
                             )
 
@@ -745,7 +762,7 @@ update msg model =
                         Err err ->
                             let
                                 ( model1, toastCmd ) =
-                                    addToast model ToastError (Api.httpErrorToString err)
+                                    addToast model ToastError (Api.httpErrorToString model.lang err)
                             in
                             ( { model1 | page = PageEventDetail id { detPage | event = Failure err } }
                             , toastCmd
@@ -782,7 +799,7 @@ update msg model =
                 Ok _ ->
                     let
                         ( model1, toastCmd ) =
-                            addToast model ToastSuccess "Tapahtuma poistettu"
+                            addToast model ToastSuccess (t model.lang I18n.EventDeleted)
                     in
                     ( model1
                     , Cmd.batch
@@ -792,7 +809,7 @@ update msg model =
                     )
 
                 Err err ->
-                    addToast model ToastError (Api.httpErrorToString err)
+                    addToast model ToastError (Api.httpErrorToString model.lang err)
 
         DetailKeyPressed key ->
             case model.page of
@@ -902,7 +919,7 @@ update msg model =
                         Err err ->
                             let
                                 ( model1, toastCmd ) =
-                                    addToast model ToastError (Api.httpErrorToString err)
+                                    addToast model ToastError (Api.httpErrorToString model.lang err)
                             in
                             ( { model1 | page = PageEventEdit id { editPage | event = Failure err } }
                             , toastCmd
@@ -922,7 +939,7 @@ update msg model =
                 PageEventEdit id editPage ->
                     let
                         ( nextStartDatePicker, maybeIsoDate ) =
-                            FinnishDatePicker.update datePickerMsg editPage.startDatePicker
+                            FinnishDatePicker.update (I18n.locale model.lang) datePickerMsg editPage.startDatePicker
 
                         nextForm =
                             case maybeIsoDate of
@@ -944,7 +961,7 @@ update msg model =
                 PageEventEdit id editPage ->
                     let
                         ( nextEndDatePicker, maybeIsoDate ) =
-                            FinnishDatePicker.update datePickerMsg editPage.endDatePicker
+                            FinnishDatePicker.update (I18n.locale model.lang) datePickerMsg editPage.endDatePicker
 
                         nextForm =
                             case maybeIsoDate of
@@ -1060,7 +1077,7 @@ update msg model =
                                     addToast
                                         { model | page = PageEventEdit id { editPage | formStatus = Types.FormSuccess, event = Success event } }
                                         ToastSuccess
-                                        "Tapahtuma tallennettu"
+                                        (t model.lang I18n.EventSaved)
                             in
                             ( model1
                             , Cmd.batch
@@ -1073,9 +1090,9 @@ update msg model =
                             let
                                 ( model1, toastCmd ) =
                                     addToast
-                                        { model | page = PageEventEdit id { editPage | formStatus = Types.FormError (Api.httpErrorToString err) } }
+                                        { model | page = PageEventEdit id { editPage | formStatus = Types.FormError (Api.httpErrorToString model.lang err) } }
                                         ToastError
-                                        (Api.httpErrorToString err)
+                                        (Api.httpErrorToString model.lang err)
                             in
                             ( model1, toastCmd )
 
@@ -1434,24 +1451,23 @@ placemarkToForm pm =
 
 view : Model -> Browser.Document Msg
 view model =
-    { title = pageTitle model.page
+    { title = pageTitle model.lang model.site.site.title model.page
     , body =
-        [ SkipLink.view { target = "main-content", label = t I18n.SkipToContent }
-        , div [ class "min-h-screen flex flex-col" ]
-            [ View.Layout.viewHeader model.authState model.menuOpen (activeMenuRoute model.url)
-            , main_
-                [ id "main-content"
-                , attribute "tabindex" "-1"
-                , class "flex-1 max-w-5xl mx-auto w-full focus:outline-none"
-                ]
-                [ viewPage model ]
-            , View.Layout.viewFooter
-            , View.Layout.viewBrandFooter
-            , View.Layout.viewMobileOverlay model.menuOpen
-            , View.Layout.viewMobileDrawer model.menuOpen (activeMenuRoute model.url) model.authState
-            ]
-        , View.Layout.viewToasts model.toasts
-        ]
+        View.Layout.view
+            { site = model.site
+            , lang = model.lang
+            , authState = model.authState
+            , menuOpen = model.menuOpen
+            , activeRoute = activeMenuRoute model.url
+            , toasts = model.toasts
+            , main =
+                main_
+                    [ id "main-content"
+                    , attribute "tabindex" "-1"
+                    , class "flex-1 max-w-5xl mx-auto w-full focus:outline-none"
+                    ]
+                    [ viewPage model ]
+            }
     }
 
 
@@ -1475,66 +1491,70 @@ viewPage : Model -> Html Msg
 viewPage model =
     case model.page of
         PageLoading ->
-            div [ class "p-8 text-center text-text-muted" ] [ text "Ladataan..." ]
+            div [ class "p-8 text-center text-text-muted" ] [ text (t model.lang I18n.PageLoadingText) ]
 
         PageAuthCallback ->
-            div [ class "p-8 text-center text-text-muted" ] [ text "Kirjaudutaan..." ]
+            div [ class "p-8 text-center text-text-muted" ] [ text (t model.lang I18n.PageSigningIn) ]
 
         PageNotFound ->
             div [ class "p-8 text-center" ]
                 [ div [ class "type-h1 mb-2" ] [ text "404" ]
-                , div [ class "text-text-muted mb-4" ] [ text "Sivua ei löydy" ]
+                , div [ class "text-text-muted mb-4" ] [ text (t model.lang I18n.PageNotFoundText) ]
                 , a [ href (toHref (RouteCalendar Nothing)), class "text-brand underline" ]
-                    [ text "Takaisin kalenteriin" ]
+                    [ text (t model.lang I18n.BackToCalendar) ]
                 ]
 
         PageCalendar calPage ->
-            Page.Calendar.view model.authState calPage
+            Page.Calendar.view model.lang model.authState calPage
 
         PageEventList evListPage ->
-            View.EventList.view model.authState model.now evListPage
+            View.EventList.view model.lang model.authState model.now evListPage
 
         PageEvents evPage ->
-            Page.Events.view model.authState model.now evPage
+            Page.Events.view model.lang model.authState model.now evPage
 
         PageEventDetail id detPage ->
-            View.EventDetail.view model.pbBaseUrl model.authState id detPage
+            View.EventDetail.view model.lang model.pbBaseUrl model.authState id detPage
 
         PageEventEdit _ editPage ->
-            View.EventForm.viewEdit editPage
+            View.EventForm.viewEdit model.lang editPage
 
 
-pageTitle : Page -> String
-pageTitle page =
+pageTitle : Lang -> String -> Page -> String
+pageTitle lang siteTitle page =
+    let
+        titled key =
+            t lang key ++ " — " ++ siteTitle
+    in
     case page of
         PageLoading ->
-            "Ladataan... — Palikkakalenteri"
+            titled I18n.PageLoadingText
 
         PageAuthCallback ->
-            "Kirjautuminen — Palikkakalenteri"
+            titled I18n.TitleLogin
 
         PageNotFound ->
-            "Sivua ei löydy — Palikkakalenteri"
+            titled I18n.PageNotFoundText
 
         PageCalendar _ ->
-            "Palikkakalenteri"
+            siteTitle
 
         PageEventList _ ->
-            "Tulevat tapahtumat — Palikkakalenteri"
+            titled I18n.TitleUpcoming
 
         PageEvents _ ->
-            "Tulevat tapahtumat— Palikkakalenteri"
+            titled I18n.TitleUpcoming
 
         PageEventDetail _ evPage ->
             case evPage.event of
                 RemoteData.Success event ->
-                    Types.displayTitle event ++ " — Palikkakalenteri"
+                    Types.displayTitle event ++ " — " ++ siteTitle
 
                 _ ->
-                    "Tapahtuma — Palikkakalenteri"
+                    titled I18n.TitleEvent
 
         PageEventEdit _ _ ->
-            "Muokkaa tapahtumaa — Palikkakalenteri"
+            titled I18n.TitleEditEvent
 
 
 

@@ -1,140 +1,149 @@
 module LayoutTest exposing (suite)
 
-{-| Unit tests for page layout components (Layout.elm).
+{-| Unit tests for the page chrome (View.Layout).
+
+The shell is rendered from this app's own `config.toml` (SiteFixture), so the
+tests cover what a visitor gets: brand, navigation, feed links and the family
+footer.
+
 -}
 
-import Component.Footer.Family as Family
-import Component.SkipLink as SkipLink
 import Expect
-import Html exposing (div)
-import Html.Attributes
+import Html exposing (Html, div, main_, text)
+import Html.Attributes as Attr
+import Json.Decode as Decode
+import Lang exposing (Lang(..))
 import Route exposing (Route(..))
+import SiteFixture
+import SiteSettings exposing (SiteSettings)
 import Test exposing (Test, describe, test)
 import Test.Html.Query as Query
 import Test.Html.Selector as Selector
-import Types exposing (AuthState(..), Toast, ToastKind(..))
+import Types exposing (AuthState(..), Msg, Toast, ToastKind(..))
 import View.Layout as Layout
+
+
+site : SiteSettings
+site =
+    Decode.decodeString SiteSettings.localizedDecoder SiteFixture.json
+        |> Result.toMaybe
+        |> Maybe.andThen (SiteSettings.forLang Fi)
+        |> Maybe.withDefault (SiteSettings.placeholder Fi)
+
+
+shell : AuthState -> List Toast -> Html Msg
+shell authState toasts =
+    div []
+        (Layout.view
+            { site = site
+            , lang = Fi
+            , authState = authState
+            , menuOpen = True
+            , activeRoute = Just (RouteCalendar Nothing)
+            , toasts = toasts
+            , main = main_ [ Attr.id "main-content" ] [ text "Sisältö" ]
+            }
+        )
+
+
+page : Html Msg
+page =
+    shell NotAuthenticated []
 
 
 suite : Test
 suite =
     describe "View.Layout"
-        [ describe "viewHeader"
-            [ test "renders header element with brand title" <|
+        [ test "config.toml resolves and decodes" <|
+            \_ ->
+                site.site.title
+                    |> Expect.equal "Palikkakalenteri"
+        , describe "header"
+            [ test "renders the brand title from config.toml" <|
                 \_ ->
-                    Layout.viewHeader NotAuthenticated False (Just (RouteCalendar Nothing))
+                    page
                         |> Query.fromHtml
+                        |> Query.find [ Selector.tag "header" ]
                         |> Query.has [ Selector.text "Palikkakalenteri" ]
             , test "renders navigation links" <|
                 \_ ->
-                    Layout.viewHeader NotAuthenticated False (Just (RouteCalendar Nothing))
+                    page
                         |> Query.fromHtml
+                        |> Query.find [ Selector.tag "header" ]
                         |> Query.has [ Selector.text "Kalenteri", Selector.text "Tulevat tapahtumat" ]
+            , test "renders user display name when authenticated" <|
+                \_ ->
+                    shell (Authenticated { id = "u1", email = "test@example.com", name = "Matti Meikäläinen", token = "tok" }) []
+                        |> Query.fromHtml
+                        |> Query.find [ Selector.tag "header" ]
+                        |> Query.has [ Selector.text "Matti Meikäläinen" ]
             ]
-        , describe "viewFooter"
+        , describe "feed links"
             [ test "renders export panel as a section, not a footer" <|
                 \_ ->
-                    Layout.viewFooter
+                    page
                         |> Query.fromHtml
-                        |> Query.has [ Selector.tag "section" ]
+                        |> Query.has [ Selector.tag "section", Selector.containing [ Selector.text "iCalendar" ] ]
             , test "contains export links" <|
                 \_ ->
-                    Layout.viewFooter
+                    page
                         |> Query.fromHtml
                         |> Query.has [ Selector.text "iCalendar", Selector.text "HTML | PDF", Selector.text "Syötteet" ]
-            ]
-        , describe "viewBrandFooter"
-            [ test "renders footer element" <|
+            , test "links are built from the configured site URL" <|
                 \_ ->
-                    Layout.viewBrandFooter
+                    page
                         |> Query.fromHtml
-                        |> Query.has [ Selector.tag "footer" ]
-            , test "contains copyright" <|
-                \_ ->
-                    Layout.viewBrandFooter
-                        |> Query.fromHtml
-                        |> Query.has [ Selector.text "© 2026 Suomen Palikkaharrastajat ry" ]
-            , test "is the shared family footer, unmodified" <|
-                \_ ->
-                    Layout.viewBrandFooter
-                        |> Expect.equal
-                            (Family.view
-                                { currentSite = "https://kalenteri.palikkaharrastajat.fi"
-                                , year = 2026
-                                , topMargin = False
-                                , extra = []
-                                }
-                            )
-            , test "links to every other family site and not to itself" <|
-                \_ ->
-                    Layout.viewBrandFooter
-                        |> Query.fromHtml
-                        |> Query.find [ Selector.tag "ul" ]
-                        |> Expect.all
-                            [ Query.findAll [ Selector.tag "a" ]
-                                >> Query.count (Expect.equal (List.length Family.links - 1))
-                            , Query.hasNot
-                                [ Selector.attribute (Html.Attributes.href "https://kalenteri.palikkaharrastajat.fi") ]
+                        |> Query.has
+                            [ Selector.attribute (Attr.href "webcal://kalenteri.palikkaharrastajat.fi/kalenteri.ics")
+                            , Selector.attribute (Attr.href "https://kalenteri.palikkaharrastajat.fi/kalenteri.atom")
                             ]
             ]
-        , describe "Landmark count"
+        , describe "footer"
             [ test "layout has exactly one footer landmark" <|
                 \_ ->
-                    div []
-                        [ Layout.viewHeader NotAuthenticated False Nothing
-                        , Layout.viewFooter
-                        , Layout.viewBrandFooter
-                        ]
+                    page
                         |> Query.fromHtml
                         |> Query.findAll [ Selector.tag "footer" ]
                         |> Query.count (Expect.equal 1)
-            ]
-        , describe "SkipLink"
-            [ test "renders skip link targeting main-content" <|
+            , test "contains copyright" <|
                 \_ ->
-                    SkipLink.view { target = "main-content", label = "Hyppää pääsisältöön" }
+                    page
                         |> Query.fromHtml
-                        |> Query.has
-                            [ Selector.attribute (Html.Attributes.href "#main-content")
-                            , Selector.text "Hyppää pääsisältöön"
+                        |> Query.find [ Selector.tag "footer" ]
+                        |> Query.has [ Selector.text "© 2026 Suomen Palikkaharrastajat ry" ]
+            , test "links to every other family site and not to itself" <|
+                \_ ->
+                    page
+                        |> Query.fromHtml
+                        |> Query.find [ Selector.tag "footer" ]
+                        |> Query.find [ Selector.tag "ul" ]
+                        |> Expect.all
+                            [ Query.findAll [ Selector.tag "a" ] >> Query.count (Expect.equal 7)
+                            , Query.has [ Selector.attribute (Attr.href "https://kartta.palikkaharrastajat.fi") ]
+                            , Query.hasNot [ Selector.attribute (Attr.href "https://kalenteri.palikkaharrastajat.fi") ]
                             ]
             ]
-        , describe "viewToasts"
+        , describe "skip link"
+            [ test "targets main-content" <|
+                \_ ->
+                    page
+                        |> Query.fromHtml
+                        |> Query.has [ Selector.attribute (Attr.href "#main-content"), Selector.id "main-content" ]
+            ]
+        , describe "toasts"
             [ test "renders region landmark for notifications" <|
                 \_ ->
-                    let
-                        toasts : List Toast
-                        toasts =
-                            [ { id = 1, message = "Tapahtuma tallennettu", kind = ToastSuccess } ]
-                    in
-                    Layout.viewToasts toasts
+                    shell NotAuthenticated [ { id = 1, message = "Tapahtuma tallennettu", kind = ToastSuccess } ]
                         |> Query.fromHtml
-                        |> Query.has
-                            [ Selector.attribute (Html.Attributes.attribute "role" "region")
-                            , Selector.text "Tapahtuma tallennettu"
-                            ]
+                        |> Query.find [ Selector.attribute (Attr.attribute "role" "region") ]
+                        |> Query.has [ Selector.text "Tapahtuma tallennettu" ]
             ]
-        , describe "viewMobileDrawer"
-            [ test "renders mobile drawer nav links" <|
+        , describe "mobile drawer"
+            [ test "renders dialog role with the nav links" <|
                 \_ ->
-                    Layout.viewMobileDrawer True (Just (RouteCalendar Nothing)) NotAuthenticated
+                    page
                         |> Query.fromHtml
+                        |> Query.find [ Selector.attribute (Attr.attribute "role" "dialog") ]
                         |> Query.has [ Selector.text "Kalenteri", Selector.text "Tulevat tapahtumat" ]
-            , test "renders dialog role for mobile menu" <|
-                \_ ->
-                    Layout.viewMobileDrawer True Nothing NotAuthenticated
-                        |> Query.fromHtml
-                        |> Query.has [ Selector.attribute (Html.Attributes.attribute "role" "dialog") ]
-            ]
-        , describe "Authenticated header"
-            [ test "renders user display name when authenticated" <|
-                \_ ->
-                    let
-                        user =
-                            { id = "u1", email = "test@example.com", name = "Matti Meikäläinen", token = "tok" }
-                    in
-                    Layout.viewHeader (Authenticated user) False Nothing
-                        |> Query.fromHtml
-                        |> Query.has [ Selector.text "Matti Meikäläinen" ]
             ]
         ]

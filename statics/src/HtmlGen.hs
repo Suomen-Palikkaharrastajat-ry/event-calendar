@@ -26,6 +26,7 @@ import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Blaze.Html5 ((!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+import qualified SiteConfig as SC
 
 -- ---------------------------------------------------------------------------
 -- QR code and ICS helpers
@@ -62,7 +63,7 @@ siteLogo =
                 ++ "<source type=\"image/svg+xml\" srcset=\"logo/horizontal/svg/horizontal-full.svg\">"
                 ++ "<source type=\"image/webp\" srcset=\"logo/horizontal/png/horizontal-full.webp\">"
                 ++ "<img src=\"logo/horizontal/png/horizontal-full.png\""
-                ++ " alt=\"Suomen Palikkaharrastajat\" style=\"max-width:200px;height:auto;\">"
+                ++ " alt=\"" ++ SC.staticsLogoAlt SC.defaultLang ++ "\" style=\"max-width:200px;height:auto;\">"
                 ++ "</picture>"
                 :: String
             )
@@ -167,7 +168,7 @@ renderQrCode eventPageUrl =
             H.a
                 ! A.href (H.toValue eventPageUrl)
                 ! A.class_ "qrcode"
-                ! A.title "Lisää kalenteriin"
+                ! A.title (H.toValue (SC.staticsAddToCalendar SC.defaultLang))
                 ! A.target "_blank"
                 ! A.style
                     "color: black; text-decoration: none; float: right;\
@@ -209,7 +210,7 @@ renderCalendarEvent icsList ev = do
                 H.a
                     ! A.href (H.toValue (icsDataUri ics))
                     ! A.target "_blank"
-                    $ "Lisää kalenteriin"
+                    $ H.toHtml (SC.staticsAddToCalendar SC.defaultLang)
                 case PB.eventUrl ev of
                     Nothing -> return ()
                     Just u -> do
@@ -217,7 +218,7 @@ renderCalendarEvent icsList ev = do
                         H.a
                             ! A.href (H.toValue (T.unpack u))
                             ! A.target "_blank"
-                            $ "Lue lisää\x2026"
+                            $ H.toHtml (SC.staticsReadMore SC.defaultLang)
 
 -- | Render a month section.
 renderMonth :: [(String, String)] -> String -> [PB.Event] -> H.Html
@@ -237,12 +238,12 @@ generateCalendarHtml events = do
     return $ renderHtml $ H.docTypeHtml ! A.lang "fi" $ do
         H.head $ do
             H.meta ! A.charset "UTF-8"
-            H.title "Palikkakalenteri"
+            H.title (H.toHtml (SC.siteTitle SC.defaultLang))
             H.meta ! A.name "build-date" ! A.content (H.toValue buildDate)
             H.link ! A.rel "stylesheet" ! A.href "/fonts/outfit.css"
             H.style $ H.toHtml calendarCss
         H.body $ do
-            H.h1 "Palikkakalenteri"
+            H.h1 (H.toHtml (SC.siteTitle SC.defaultLang))
             H.div ! A.class_ "events" $
                 mapM_ (uncurry (renderMonth icsList)) grouped
             H.script ! A.type_ "text/javascript" $ H.toHtml calendarJs
@@ -262,7 +263,7 @@ generateEventHtml ev = do
             H.meta ! A.name "viewport" ! A.content "width=device-width, initial-scale=1.0"
             H.title $ do
                 H.toHtml (PB.eventDisplayTitle ev)
-                H.toHtml (" - Palikkakalenteri" :: String)
+                H.toHtml (" - " ++ SC.siteTitle SC.defaultLang)
             H.link ! A.rel "stylesheet" ! A.href "/fonts/outfit.css"
             H.style $ H.toHtml eventPageCss
         H.body $ do
@@ -281,7 +282,7 @@ generateEventHtml ev = do
                 $ H.a
                     ! A.href (H.toValue (icsDataUri ics))
                     ! A.target "_blank"
-                $ "Lisää kalenteriin"
+                $ H.toHtml (SC.staticsAddToCalendar SC.defaultLang)
             case PB.eventUrl ev of
                 Nothing -> return ()
                 Just u ->
@@ -289,7 +290,7 @@ generateEventHtml ev = do
                         $ H.a
                             ! A.href (H.toValue (T.unpack u))
                             ! A.target "_blank"
-                        $ "Lue lisää\x2026"
+                        $ H.toHtml (SC.staticsReadMore SC.defaultLang)
 
 -- ---------------------------------------------------------------------------
 -- Grouping helper

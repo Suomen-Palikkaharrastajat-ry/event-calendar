@@ -26,6 +26,7 @@ import qualified DescriptionHtml as DH
 import qualified PocketBase as PB
 import System.Directory (getFileSize)
 import System.FilePath (takeExtension)
+import qualified SiteConfig as SC
 
 -- ---------------------------------------------------------------------------
 -- Feed metadata
@@ -41,19 +42,19 @@ imageMimeType fname = case map toLower (takeExtension fname) of
     _ -> "application/octet-stream"
 
 feedTitle :: String
-feedTitle = "Palikkakalenteri"
+feedTitle = SC.siteTitle SC.defaultLang
 
 feedLink :: String
-feedLink = "https://kalenteri.palikkaharrastajat.fi/"
+feedLink = SC.siteUrl ++ "/"
 
 feedSelf :: String
-feedSelf = "https://kalenteri.palikkaharrastajat.fi/"
+feedSelf = SC.siteUrl ++ "/"
 
 feedDescription :: String
-feedDescription = "Suomen Palikkaharrastajat ry:n Palikkakalenteri"
+feedDescription = SC.staticsFeedDescription SC.defaultLang
 
 feedId :: String
-feedId = "https://kalenteri.palikkaharrastajat.fi/"
+feedId = SC.siteUrl ++ "/"
 
 feedLogoUrl :: String
 feedLogoUrl = Config.siteBaseUrl ++ "/logo/square/png/square-smile.png"
@@ -217,7 +218,7 @@ generateRss ctx events = do
             , "      " ++ xmlEl "url" feedLogoUrl
             , "      " ++ xmlEl "link" feedLink
             , "    </image>"
-            , "    " ++ xmlText "copyright" "Suomen Palikkaharrastajat ry"
+            , "    " ++ xmlText "copyright" (SC.author SC.defaultLang)
             , "    <atom:link href=\""
                 ++ feedSelf
                 ++ "kalenteri.rss\" rel=\"self\" type=\"application/rss+xml\"/>"
@@ -268,7 +269,7 @@ buildAtomEntry ctx ev = do
             , "    <title type=\"html\">" ++ xmlEscape (feedItemTitle ev) ++ "</title>"
             , "    " ++ xmlText "published" (formatRfc3339 (PB.eventCreated ev))
             , "    " ++ xmlText "updated" (formatRfc3339 (PB.eventUpdated ev))
-            , "    <author><name>Suomen Palikkaharrastajat ry</name></author>"
+            , "    <author><name>" ++ SC.author SC.defaultLang ++ "</name></author>"
             , "    <link rel=\"alternate\" href=\""
                 ++ maybe "" (xmlEscape . T.unpack) (PB.eventUrl ev)
                 ++ "\"/>"
@@ -294,11 +295,11 @@ generateAtom ctx events = do
             , "  " ++ xmlText "id" feedId
             , "  " ++ xmlText "subtitle" feedDescription
             , "  " ++ xmlText "updated" (formatRfc3339 now)
-            , "  " ++ xmlText "rights" "Suomen Palikkaharrastajat ry"
+            , "  " ++ xmlText "rights" (SC.author SC.defaultLang)
             , "  " ++ xmlEl "logo" feedLogoUrl
             , "  " ++ xmlEl "icon" (Config.siteBaseUrl ++ "/favicon.ico")
             , "  " ++ xmlText "generator" "Emmet"
-            , "  <author><name>Suomen Palikkaharrastajat ry</name><email>palikkaharrastajatry@outlook.com</email><uri>https://palikkaharrastajat.fi/</uri></author>"
+            , "  <author><name>" ++ SC.author SC.defaultLang ++ "</name><email>" ++ SC.appContactEmail SC.defaultLang ++ "</email><uri>" ++ SC.appOrganisationUrl SC.defaultLang ++ "</uri></author>"
             , concat entries
             , "</feed>"
             ]
@@ -317,7 +318,7 @@ jsonFeedItem ev =
             , "content_html" .= contentHtml
             , "date_published" .= formatRfc3339Ms (PB.eventCreated ev)
             , "date_modified" .= formatRfc3339Ms (PB.eventUpdated ev)
-            , "author" .= object ["name" .= ("Suomen Palikkaharrastajat ry" :: String)]
+            , "author" .= object ["name" .= SC.author SC.defaultLang]
             ]
         urlField = case PB.eventUrl ev of
             Just u -> ["url" .= T.unpack u]
@@ -342,8 +343,8 @@ generateJsonFeed events =
                         , "icon" .= feedLogoUrl
                         , "author"
                             .= object
-                                [ "name" .= ("Suomen Palikkaharrastajat ry" :: String)
-                                , "url" .= ("https://palikkaharrastajat.fi/" :: String)
+                                [ "name" .= SC.author SC.defaultLang
+                                , "url" .= SC.appOrganisationUrl SC.defaultLang
                                 ]
                         , "items" .= map jsonFeedItem events
                         ]

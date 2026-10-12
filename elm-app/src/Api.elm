@@ -17,8 +17,10 @@ module Api exposing
 import File exposing (File)
 import FinnishTime exposing (formDateTimeToUtc)
 import Http
+import I18n exposing (MsgKey(..), t)
 import Json.Decode as Json exposing (Decoder)
 import Json.Encode as Encode
+import Lang exposing (Lang)
 import Types exposing (AuthState(..), Event, EventFormData, EventState, GeoPoint, Msg(..), PbList, eventStateFromString, eventStateToString)
 import Url
 
@@ -430,20 +432,20 @@ encodePointForPb formData =
 -- ERROR
 
 
-httpErrorToString : Http.Error -> String
-httpErrorToString err =
+httpErrorToString : Lang -> Http.Error -> String
+httpErrorToString lang err =
     case err of
         Http.BadUrl url ->
-            "Virheellinen URL: " ++ url
+            t lang ErrBadUrl ++ url
 
         Http.Timeout ->
-            "Pyyntö aikakatkaistiin"
+            t lang ErrTimeout
 
         Http.NetworkError ->
-            "Verkkovirhe"
+            t lang ErrNetwork
 
         Http.BadStatus code ->
-            "Palvelinvirhe: " ++ String.fromInt code
+            t lang ErrBadStatus ++ String.fromInt code
 
         Http.BadBody body ->
-            "Vastausvirhe: " ++ body
+            t lang ErrBadBody ++ body

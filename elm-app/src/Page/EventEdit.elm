@@ -13,6 +13,7 @@ import Date
 import DatePicker
 import FinnishTime
 import Html exposing (Html)
+import Lang exposing (Lang)
 import RemoteData
 import Time exposing (Posix)
 import Types exposing (AuthState, EventEditPage, FormStatus(..), Msg(..), emptyEventFormData)
@@ -41,6 +42,6 @@ init now pbBaseUrl maybeToken id =
     )
 
 
-view : EventEditPage -> Html Msg
-view =
-    View.EventForm.viewEdit
+view : Lang -> EventEditPage -> Html Msg
+view lang =
+    View.EventForm.viewEdit lang

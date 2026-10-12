@@ -16,6 +16,7 @@ import Html exposing (Html, div, h2, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onSubmit)
 import I18n exposing (MsgKey(..), stateLabel, t)
+import Lang exposing (Lang)
 import RemoteData
 import Route exposing (Route(..))
 import Types
@@ -30,7 +31,7 @@ import View.MapWidget
 
 
 {-| Message constructors that differ between the Create and Edit form contexts.
-Parametrizing these avoids duplicating every view section.
+Parametrizing these avoids duplicating every (view lang) section.
 -}
 type alias FormMsgs =
     { onFieldChanged : String -> String -> Msg
@@ -91,26 +92,26 @@ editFormMsgs =
 {-| Create-event form (used inside the events management page).
 Field messages use `EventsForm*` prefix.
 -}
-view : EventFormData -> DatePicker.DatePicker -> DatePicker.DatePicker -> FormStatus -> Bool -> Html Msg
-view formData startDatePicker endDatePicker formStatus isEdit =
-    viewSharedFields createFormMsgs formData startDatePicker endDatePicker formStatus isEdit
+view : Lang -> EventFormData -> DatePicker.DatePicker -> DatePicker.DatePicker -> FormStatus -> Bool -> Html Msg
+view lang formData startDatePicker endDatePicker formStatus isEdit =
+    viewSharedFields lang createFormMsgs formData startDatePicker endDatePicker formStatus isEdit
 
 
 {-| Standalone edit-event page, wrapping the shared form fields with Edit-prefix messages.
 -}
-viewEdit : EventEditPage -> Html Msg
-viewEdit editPage =
+viewEdit : Lang -> EventEditPage -> Html Msg
+viewEdit lang editPage =
     div [ class "max-w-2xl mx-auto p-4" ]
-        [ h2 [ class "type-h3 mb-4" ] [ text (t FormEditTitle) ]
+        [ h2 [ class "type-h3 mb-4" ] [ text (t lang FormEditTitle) ]
         , LoadState.view
-            { loadingLabel = t Loading
-            , errorMessage = Api.httpErrorToString
+            { loadingLabel = t lang Loading
+            , errorMessage = Api.httpErrorToString lang
             , onRetry = Nothing
             , retryLabel = ""
             }
             (fromRemoteData editPage.event)
             (\_ ->
-                viewSharedFields editFormMsgs editPage.form editPage.startDatePicker editPage.endDatePicker editPage.formStatus True
+                viewSharedFields lang editFormMsgs editPage.form editPage.startDatePicker editPage.endDatePicker editPage.formStatus True
             )
         ]
 
@@ -138,8 +139,8 @@ fromRemoteData rd =
 {-| Renders all form fields using the given message set.
 `isEdit` controls the submit button target and whether to show existing-image previews.
 -}
-viewSharedFields : FormMsgs -> EventFormData -> DatePicker.DatePicker -> DatePicker.DatePicker -> FormStatus -> Bool -> Html Msg
-viewSharedFields msgs form startDatePicker endDatePicker formStatus isEdit =
+viewSharedFields : Lang -> FormMsgs -> EventFormData -> DatePicker.DatePicker -> DatePicker.DatePicker -> FormStatus -> Bool -> Html Msg
+viewSharedFields lang msgs form startDatePicker endDatePicker formStatus isEdit =
     Html.form
         [ onSubmit
             (if isEdit then
@@ -153,7 +154,7 @@ viewSharedFields msgs form startDatePicker endDatePicker formStatus isEdit =
         [ Form.textInput
             (let
                 field =
-                    Form.defaultField "title" (t FormTitle)
+                    Form.defaultField "title" (t lang FormTitle)
              in
              { field | required = True }
             )
@@ -163,37 +164,37 @@ viewSharedFields msgs form startDatePicker endDatePicker formStatus isEdit =
             , placeholder = Nothing
             }
         , Form.textInput
-            (Form.defaultField "location" (t FormLocation))
+            (Form.defaultField "location" (t lang FormLocation))
             { value = form.location
             , onInput = msgs.onFieldChanged "location"
             , inputType = Form.Text
             , placeholder = Nothing
             }
-        , viewGeocodeSection msgs form
+        , viewGeocodeSection lang msgs form
         , Form.textarea
-            (Form.defaultField "description" (t FormDescription))
+            (Form.defaultField "description" (t lang FormDescription))
             { value = form.description
             , onInput = msgs.onFieldChanged "description"
             , rows = 4
             }
         , Form.textInput
-            (Form.defaultField "url" (t FormUrl))
+            (Form.defaultField "url" (t lang FormUrl))
             { value = form.url
             , onInput = msgs.onFieldChanged "url"
             , inputType = Form.Url
             , placeholder = Nothing
             }
-        , viewImageSection msgs isEdit form
-        , viewDateSection msgs form startDatePicker endDatePicker
-        , viewTagSelect form.tag (msgs.onFieldChanged "tag")
+        , viewImageSection lang msgs isEdit form
+        , viewDateSection lang msgs form startDatePicker endDatePicker
+        , viewTagSelect lang form.tag (msgs.onFieldChanged "tag")
         , Form.checkbox
-            (Form.defaultField msgs.cancelledCheckboxId (t FormCancelled))
+            (Form.defaultField msgs.cancelledCheckboxId (t lang FormCancelled))
             { checked = form.cancelled
             , onCheck = \_ -> msgs.onToggleCancelled
             }
-        , viewStateSelect form.state (msgs.onFieldChanged "state")
+        , viewStateSelect lang form.state (msgs.onFieldChanged "state")
         , viewInlineError formStatus
-        , viewFormButtons formStatus
+        , viewFormButtons lang formStatus
         ]
 
 
@@ -201,11 +202,11 @@ viewSharedFields msgs form startDatePicker endDatePicker formStatus isEdit =
 -- ── Shared section views ──────────────────────────────────────────────────────
 
 
-viewGeocodeSection : FormMsgs -> EventFormData -> Html Msg
-viewGeocodeSection msgs form =
+viewGeocodeSection : Lang -> FormMsgs -> EventFormData -> Html Msg
+viewGeocodeSection lang msgs form =
     div [ class "flex flex-col gap-2" ]
         [ div [ class "flex items-center gap-2" ]
-            [ Button.new { label = t FormGeocode, onClick = msgs.onGeocode }
+            [ Button.new { label = t lang FormGeocode, onClick = msgs.onGeocode }
                 |> Button.withVariant Button.Primary
                 |> Button.withSize Button.Small
                 |> Button.withIcon FeatherIcons.mapPin
@@ -215,7 +216,7 @@ viewGeocodeSection msgs form =
         , div [ class "flex gap-2" ]
             [ div [ class "flex-1" ]
                 [ Form.textInput
-                    (Form.defaultField (msgs.mapContainerId ++ "-lat") (t FormLat))
+                    (Form.defaultField (msgs.mapContainerId ++ "-lat") (t lang FormLat))
                     { value = form.lat
                     , onInput = msgs.onFieldChanged "lat"
                     , inputType = Form.Number { step = "0.000001" }
@@ -224,7 +225,7 @@ viewGeocodeSection msgs form =
                 ]
             , div [ class "flex-1" ]
                 [ Form.textInput
-                    (Form.defaultField (msgs.mapContainerId ++ "-lon") (t FormLon))
+                    (Form.defaultField (msgs.mapContainerId ++ "-lon") (t lang FormLon))
                     { value = form.lon
                     , onInput = msgs.onFieldChanged "lon"
                     , inputType = Form.Number { step = "0.000001" }
@@ -236,8 +237,8 @@ viewGeocodeSection msgs form =
         ]
 
 
-viewImageSection : FormMsgs -> Bool -> EventFormData -> Html Msg
-viewImageSection msgs showExistingIfPresent form =
+viewImageSection : Lang -> FormMsgs -> Bool -> EventFormData -> Html Msg
+viewImageSection lang msgs showExistingIfPresent form =
     let
         preview =
             case form.imagePreviewUrl of
@@ -248,7 +249,7 @@ viewImageSection msgs showExistingIfPresent form =
                     if showExistingIfPresent && form.hasExistingImage then
                         case form.existingImageUrl of
                             Just url ->
-                                Just { src = url, alt = "Nykyinen kuva" }
+                                Just { src = url, alt = t lang FormCurrentImage }
 
                             Nothing ->
                                 Nothing
@@ -258,13 +259,13 @@ viewImageSection msgs showExistingIfPresent form =
     in
     div [ class "flex flex-col gap-2" ]
         [ Form.fileInput
-            (Form.defaultField "image" (t FormImage))
+            (Form.defaultField "image" (t lang FormImage))
             { accept = "image/*"
             , onFile = msgs.onFileSelected
             , preview = preview
             }
         , Form.textInput
-            (Form.defaultField "imageDescription" (t FormImageAlt))
+            (Form.defaultField "imageDescription" (t lang FormImageAlt))
             { value = form.imageDescription
             , onInput = msgs.onFieldChanged "imageDescription"
             , inputType = Form.Text
@@ -273,17 +274,17 @@ viewImageSection msgs showExistingIfPresent form =
         ]
 
 
-viewDateSection : FormMsgs -> EventFormData -> DatePicker.DatePicker -> DatePicker.DatePicker -> Html Msg
-viewDateSection msgs form startDatePicker endDatePicker =
+viewDateSection : Lang -> FormMsgs -> EventFormData -> DatePicker.DatePicker -> DatePicker.DatePicker -> Html Msg
+viewDateSection lang msgs form startDatePicker endDatePicker =
     div [ class "flex flex-col gap-2" ]
         [ Form.checkbox
-            (Form.defaultField msgs.allDayCheckboxId (t FormAllDay))
+            (Form.defaultField msgs.allDayCheckboxId (t lang FormAllDay))
             { checked = form.allDay
             , onCheck = \_ -> msgs.onToggleAllDay
             }
         , Form.fieldRow
-            ([ FinnishDatePicker.field
-                (FinnishDatePicker.defaultField msgs.startDateInputId (t FormStartDate))
+            ([ FinnishDatePicker.field (I18n.locale lang)
+                (FinnishDatePicker.defaultField msgs.startDateInputId (t lang FormStartDate))
                 { picker = startDatePicker
                 , selectedIsoDate = form.startDate
                 , onMsg = msgs.onStartDatePickerChanged
@@ -291,7 +292,7 @@ viewDateSection msgs form startDatePicker endDatePicker =
              ]
                 ++ (if not form.allDay then
                         [ Form.textInput
-                            (Form.defaultField (msgs.startDateInputId ++ "-time") (t FormStartTime))
+                            (Form.defaultField (msgs.startDateInputId ++ "-time") (t lang FormStartTime))
                             { value = form.startTime
                             , onInput = msgs.onDateChanged "startTime"
                             , inputType = Form.Time
@@ -302,8 +303,8 @@ viewDateSection msgs form startDatePicker endDatePicker =
                     else
                         []
                    )
-                ++ [ FinnishDatePicker.field
-                        (FinnishDatePicker.defaultField msgs.endDateInputId (t FormEndDate))
+                ++ [ FinnishDatePicker.field (I18n.locale lang)
+                        (FinnishDatePicker.defaultField msgs.endDateInputId (t lang FormEndDate))
                         { picker = endDatePicker
                         , selectedIsoDate = form.endDate
                         , onMsg = msgs.onEndDatePickerChanged
@@ -311,7 +312,7 @@ viewDateSection msgs form startDatePicker endDatePicker =
                    ]
                 ++ (if not form.allDay then
                         [ Form.textInput
-                            (Form.defaultField (msgs.endDateInputId ++ "-time") (t FormEndTime))
+                            (Form.defaultField (msgs.endDateInputId ++ "-time") (t lang FormEndTime))
                             { value = form.endTime
                             , onInput = msgs.onDateChanged "endTime"
                             , inputType = Form.Time
@@ -326,19 +327,19 @@ viewDateSection msgs form startDatePicker endDatePicker =
         ]
 
 
-viewTagSelect : String -> (String -> Msg) -> Html Msg
-viewTagSelect currentTag toMsg =
+viewTagSelect : Lang -> String -> (String -> Msg) -> Html Msg
+viewTagSelect lang currentTag toMsg =
     Form.radioGroup
-        { legend = t FormTag
+        { legend = t lang FormTag
         , name = "event-tag"
         , required = False
         , error = Nothing
         }
         { options =
-            [ { value = "", label = t TagNone }
-            , { value = "exhibition", label = t TagExhibition }
-            , { value = "event", label = t TagEvent }
-            , { value = "competition", label = t TagCompetition }
+            [ { value = "", label = t lang TagNone }
+            , { value = "exhibition", label = t lang TagExhibition }
+            , { value = "event", label = t lang TagEvent }
+            , { value = "competition", label = t lang TagCompetition }
             ]
         , selected = currentTag
         , onSelect = toMsg
@@ -346,18 +347,18 @@ viewTagSelect currentTag toMsg =
         }
 
 
-viewStateSelect : EventState -> (String -> Msg) -> Html Msg
-viewStateSelect currentState toMsg =
+viewStateSelect : Lang -> EventState -> (String -> Msg) -> Html Msg
+viewStateSelect lang currentState toMsg =
     Form.radioGroup
-        { legend = t FormStatus
+        { legend = t lang FormStatus
         , name = "event-state"
         , required = False
         , error = Nothing
         }
         { options =
-            [ { value = Types.eventStateToString Draft, label = stateLabel Draft }
-            , { value = Types.eventStateToString Pending, label = stateLabel Pending }
-            , { value = Types.eventStateToString Published, label = stateLabel Published }
+            [ { value = Types.eventStateToString Draft, label = stateLabel lang Draft }
+            , { value = Types.eventStateToString Pending, label = stateLabel lang Pending }
+            , { value = Types.eventStateToString Published, label = stateLabel lang Published }
             ]
         , selected = Types.eventStateToString currentState
         , onSelect = toMsg
@@ -383,16 +384,16 @@ viewInlineError formStatus =
             text ""
 
 
-viewFormButtons : FormStatus -> Html Msg
-viewFormButtons formStatus =
+viewFormButtons : Lang -> FormStatus -> Html Msg
+viewFormButtons lang formStatus =
     div [ class "flex gap-2 pt-2" ]
         [ Button.submit
             { label =
                 if formStatus == FormSubmitting then
-                    t Saving
+                    t lang Saving
 
                 else
-                    t FormSave
+                    t lang FormSave
             }
             |> Button.withVariant Button.Primary
             |> Button.withSize Button.Medium
@@ -400,7 +401,7 @@ viewFormButtons formStatus =
             |> Button.withLoading (formStatus == FormSubmitting)
             |> Button.toHtml
         , Button.new
-            { label = t FormCancel
+            { label = t lang FormCancel
             , onClick = NavigateTo RouteEvents
             }
             |> Button.withVariant Button.Secondary

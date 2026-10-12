@@ -9,29 +9,30 @@ import Html.Attributes exposing (accept, class, type_)
 import Html.Events exposing (on)
 import I18n exposing (MsgKey(..), t)
 import Json.Decode as Json
+import Lang exposing (Lang)
 import Time exposing (Posix)
 import Types exposing (AuthState, EventsPage, KmlImportStatus, Msg(..), isAuthenticated)
 import View.EventForm
 
 
-view : AuthState -> Posix -> EventsPage -> Html Msg
-view authState _ evPage =
+view : Lang -> AuthState -> Posix -> EventsPage -> Html Msg
+view lang authState _ evPage =
     div [ class "max-w-5xl mx-auto p-4" ]
-        [ h2 [ class "type-h3 mb-4" ] [ text (t EventListNewEvent) ]
-        , viewKmlSection authState evPage
+        [ h2 [ class "type-h3 mb-4" ] [ text (t lang EventListNewEvent) ]
+        , viewKmlSection lang authState evPage
         , div [ class "mb-6 p-4 border rounded bg-bg-subtle" ]
-            [ View.EventForm.view evPage.form evPage.startDatePicker evPage.endDatePicker evPage.formStatus False ]
+            [ View.EventForm.view lang evPage.form evPage.startDatePicker evPage.endDatePicker evPage.formStatus False ]
         ]
 
 
-viewKmlSection : AuthState -> EventsPage -> Html Msg
-viewKmlSection authState evPage =
+viewKmlSection : Lang -> AuthState -> EventsPage -> Html Msg
+viewKmlSection lang authState evPage =
     if not (isAuthenticated authState) then
         text ""
 
     else
         div [ class "mb-4 flex items-center gap-3 flex-wrap" ]
-            [ label [ class "type-body-small" ] [ text (t KmlImport) ]
+            [ label [ class "type-body-small" ] [ text (t lang KmlImport) ]
             , input
                 [ type_ "file"
                 , accept ".kml"
@@ -39,18 +40,18 @@ viewKmlSection authState evPage =
                 , class "type-caption"
                 ]
                 []
-            , viewKmlStatus evPage.kmlImportStatus
+            , viewKmlStatus lang evPage.kmlImportStatus
             ]
 
 
-viewKmlStatus : KmlImportStatus -> Html Msg
-viewKmlStatus status =
+viewKmlStatus : Lang -> KmlImportStatus -> Html Msg
+viewKmlStatus lang status =
     case status of
         Types.KmlIdle ->
             text ""
 
         Types.KmlParsing ->
-            span [ class "type-caption text-text-muted" ] [ text (t I18n.KmlImporting) ]
+            span [ class "type-caption text-text-muted" ] [ text (t lang I18n.KmlImporting) ]
 
         Types.KmlImporting done total ->
             span [ class "type-caption text-brand" ]
@@ -58,10 +59,10 @@ viewKmlStatus status =
 
         Types.KmlDone n ->
             span [ class "type-caption text-brand" ]
-                [ text (String.fromInt n ++ " " ++ t I18n.KmlDone) ]
+                [ text (String.fromInt n ++ " " ++ t lang I18n.KmlDone) ]
 
         Types.KmlError err ->
-            span [ class "type-caption text-brand-red" ] [ text (t I18n.KmlError ++ ": " ++ err) ]
+            span [ class "type-caption text-brand-red" ] [ text (t lang I18n.KmlError ++ ": " ++ err) ]
 
 
 kmlFileDecoder : Json.Decoder File.File

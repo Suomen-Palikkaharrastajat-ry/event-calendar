@@ -7,6 +7,7 @@ rendering in View.Calendar.
 import CalendarAgenda exposing (agendaWeeks, dayMark, weekHeadingId, weekLabel, weekNumberOf)
 import Expect
 import Html.Attributes as Attr
+import Lang
 import RemoteData
 import Test exposing (Test, describe, test)
 import Test.Html.Event as Event
@@ -160,12 +161,12 @@ suite =
             [ test "shows the week number and its date range" <|
                 \_ ->
                     agendaWeeks 2026 10 [ weekend ]
-                        |> List.map weekLabel
+                        |> List.map (weekLabel Lang.Fi)
                         |> Expect.equal [ "Viikko 42 · 12.–18.10." ]
             , test "shows both months when the week straddles a month boundary" <|
                 \_ ->
                     agendaWeeks 2026 10 [ ev "Alku" "2026-10-01" Nothing ]
-                        |> List.map weekLabel
+                        |> List.map (weekLabel Lang.Fi)
                         |> Expect.equal [ "Viikko 40 · 28.9.–4.10." ]
             ]
         , describe "weekHeadingId"
@@ -175,19 +176,19 @@ suite =
         , describe "View.Calendar on small screens"
             [ test "the month grid is hidden below md" <|
                 \_ ->
-                    View.Calendar.view NotAuthenticated (october [ weekend ])
+                    View.Calendar.view Lang.Fi NotAuthenticated (october [ weekend ])
                         |> Query.fromHtml
                         |> Query.find [ Selector.attribute (Attr.attribute "data-testid" "month-grid") ]
                         |> Query.has [ Selector.classes [ "hidden", "md:block" ] ]
             , test "the mobile view is hidden from md up" <|
                 \_ ->
-                    View.Calendar.view NotAuthenticated (october [ weekend ])
+                    View.Calendar.view Lang.Fi NotAuthenticated (october [ weekend ])
                         |> Query.fromHtml
                         |> Query.find [ Selector.attribute (Attr.attribute "data-testid" "mobile-calendar") ]
                         |> Query.has [ Selector.class "md:hidden" ]
             , test "the agenda lists the event under its week heading with full title and dates" <|
                 \_ ->
-                    View.Calendar.view NotAuthenticated (october [ weekend ])
+                    View.Calendar.view Lang.Fi NotAuthenticated (october [ weekend ])
                         |> Query.fromHtml
                         |> Query.find [ Selector.attribute (Attr.attribute "data-testid" "mobile-calendar") ]
                         |> Query.has
@@ -197,34 +198,34 @@ suite =
                             ]
             , test "the week heading can receive focus for jump-to-week" <|
                 \_ ->
-                    View.Calendar.view NotAuthenticated (october [ weekend ])
+                    View.Calendar.view Lang.Fi NotAuthenticated (october [ weekend ])
                         |> Query.fromHtml
                         |> Query.find [ Selector.id "agenda-week-42" ]
                         |> Query.has [ Selector.attribute (Attr.tabindex -1) ]
             , test "the month strip marks event days and leaves other days plain" <|
                 \_ ->
-                    View.Calendar.view NotAuthenticated (october [ weekend ])
+                    View.Calendar.view Lang.Fi NotAuthenticated (october [ weekend ])
                         |> Query.fromHtml
                         |> Query.find [ Selector.attribute (Attr.attribute "data-testid" "month-strip") ]
                         |> Query.findAll [ Selector.attribute (Attr.attribute "data-has-events" "true") ]
                         |> Query.count (Expect.equal 2)
             , test "an event day in the strip is a button naming the day and its event count" <|
                 \_ ->
-                    View.Calendar.view NotAuthenticated (october [ weekend ])
+                    View.Calendar.view Lang.Fi NotAuthenticated (october [ weekend ])
                         |> Query.fromHtml
                         |> Query.find [ Selector.attribute (Attr.attribute "data-testid" "month-strip") ]
                         |> Query.findAll [ Selector.tag "button", Selector.attribute (Attr.attribute "aria-label" "17. lokakuuta, 1 tapahtuma") ]
                         |> Query.count (Expect.equal 1)
             , test "tapping an event day jumps to its week in the agenda" <|
                 \_ ->
-                    View.Calendar.view NotAuthenticated (october [ weekend ])
+                    View.Calendar.view Lang.Fi NotAuthenticated (october [ weekend ])
                         |> Query.fromHtml
                         |> Query.find [ Selector.tag "button", Selector.attribute (Attr.attribute "aria-label" "17. lokakuuta, 1 tapahtuma") ]
                         |> Event.simulate Event.click
                         |> Event.expect (CalendarJumpToWeek 42)
             , test "tapping an agenda card opens the event" <|
                 \_ ->
-                    View.Calendar.view NotAuthenticated (october [ weekend ])
+                    View.Calendar.view Lang.Fi NotAuthenticated (october [ weekend ])
                         |> Query.fromHtml
                         |> Query.find [ Selector.attribute (Attr.attribute "data-testid" "mobile-calendar") ]
                         |> Query.find [ Selector.tag "button", Selector.containing [ Selector.text "Pii Poo" ] ]
@@ -232,7 +233,7 @@ suite =
                         |> Event.expect (CalendarClickEvent "Pii Poo")
             , test "a month without events says so in the mobile view" <|
                 \_ ->
-                    View.Calendar.view NotAuthenticated (october [])
+                    View.Calendar.view Lang.Fi NotAuthenticated (october [])
                         |> Query.fromHtml
                         |> Query.find [ Selector.attribute (Attr.attribute "data-testid" "mobile-calendar") ]
                         |> Query.has [ Selector.text "Ei tapahtumia tällä kuulla" ]

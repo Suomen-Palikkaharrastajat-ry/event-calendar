@@ -13,6 +13,7 @@ import Browser.Dom
 import CalendarAgenda
 import FinnishTime
 import Html exposing (Html)
+import Lang exposing (Lang)
 import RemoteData
 import Task
 import Time
@@ -73,9 +74,9 @@ update msg page =
             ( page, Cmd.none )
 
 
-view : AuthState -> CalendarPage -> Html Msg
-view =
-    View.Calendar.view
+view : Lang -> AuthState -> CalendarPage -> Html Msg
+view lang =
+    View.Calendar.view lang
 
 
 

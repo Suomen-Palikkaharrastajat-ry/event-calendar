@@ -3,6 +3,8 @@ import { Elm } from './src/Main.elm'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import PocketBase from 'pocketbase'
+import siteConfig from 'virtual:site-config'
+import { appSettings, requestedLang, setDocumentLang } from './packages/site-config/browser.mjs'
 
 // Fix Leaflet default icon paths broken by Vite bundling
 import markerIconUrl from 'leaflet/dist/images/marker-icon.png'
@@ -18,7 +20,9 @@ L.Icon.Default.mergeOptions({
 
 // ── App init ─────────────────────────────────────────────────────────────────
 
-const pbBaseUrl = import.meta.env.VITE_POCKETBASE_URL || 'https://data.palikkaharrastajat.fi'
+// App settings come from [app] in ../config.toml.
+const settings = appSettings(siteConfig)
+const pbBaseUrl = import.meta.env.VITE_POCKETBASE_URL || settings.pocketbase_url
 
 function readStoredAuth() {
   return {
@@ -78,6 +82,8 @@ const flags = {
   authModel: initAuth.authModel,
   now: Date.now(),
   pbBaseUrl,
+  siteConfig,
+  requestedLang: requestedLang(),
 }
 
 const app = Elm.Main.init({
@@ -86,6 +92,8 @@ const app = Elm.Main.init({
 })
 
 // ── Nav ports ─────────────────────────────────────────────────────────────────
+
+app.ports.setDocumentLang.subscribe(setDocumentLang)
 
 app.ports.focusMobileNav.subscribe(function () {
   requestAnimationFrame(function () {
@@ -251,7 +259,7 @@ function setupPullToRefresh() {
   ].join(';')
 
   const label = document.createElement('span')
-  label.textContent = '⟳ Päivitä sivu'
+  label.textContent = settings.refresh_label
 
   action.appendChild(label)
   indicator.appendChild(action)

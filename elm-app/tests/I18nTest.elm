@@ -5,6 +5,7 @@ module I18nTest exposing (suite)
 
 import Expect
 import I18n exposing (MsgKey(..), stateLabel, t)
+import Lang
 import Test exposing (Test, describe, test)
 import Types exposing (EventState(..))
 
@@ -14,20 +15,18 @@ suite =
     describe "I18n"
         [ describe "stateLabel"
             [ test "Draft → Luonnos" <|
-                \_ -> stateLabel Draft |> Expect.equal "Luonnos"
+                \_ -> stateLabel Lang.Fi Draft |> Expect.equal "Luonnos"
             , test "Published → Julkaistu" <|
-                \_ -> stateLabel Published |> Expect.equal "Julkaistu"
+                \_ -> stateLabel Lang.Fi Published |> Expect.equal "Julkaistu"
             , test "Pending → Odottaa" <|
-                \_ -> stateLabel Pending |> Expect.equal "Odottaa"
+                \_ -> stateLabel Lang.Fi Pending |> Expect.equal "Odottaa"
             , test "Deleted → Poistettu" <|
-                \_ -> stateLabel Deleted |> Expect.equal "Poistettu"
+                \_ -> stateLabel Lang.Fi Deleted |> Expect.equal "Poistettu"
             ]
         , describe "translate"
-            [ test "AppTitle is non-empty" <|
-                \_ -> t AppTitle |> String.isEmpty |> Expect.equal False
-            , test "CalNoEvents is non-empty" <|
-                \_ -> t CalNoEvents |> String.isEmpty |> Expect.equal False
+            [ test "CalNoEvents is non-empty" <|
+                \_ -> t Lang.Fi CalNoEvents |> String.isEmpty |> Expect.equal False
             , test "SaveSuccess is non-empty" <|
-                \_ -> t SaveSuccess |> String.isEmpty |> Expect.equal False
+                \_ -> t Lang.Fi SaveSuccess |> String.isEmpty |> Expect.equal False
             ]
         ]

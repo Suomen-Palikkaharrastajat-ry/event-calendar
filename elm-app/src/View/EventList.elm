@@ -12,6 +12,7 @@ import FinnishTime exposing (parseUtcString, toHelsinkiParts)
 import Html exposing (Html, a, div, h1, h3, p, text)
 import Html.Attributes exposing (attribute, class, href, target)
 import I18n exposing (MsgKey(..), t)
+import Lang exposing (Lang)
 import RemoteData exposing (RemoteData)
 import Route exposing (Route(..), toHref)
 import Time exposing (Posix, posixToMillis)
@@ -19,15 +20,15 @@ import Types exposing (AuthState(..), Event, EventListPage, EventState(..), Msg(
 import View.Icons exposing (featherIcon)
 
 
-view : AuthState -> Posix -> EventListPage -> Html Msg
-view authState now page =
+view : Lang -> AuthState -> Posix -> EventListPage -> Html Msg
+view lang authState now page =
     div [ class "p-4" ]
         [ div [ class "flex items-center justify-between mb-4" ]
-            [ h1 [ class "type-h1" ] [ text (t NavEvents) ]
+            [ h1 [ class "type-h1" ] [ text (t lang NavEvents) ]
             , case authState of
                 Authenticated _ ->
                     Button.link
-                        { label = "+ " ++ t EventListNewEvent
+                        { label = "+ " ++ t lang EventListNewEvent
                         , href = toHref RouteEventNew
                         }
                         |> Button.withVariant Button.Primary
@@ -38,8 +39,8 @@ view authState now page =
                     text ""
             ]
         , LoadState.view
-            { loadingLabel = t Loading
-            , errorMessage = Api.httpErrorToString
+            { loadingLabel = t lang Loading
+            , errorMessage = Api.httpErrorToString lang
             , onRetry = Nothing
             , retryLabel = ""
             }
@@ -50,11 +51,11 @@ view authState now page =
                         reorderEvents now events
                 in
                 if List.isEmpty items then
-                    div [ class "text-text-muted text-center py-8" ] [ text (t EventListEmpty) ]
+                    div [ class "text-text-muted text-center py-8" ] [ text (t lang EventListEmpty) ]
 
                 else
                     div [ class "flex flex-col gap-4" ]
-                        (List.map (viewEvent now authState) items)
+                        (List.map (viewEvent lang now authState) items)
             )
         ]
 
@@ -149,8 +150,8 @@ reorderEvents now eventsList =
     upcoming ++ pastDesc
 
 
-viewEvent : Posix -> AuthState -> Event -> Html Msg
-viewEvent now authState event =
+viewEvent : Lang -> Posix -> AuthState -> Event -> Html Msg
+viewEvent lang now authState event =
     let
         isPast ev =
             let
@@ -200,7 +201,7 @@ viewEvent now authState event =
     div [ class classes ]
         [ div [ class "flex items-start justify-between gap-4" ]
             [ div []
-                [ p [ class "type-caption text-text-muted" ] [ text (formatEventDateDisplay event) ]
+                [ p [ class "type-caption text-text-muted" ] [ text (formatEventDateDisplay lang event) ]
                 , h3 [ class "type-h4" ]
                     [ a
                         [ href (toHref (RouteEventDetail event.id))
@@ -235,7 +236,7 @@ viewEvent now authState event =
                                     )
                                 , target "_blank"
                                 , class "text-brand hover:text-brand-yellow transition-colors"
-                                , attribute "aria-label" "Näytä kartalla"
+                                , attribute "aria-label" (t lang ListShowOnMap)
                                 ]
                                 [ featherIcon FeatherIcons.mapPin 16 ]
                 , case event.url of
@@ -247,7 +248,7 @@ viewEvent now authState event =
                             [ href url
                             , target "_blank"
                             , class "text-brand hover:text-brand-yellow transition-colors"
-                            , attribute "aria-label" "Avaa tapahtuman verkkosivu"
+                            , attribute "aria-label" (t lang ListOpenWebsite)
                             ]
                             [ featherIcon FeatherIcons.externalLink 16 ]
                 , case authState of
@@ -256,7 +257,7 @@ viewEvent now authState event =
                             [ href (toHref (RouteEventEdit event.id))
                             , class "type-caption text-primary hover:underline"
                             ]
-                            [ text (t EventListEdit) ]
+                            [ text (t lang EventListEdit) ]
 
                     NotAuthenticated ->
                         text ""

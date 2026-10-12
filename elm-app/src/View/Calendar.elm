@@ -10,18 +10,19 @@ import CalendarAgenda exposing (AgendaWeek)
 import Component.LoadState as LoadState
 import DateUtils exposing (formatEventDateDisplay)
 import FeatherIcons
-import FinnishTime exposing (daysInMonth, finnishMonthName, monthGrid, nextMonth, prevMonth, utcStringToHelsinkiDateInput)
+import FinnishTime exposing (daysInMonth, monthGrid, monthName, nextMonth, prevMonth, utcStringToHelsinkiDateInput)
 import Html exposing (Html, a, button, div, h3, li, p, section, span, text, ul)
 import Html.Attributes exposing (attribute, class, classList, id, tabindex, type_)
 import Html.Events exposing (onClick)
 import I18n exposing (MsgKey(..), t)
+import Lang exposing (Lang)
 import RemoteData exposing (RemoteData)
 import Types exposing (AuthState, CalendarPage, CalendarViewMode(..), Event, Msg(..))
 import View.Icons exposing (featherIcon)
 
 
-view : AuthState -> CalendarPage -> Html Msg
-view authState page =
+view : Lang -> AuthState -> CalendarPage -> Html Msg
+view lang authState page =
     div [ class "p-4" ]
         [ case authState of
             Types.Authenticated _ ->
@@ -29,44 +30,44 @@ view authState page =
 
             Types.NotAuthenticated ->
                 p [ class "type-caption text-text-muted mb-2" ]
-                    [ text (t SubmitByEmailText)
+                    [ text (t lang SubmitByEmailText)
                     , text " "
                     , a
                         [ class "text-brand underline"
                         , attribute "href" "mailto:palikkaharrastajatry@outlook.com?subject=Uusi%20tapahtuma%20Palikkakalenteriin&body=Tapahtuman%20nimi%3A%0D%0A%0D%0ATarkempi%20kuvaus%3A%0D%0A%0D%0APaikkakunta%3A%0D%0A%0D%0AAlkaa%3A%0D%0A%0D%0AP%C3%A4%C3%A4ttyy%3A%0D%0A%0D%0AKotisivut%3A%0D%0A%0D%0A"
                         ]
-                        [ text (t SubmitByEmailLinkText) ]
+                        [ text (t lang SubmitByEmailLinkText) ]
                     ]
-        , viewCalendarNav page
+        , viewCalendarNav lang page
         , case page.viewMode of
             MonthGrid ->
                 LoadState.view
-                    { loadingLabel = t Loading
-                    , errorMessage = Api.httpErrorToString
+                    { loadingLabel = t lang Loading
+                    , errorMessage = Api.httpErrorToString lang
                     , onRetry = Just (CalendarSetMonth page.year page.month)
-                    , retryLabel = t Retry
+                    , retryLabel = t lang Retry
                     }
                     (fromRemoteData page.events)
                     (\events ->
                         div []
                             [ div [ attribute "data-testid" "month-grid", class "hidden md:block" ]
-                                [ viewMonthGrid page events ]
+                                [ viewMonthGrid lang page events ]
                             , div [ attribute "data-testid" "mobile-calendar", class "md:hidden" ]
-                                [ viewMonthStrip page events
-                                , viewAgenda page events
+                                [ viewMonthStrip lang page events
+                                , viewAgenda lang page events
                                 ]
                             ]
                     )
 
             ListView ->
                 LoadState.view
-                    { loadingLabel = t Loading
-                    , errorMessage = Api.httpErrorToString
+                    { loadingLabel = t lang Loading
+                    , errorMessage = Api.httpErrorToString lang
                     , onRetry = Just (CalendarSetMonth page.year page.month)
-                    , retryLabel = t Retry
+                    , retryLabel = t lang Retry
                     }
                     (fromRemoteData page.events)
-                    (viewListView page)
+                    (viewListView lang page)
         ]
 
 
@@ -86,8 +87,8 @@ fromRemoteData rd =
             LoadState.Success a
 
 
-viewCalendarNav : CalendarPage -> Html Msg
-viewCalendarNav page =
+viewCalendarNav : Lang -> CalendarPage -> Html Msg
+viewCalendarNav lang page =
     let
         ( prevY, prevM ) =
             prevMonth page.year page.month
@@ -99,34 +100,34 @@ viewCalendarNav page =
         [ button
             [ onClick (CalendarSetMonth prevY prevM)
             , class "px-2 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
-            , attribute "aria-label" "Edellinen kuukausi"
+            , attribute "aria-label" (t lang CalPrevMonth)
             ]
             [ featherIcon FeatherIcons.chevronLeft 16 ]
         , span [ class "type-h3 w-38 text-center shrink-0" ]
-            [ text (finnishMonthName page.month ++ " " ++ String.fromInt page.year) ]
+            [ text (monthName (I18n.locale lang) page.month ++ " " ++ String.fromInt page.year) ]
         , button
             [ onClick (CalendarSetMonth nextY nextM)
             , class "px-2 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
-            , attribute "aria-label" "Seuraava kuukausi"
+            , attribute "aria-label" (t lang CalNextMonth)
             ]
             [ featherIcon FeatherIcons.chevronRight 16 ]
         , button
             [ onClick (CalendarSetMonth page.todayYear page.todayMonth)
             , class "px-3 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
             ]
-            [ text (t CalToday) ]
+            [ text (t lang CalToday) ]
         ]
 
 
-viewMonthGrid : CalendarPage -> List Event -> Html Msg
-viewMonthGrid page events =
+viewMonthGrid : Lang -> CalendarPage -> List Event -> Html Msg
+viewMonthGrid lang page events =
     div []
         [ div [ class "grid grid-cols-7 text-center type-overline text-text-muted mb-1" ]
             (List.map (\d -> div [] [ text d ])
                 [ "Ma", "Ti", "Ke", "To", "Pe", "La", "Su" ]
             )
         , div [ class "grid grid-cols-7 border-t border-l" ]
-            (List.concatMap (List.map (viewDayCell page events))
+            (List.concatMap (List.map (viewDayCell lang page events))
                 (monthGrid page.year page.month)
             )
         ]
@@ -139,8 +140,8 @@ viewMonthGrid page events =
 {-| Compact month: day numbers only, with a bar under days that have events.
 A multi-day event shows as one continuous bar across its days.
 -}
-viewMonthStrip : CalendarPage -> List Event -> Html Msg
-viewMonthStrip page events =
+viewMonthStrip : Lang -> CalendarPage -> List Event -> Html Msg
+viewMonthStrip lang page events =
     div [ attribute "data-testid" "month-strip", class "mb-6" ]
         [ div
             [ class "grid grid-cols-7 text-center type-overline text-text-muted mb-1"
@@ -152,13 +153,13 @@ viewMonthStrip page events =
         , div [ class "grid grid-cols-7" ]
             (monthGrid page.year page.month
                 |> List.filter (List.any ((/=) Nothing))
-                |> List.concatMap (List.map (viewStripCell page events))
+                |> List.concatMap (List.map (viewStripCell lang page events))
             )
         ]
 
 
-viewStripCell : CalendarPage -> List Event -> Maybe Int -> Html Msg
-viewStripCell page events maybeDay =
+viewStripCell : Lang -> CalendarPage -> List Event -> Maybe Int -> Html Msg
+viewStripCell lang page events maybeDay =
     case maybeDay of
         Nothing ->
             div [] []
@@ -211,7 +212,7 @@ viewStripCell page events maybeDay =
                     [ type_ "button"
                     , class "h-12 pt-1 text-center cursor-pointer hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset"
                     , attribute "data-has-events" "true"
-                    , attribute "aria-label" (dayLabel page.month day mark.count)
+                    , attribute "aria-label" (dayLabel lang page.month day mark.count)
                     , onClick (CalendarJumpToWeek (CalendarAgenda.weekNumberOf page.year page.month day))
                     ]
                     [ number, bar ]
@@ -219,11 +220,11 @@ viewStripCell page events maybeDay =
 
 {-| Accessible name for a marked day, e.g. "17. lokakuuta, 2 tapahtumaa".
 -}
-dayLabel : Int -> Int -> Int -> String
-dayLabel month day count =
+dayLabel : Lang -> Int -> Int -> Int -> String
+dayLabel lang month day count =
     String.fromInt day
         ++ ". "
-        ++ String.toLower (finnishMonthName month)
+        ++ String.toLower (monthName (I18n.locale lang) month)
         ++ "ta, "
         ++ String.fromInt count
         ++ (if count == 1 then
@@ -236,38 +237,38 @@ dayLabel month day count =
 
 {-| The month's events as full-width cards under week headings.
 -}
-viewAgenda : CalendarPage -> List Event -> Html Msg
-viewAgenda page events =
+viewAgenda : Lang -> CalendarPage -> List Event -> Html Msg
+viewAgenda lang page events =
     case CalendarAgenda.agendaWeeks page.year page.month events of
         [] ->
-            div [ class "text-text-muted text-center py-8" ] [ text (t CalNoEvents) ]
+            div [ class "text-text-muted text-center py-8" ] [ text (t lang CalNoEvents) ]
 
         weeks ->
-            div [ class "flex flex-col gap-6" ] (List.map viewAgendaWeek weeks)
+            div [ class "flex flex-col gap-6" ] (List.map (viewAgendaWeek lang) weeks)
 
 
-viewAgendaWeek : AgendaWeek -> Html Msg
-viewAgendaWeek week =
+viewAgendaWeek : Lang -> AgendaWeek -> Html Msg
+viewAgendaWeek lang week =
     section []
         [ h3
             [ id (CalendarAgenda.weekHeadingId week.weekNumber)
             , tabindex -1
             , class "type-overline text-text-muted mb-2 scroll-mt-4 focus:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
             ]
-            [ text (CalendarAgenda.weekLabel week) ]
+            [ text (CalendarAgenda.weekLabel lang week) ]
         , ul [ class "flex flex-col gap-2" ]
-            (List.map (\event -> li [] [ viewAgendaEvent event ]) week.events)
+            (List.map (\event -> li [] [ viewAgendaEvent lang event ]) week.events)
         ]
 
 
-viewAgendaEvent : Event -> Html Msg
-viewAgendaEvent event =
+viewAgendaEvent : Lang -> Event -> Html Msg
+viewAgendaEvent lang event =
     button
         [ type_ "button"
         , class "block w-full text-left border border-border-default border-l-4 border-l-brand-yellow rounded p-3 cursor-pointer hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
         , onClick (CalendarClickEvent event.id)
         ]
-        [ span [ class "block type-caption text-text-muted" ] [ text (formatEventDateDisplay event) ]
+        [ span [ class "block type-caption text-text-muted" ] [ text (formatEventDateDisplay lang event) ]
         , span [ class "block type-h4" ] [ text (Types.displayTitle event) ]
         , case event.location of
             Nothing ->
@@ -282,8 +283,8 @@ viewAgendaEvent event =
 -- MONTH GRID CELLS
 
 
-viewDayCell : CalendarPage -> List Event -> Maybe Int -> Html Msg
-viewDayCell page events maybeDay =
+viewDayCell : Lang -> CalendarPage -> List Event -> Maybe Int -> Html Msg
+viewDayCell lang page events maybeDay =
     case maybeDay of
         Nothing ->
             div [ class "border-r border-b min-h-24 bg-bg-subtle" ] []
@@ -321,7 +322,7 @@ viewDayCell page events maybeDay =
                     (List.take 3 (List.map (\ev -> viewEventChip (chipPos page.year page.month day ev) ev) dayEvents)
                         ++ (if List.length dayEvents > 3 then
                                 [ div [ class "type-caption text-text-muted mx-1" ]
-                                    [ text ("+" ++ String.fromInt (List.length dayEvents - 3) ++ " lisää") ]
+                                    [ text ("+" ++ String.fromInt (List.length dayEvents - 3) ++ t lang CalMore) ]
                                 ]
 
                             else
@@ -416,27 +417,27 @@ viewEventChip pos event =
         [ text label ]
 
 
-viewListView : CalendarPage -> List Event -> Html Msg
-viewListView page events =
+viewListView : Lang -> CalendarPage -> List Event -> Html Msg
+viewListView lang page events =
     let
         monthEvents =
             List.filter (eventInMonth page.year page.month) events
     in
     if List.isEmpty monthEvents then
-        div [ class "text-text-muted text-center py-8" ] [ text (t CalNoEvents) ]
+        div [ class "text-text-muted text-center py-8" ] [ text (t lang CalNoEvents) ]
 
     else
         div [ class "flex flex-col gap-4" ]
-            (List.map viewListEvent monthEvents)
+            (List.map (viewListEvent lang) monthEvents)
 
 
-viewListEvent : Event -> Html Msg
-viewListEvent event =
+viewListEvent : Lang -> Event -> Html Msg
+viewListEvent lang event =
     div
         [ class "border rounded p-3 cursor-pointer hover:bg-bg-subtle"
         , onClick (CalendarClickEvent event.id)
         ]
-        [ p [ class "type-caption text-text-muted" ] [ text (formatEventDateDisplay event) ]
+        [ p [ class "type-caption text-text-muted" ] [ text (formatEventDateDisplay lang event) ]
         , h3 [ class "type-h4" ] [ text (Types.displayTitle event) ]
         , case event.location of
             Nothing ->

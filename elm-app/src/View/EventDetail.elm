@@ -14,25 +14,26 @@ import Html exposing (Html, a, div, h1, img, p, span, text)
 import Html.Attributes exposing (alt, class, href, src, target)
 import Html.Events exposing (onClick)
 import I18n exposing (MsgKey(..), t)
+import Lang exposing (Lang)
 import RemoteData exposing (RemoteData)
 import Route exposing (Route(..), toHref)
 import Types exposing (AuthState(..), EventDetailPage, Msg(..), isAuthenticated)
 import View.Icons exposing (featherIcon)
 
 
-view : String -> AuthState -> String -> EventDetailPage -> Html Msg
-view pbBaseUrl authState _ detPage =
+view : Lang -> String -> AuthState -> String -> EventDetailPage -> Html Msg
+view lang pbBaseUrl authState _ detPage =
     div [ class "max-w-2xl mx-auto p-4" ]
         [ div []
             [ case detPage.event of
                 RemoteData.Success event ->
-                    backButton (eventCalendarRoute event)
+                    backButton lang (eventCalendarRoute event)
 
                 _ ->
-                    backButton (RouteCalendar Nothing)
+                    backButton lang (RouteCalendar Nothing)
             , LoadState.view
-                { loadingLabel = t Loading
-                , errorMessage = Api.httpErrorToString
+                { loadingLabel = t lang Loading
+                , errorMessage = Api.httpErrorToString lang
                 , onRetry = Nothing
                 , retryLabel = ""
                 }
@@ -44,14 +45,14 @@ view pbBaseUrl authState _ detPage =
                             , if isAuthenticated authState then
                                 div [ class "flex gap-2 ml-4 shrink-0" ]
                                     [ Button.new
-                                        { label = t DetailEdit
+                                        { label = t lang DetailEdit
                                         , onClick = NavigateTo (RouteEventEdit event.id)
                                         }
                                         |> Button.withVariant Button.Secondary
                                         |> Button.withSize Button.Small
                                         |> Button.toHtml
                                     , Button.new
-                                        { label = t DetailDelete
+                                        { label = t lang DetailDelete
                                         , onClick = DetailRequestDelete
                                         }
                                         |> Button.withVariant Button.Danger
@@ -66,18 +67,18 @@ view pbBaseUrl authState _ detPage =
                             div [ class "mb-3" ]
                                 [ Alert.view
                                     { alertType = Alert.Error
-                                    , title = Just "Poistetaanko tapahtuma?"
+                                    , title = Just (t lang DetailDeleteQuestion)
                                     , body =
                                         [ div [ class "flex gap-2 mt-2" ]
                                             [ Button.new
-                                                { label = t DetailDeleteConfirm
+                                                { label = t lang DetailDeleteConfirm
                                                 , onClick = DetailConfirmDelete
                                                 }
                                                 |> Button.withVariant Button.Danger
                                                 |> Button.withSize Button.Small
                                                 |> Button.toHtml
                                             , Button.new
-                                                { label = t DetailDeleteCancel
+                                                { label = t lang DetailDeleteCancel
                                                 , onClick = NavigateTo (RouteCalendar Nothing)
                                                 }
                                                 |> Button.withVariant Button.Secondary
@@ -92,14 +93,14 @@ view pbBaseUrl authState _ detPage =
 
                           else
                             text ""
-                        , p [ class "text-text-muted mb-3" ] [ text (formatEventDateDisplay event) ]
+                        , p [ class "text-text-muted mb-3" ] [ text (formatEventDateDisplay lang event) ]
                         , case event.location of
                             Nothing ->
                                 text ""
 
                             Just loc ->
                                 div [ class "mb-3" ]
-                                    [ span [ class "type-body-small mr-1" ] [ text (t DetailLocation ++ ":") ]
+                                    [ span [ class "type-body-small mr-1" ] [ text (t lang DetailLocation ++ ":") ]
                                     , case event.point of
                                         Just pt ->
                                             if pt.lat == 0 && pt.lon == 0 then
@@ -154,7 +155,7 @@ view pbBaseUrl authState _ detPage =
                                         , target "_blank"
                                         , class "text-brand underline inline-flex items-center gap-1"
                                         ]
-                                        [ text (t DetailMoreInfo)
+                                        [ text (t lang DetailMoreInfo)
                                         , featherIcon FeatherIcons.externalLink 14
                                         ]
                                     ]
@@ -180,14 +181,14 @@ fromRemoteData rd =
             LoadState.Success a
 
 
-backButton : Route -> Html Msg
-backButton route =
+backButton : Lang -> Route -> Html Msg
+backButton lang route =
     a
         [ href (toHref route)
         , onClick (NavigateTo route)
         , class "flex items-center gap-1 type-caption text-brand hover:underline mb-4"
         ]
-        [ featherIcon FeatherIcons.arrowLeft 14, text (t DetailBack) ]
+        [ featherIcon FeatherIcons.arrowLeft 14, text (t lang DetailBack) ]
 
 
 eventCalendarRoute : Types.Event -> Route

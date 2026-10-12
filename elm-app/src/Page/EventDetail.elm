@@ -10,6 +10,7 @@ View.EventDetail. The update logic for Detail\* messages is in Main.elm
 
 import Api
 import Html exposing (Html)
+import Lang exposing (Lang)
 import RemoteData
 import Types exposing (AuthState, EventDetailPage, Msg(..))
 import View.EventDetail
@@ -24,6 +25,6 @@ init pbBaseUrl maybeToken id =
     )
 
 
-view : String -> AuthState -> String -> EventDetailPage -> Html Msg
-view =
-    View.EventDetail.view
+view : Lang -> String -> AuthState -> String -> EventDetailPage -> Html Msg
+view lang =
+    View.EventDetail.view lang

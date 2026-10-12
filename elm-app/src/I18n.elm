@@ -1,25 +1,17 @@
-module I18n exposing (MsgKey(..), stateLabel, t)
+module I18n exposing (MsgKey(..), locale, stateLabel, t)
 
-{-| Finnish UI strings, keyed by MsgKey, plus event state labels.
+{-| UI strings per language, keyed by MsgKey, plus event state labels.
 -}
 
+import Lang exposing (Lang(..))
+import Locale exposing (Locale)
 import Types exposing (EventState(..))
 
 
 type MsgKey
-    = AppTitle
-    | NavbarTitle
-    | NavHome
-    | A11yNavMain
-    | A11yNavMobile
+    = NavHome
     | A11yFeedLinks
-    | NewTabHint
-    | ToastRegionLabel
-    | ToastClose
-    | SkipToContent
     | NavEvents
-    | NavLogin
-    | NavLogout
     | CalMonthGrid
     | CalListView
     | CalToday
@@ -97,49 +89,67 @@ type MsgKey
     | SubmitByEmailText
     | SubmitByEmailLinkText
     | Retry
+    | DateAtTime
+    | LoggedInAs
+    | FeedIcalDescription
+    | FeedHtmlDescription
+    | FeedsTitle
+    | FeedsDescription
+    | CalMore
+    | CalPrevMonth
+    | CalNextMonth
+    | CalWeek
+    | ListShowOnMap
+    | ListOpenWebsite
+    | FormCurrentImage
+    | ErrBadUrl
+    | ErrTimeout
+    | ErrNetwork
+    | ErrBadStatus
+    | ErrBadBody
+    | LoginRequired
+    | LoginSuccess
+    | LoginFailed
+    | EventSaved
+    | EventDeleted
+    | DetailDeleteQuestion
+    | PageLoadingText
+    | PageSigningIn
+    | PageNotFoundText
+    | BackToCalendar
+    | TitleLogin
+    | TitleUpcoming
+    | TitleEvent
+    | TitleEditEvent
 
 
-t : MsgKey -> String
-t key =
+{-| The text of a key in a language.
+
+English is not translated yet: the site declares only Finnish in its
+`config.toml`, so English falls back to Finnish until it is.
+
+-}
+t : Lang -> MsgKey -> String
+t lang key =
+    case lang of
+        Fi ->
+            fi key
+
+        En ->
+            fi key
+
+
+fi : MsgKey -> String
+fi key =
     case key of
-        AppTitle ->
-            "Palikkakalenteri | Suomen Palikkaharrastajat ry"
-
-        NavbarTitle ->
-            "Palikkakalenteri"
-
         NavHome ->
             "Kalenteri"
-
-        A11yNavMain ->
-            "Päävalikko"
-
-        A11yNavMobile ->
-            "Mobiilivalikko"
 
         A11yFeedLinks ->
             "Tilaa tai vie kalenteri"
 
-        NewTabHint ->
-            "(avautuu uuteen välilehteen)"
-
-        ToastRegionLabel ->
-            "Ilmoitukset"
-
-        ToastClose ->
-            "Sulje"
-
-        SkipToContent ->
-            "Hyppää pääsisältöön"
-
         NavEvents ->
             "Tulevat tapahtumat"
-
-        NavLogin ->
-            "Kirjaudu sisään"
-
-        NavLogout ->
-            "Kirjaudu ulos"
 
         CalMonthGrid ->
             "Kuukausinäkymä"
@@ -372,18 +382,121 @@ t key =
         Retry ->
             "Yritä uudelleen"
 
+        DateAtTime ->
+            " klo "
 
-stateLabel : EventState -> String
-stateLabel state =
+        LoggedInAs ->
+            "Kirjautunut: "
+
+        FeedIcalDescription ->
+            "Kalenterivienti (ICS) tilaa tai integroi koko kalenterin helposti. Klikkaa kalenteri puhelimeesi!"
+
+        FeedHtmlDescription ->
+            "Upota tai tulosta valmis tapahtumalistaus. Sisältää kalenterilinkit yksittäisiin tapahtumiin."
+
+        FeedsTitle ->
+            "Syötteet"
+
+        FeedsDescription ->
+            "Syötteet integroivat uudet tapahtumat verkkosivuille. Nämäkin sisältävät kalenterilinkit."
+
+        CalMore ->
+            " lisää"
+
+        CalPrevMonth ->
+            "Edellinen kuukausi"
+
+        CalNextMonth ->
+            "Seuraava kuukausi"
+
+        CalWeek ->
+            "Viikko "
+
+        ListShowOnMap ->
+            "Näytä kartalla"
+
+        ListOpenWebsite ->
+            "Avaa tapahtuman verkkosivu"
+
+        FormCurrentImage ->
+            "Nykyinen kuva"
+
+        ErrBadUrl ->
+            "Virheellinen URL: "
+
+        ErrTimeout ->
+            "Pyyntö aikakatkaistiin"
+
+        ErrNetwork ->
+            "Verkkovirhe"
+
+        ErrBadStatus ->
+            "Palvelinvirhe: "
+
+        ErrBadBody ->
+            "Vastausvirhe: "
+
+        LoginRequired ->
+            "Kirjaudu sisään päästäksesi hallintanäkymään"
+
+        LoginSuccess ->
+            "Kirjautuminen onnistui"
+
+        LoginFailed ->
+            "Kirjautuminen epäonnistui"
+
+        EventSaved ->
+            "Tapahtuma tallennettu"
+
+        EventDeleted ->
+            "Tapahtuma poistettu"
+
+        DetailDeleteQuestion ->
+            "Poistetaanko tapahtuma?"
+
+        PageLoadingText ->
+            "Ladataan..."
+
+        PageSigningIn ->
+            "Kirjaudutaan..."
+
+        PageNotFoundText ->
+            "Sivua ei löydy"
+
+        BackToCalendar ->
+            "Takaisin kalenteriin"
+
+        TitleLogin ->
+            "Kirjautuminen"
+
+        TitleUpcoming ->
+            "Tulevat tapahtumat"
+
+        TitleEvent ->
+            "Tapahtuma"
+
+        TitleEditEvent ->
+            "Muokkaa tapahtumaa"
+
+
+stateLabel : Lang -> EventState -> String
+stateLabel lang state =
     case state of
         Draft ->
-            t StateDraft
+            t lang StateDraft
 
         Pending ->
-            t StatePending
+            t lang StatePending
 
         Published ->
-            t StatePublished
+            t lang StatePublished
 
         Deleted ->
-            t StateDeleted
+            t lang StateDeleted
+
+
+{-| The date and time conventions of a language.
+-}
+locale : Lang -> Locale
+locale lang =
+    Locale.forCode (Lang.toString lang)

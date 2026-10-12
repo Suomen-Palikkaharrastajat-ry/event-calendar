@@ -1,0 +1,39 @@
+# Site configuration for Palikkakalenteri.
+#
+# Layered on the family defaults in
+# vendor/master-builder/packages/site-config/family.toml, which supply the
+# icons, branding and footer. See vendor/master-builder/docs/site-config.md.
+
+[i18n]
+default   = "fi"
+languages = ["fi"]
+
+[site]
+url         = "https://kalenteri.palikkaharrastajat.fi"
+title       = "Palikkakalenteri"
+description = "Suomen Palikkaharrastajat ry:n ylläpitämä tapahtumakalenteri"
+
+[pwa]
+start_url   = "/#/events"
+description = "Suomen Palikkaharrastajat ry:n tapahtumakalenteri LEGO-harrastajille."
+
+[navbar]
+variant = "app"
+
+[app]
+pocketbase_url = "https://data.palikkaharrastajat.fi"
+refresh_label  = "⟳ Päivitä sivu"
+contact_email    = "palikkaharrastajatry@outlook.com"
+organisation_url = "https://palikkaharrastajat.fi/"
+
+# Text of the generated feeds, iCalendar file and HTML export (statics/).
+[app.statics]
+months           = ["Tammikuu", "Helmikuu", "Maaliskuu", "Huhtikuu", "Toukokuu", "Kesäkuu", "Heinäkuu", "Elokuu", "Syyskuu", "Lokakuu", "Marraskuu", "Joulukuu"]
+weekdays         = ["ma", "ti", "ke", "to", "pe", "la", "su"]
+at_time          = " klo "
+cancelled_prefix = "PERUTTU: "
+add_to_calendar  = "Lisää kalenteriin"
+read_more        = "Lue lisää…"
+calendar_name    = "Suomen Palikkaharrastajat ry:n Palikkakalenteri"
+feed_description = "Suomen Palikkaharrastajat ry:n Palikkakalenteri"
+logo_alt         = "Suomen Palikkaharrastajat"

@@ -5,19 +5,27 @@ module DateUtils exposing (formatEventDateDisplay)
 
 import FinnishTime
     exposing
-        ( finnishWeekdayAbbr
-        , formatShortDate
+        ( formatShortDate
         , formatTime
         , parseUtcString
         , toHelsinkiParts
         )
+import I18n exposing (MsgKey(..), t)
+import Lang exposing (Lang)
 import Types exposing (Event)
 
 
 {-| Format an event's date/time for display. Implements the 6 format variants.
 -}
-formatEventDateDisplay : Event -> String
-formatEventDateDisplay event =
+formatEventDateDisplay : Lang -> Event -> String
+formatEventDateDisplay lang event =
+    let
+        locale =
+            I18n.locale lang
+
+        at =
+            t lang DateAtTime
+    in
     case parseUtcString event.startDate of
         Nothing ->
             event.startDate
@@ -33,14 +41,14 @@ formatEventDateDisplay event =
             case event.endDate |> Maybe.andThen parseUtcString of
                 Nothing ->
                     if allDay then
-                        finnishWeekdayAbbr start.weekday ++ " " ++ formatShortDate startPosix
+                        locale.weekdayAbbr start.weekday ++ " " ++ formatShortDate locale startPosix
 
                     else
-                        finnishWeekdayAbbr start.weekday
+                        locale.weekdayAbbr start.weekday
                             ++ " "
-                            ++ formatShortDate startPosix
-                            ++ " klo "
-                            ++ formatTime startPosix
+                            ++ formatShortDate locale startPosix
+                            ++ at
+                            ++ formatTime locale startPosix
 
                 Just endPosix ->
                     let
@@ -55,34 +63,35 @@ formatEventDateDisplay event =
                     in
                     if allDay then
                         if sameDay then
-                            finnishWeekdayAbbr start.weekday ++ " " ++ formatShortDate startPosix
+                            locale.weekdayAbbr start.weekday ++ " " ++ formatShortDate locale startPosix
 
                         else if sameMonth then
-                            finnishWeekdayAbbr start.weekday
+                            locale.weekdayAbbr start.weekday
                                 ++ "–"
-                                ++ finnishWeekdayAbbr end.weekday
+                                ++ locale.weekdayAbbr end.weekday
                                 ++ " "
                                 ++ String.fromInt start.day
-                                ++ ".–"
-                                ++ formatShortDate endPosix
+                                ++ locale.shortDateSuffix
+                                ++ "–"
+                                ++ formatShortDate locale endPosix
 
                         else
-                            formatShortDate startPosix ++ "–" ++ formatShortDate endPosix
+                            formatShortDate locale startPosix ++ "–" ++ formatShortDate locale endPosix
 
                     else if sameDay then
-                        finnishWeekdayAbbr start.weekday
+                        locale.weekdayAbbr start.weekday
                             ++ " "
-                            ++ formatShortDate startPosix
-                            ++ " klo "
-                            ++ formatTime startPosix
+                            ++ formatShortDate locale startPosix
+                            ++ at
+                            ++ formatTime locale startPosix
                             ++ "–"
-                            ++ formatTime endPosix
+                            ++ formatTime locale endPosix
 
                     else
-                        formatShortDate startPosix
+                        formatShortDate locale startPosix
                             ++ " "
-                            ++ formatTime startPosix
+                            ++ formatTime locale startPosix
                             ++ "–"
-                            ++ formatShortDate endPosix
+                            ++ formatShortDate locale endPosix
                             ++ " "
-                            ++ formatTime endPosix
+                            ++ formatTime locale endPosix

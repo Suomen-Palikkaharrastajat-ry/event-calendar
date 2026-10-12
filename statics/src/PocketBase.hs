@@ -15,6 +15,7 @@ import qualified Data.Text as T
 import Data.Time (UTCTime)
 import Network.HTTP.Simple (getResponseBody, getResponseStatusCode, httpLBS, parseRequest)
 import System.Environment (lookupEnv)
+import qualified SiteConfig as SC
 
 {- | Resolve the effective PocketBase base URL for fetching events.
 Honours the POCKETBASE_URL environment variable when set, so the statics
@@ -166,7 +167,7 @@ imageUrl ev filename =
 eventDisplayTitle :: Event -> Text
 eventDisplayTitle ev =
     if eventCancelled ev
-        then "PERUTTU: " <> eventTitle ev
+        then T.pack (SC.staticsCancelledPrefix SC.defaultLang) <> eventTitle ev
         else eventTitle ev
 
 -- | Minimal URL percent-encoding for PocketBase filter strings.

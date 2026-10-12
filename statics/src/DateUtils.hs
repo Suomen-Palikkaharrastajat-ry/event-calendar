@@ -26,6 +26,7 @@ import Data.Time (
  )
 import Data.Time.Calendar (Day)
 import qualified PocketBase as PB
+import qualified SiteConfig as SC
 
 -- | Helsinki timezone offset in minutes (EET=120, EEST=180).
 helsinkiOffset :: UTCTime -> Int
@@ -72,33 +73,13 @@ toHelsinki t =
         tz = TimeZone offsetMins True tzName
      in utcToZonedTime tz t
 
--- | Finnish weekday abbreviation (Mon=ma … Sun=su).
+-- | Weekday abbreviation in the site's language (Mon=ma … Sun=su).
 finnishWeekdayAbbr :: DayOfWeek -> String
-finnishWeekdayAbbr Monday = "ma"
-finnishWeekdayAbbr Tuesday = "ti"
-finnishWeekdayAbbr Wednesday = "ke"
-finnishWeekdayAbbr Thursday = "to"
-finnishWeekdayAbbr Friday = "pe"
-finnishWeekdayAbbr Saturday = "la"
-finnishWeekdayAbbr Sunday = "su"
+finnishWeekdayAbbr day = SC.staticsWeekdays SC.defaultLang !! (fromEnum day - 1)
 
--- | Finnish month name (1-indexed, January=1).
+-- | Month name in the site's language (1-indexed, January=1).
 finnishMonthName :: Int -> String
-finnishMonthName m =
-    [ "Tammikuu"
-    , "Helmikuu"
-    , "Maaliskuu"
-    , "Huhtikuu"
-    , "Toukokuu"
-    , "Kesäkuu"
-    , "Heinäkuu"
-    , "Elokuu"
-    , "Syyskuu"
-    , "Lokakuu"
-    , "Marraskuu"
-    , "Joulukuu"
-    ]
-        !! (m - 1)
+finnishMonthName m = SC.staticsMonths SC.defaultLang !! (m - 1)
 
 -- | Format weekday abbreviation for a ZonedTime.
 formatDay :: ZonedTime -> String
@@ -130,7 +111,7 @@ formatEventDate ev =
             Nothing ->
                 if allDay
                     then formatDay start ++ " " ++ formatDate start
-                    else formatDay start ++ " " ++ formatDate start ++ " klo " ++ formatTime start
+                    else formatDay start ++ " " ++ formatDate start ++ SC.staticsAtTime SC.defaultLang ++ formatTime start
             Just endUtc ->
                 let end = toHelsinki endUtc
                     (_, sm, sd) = toGregorian (localDay (zonedTimeToLocalTime start))
@@ -164,7 +145,7 @@ formatTimedRange start end sameDay
         formatDay start
             ++ " "
             ++ formatDate start
-            ++ " klo "
+            ++ SC.staticsAtTime SC.defaultLang
             ++ formatTime start
             ++ "–"
             ++ formatTime end

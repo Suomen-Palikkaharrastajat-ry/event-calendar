@@ -23,6 +23,7 @@ library
   hs-source-dirs:   src
   exposed-modules:
     Config
+    SiteConfig
     PocketBase
     DateUtils
     ICalGen

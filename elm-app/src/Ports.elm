@@ -17,6 +17,7 @@ port module Ports exposing
     , parseKml
       -- KML (inbound)
     , saveAuthToken
+    , setDocumentLang
     , setMapMarker
     )
 
@@ -33,6 +34,11 @@ import Json.Decode as Json
 {-| Focus the first nav item in the mobile menu.
 -}
 port focusMobileNav : () -> Cmd msg
+
+
+{-| Sets the document's `lang` attribute to the language being shown.
+-}
+port setDocumentLang : String -> Cmd msg
 
 
 

@@ -17,6 +17,7 @@ import Data.Time.Calendar (addDays, toGregorian)
 import Data.Time.Format (defaultTimeLocale, formatTime)
 import qualified DateUtils as DU
 import qualified PocketBase as PB
+import qualified SiteConfig as SC
 
 {- | Wrap a long iCal property line at 75 octets (RFC 5545 §3.1).
 Continuation lines are prefixed with a single space.
@@ -149,8 +150,8 @@ wrapCalendar innerLines =
     renderLines $
         [ "BEGIN:VCALENDAR"
         , "VERSION:2.0"
-        , "PRODID:-//Suomen Palikkaharrastajat ry//Palikkakalenteri//FI"
-        , "X-WR-CALNAME:Suomen Palikkaharrastajat ry:n Palikkakalenteri"
+        , "PRODID:-//" ++ SC.author SC.defaultLang ++ "//" ++ SC.siteTitle SC.defaultLang ++ "//FI"
+        , "X-WR-CALNAME:" ++ SC.staticsCalendarName SC.defaultLang
         , "X-WR-TIMEZONE:Europe/Helsinki"
         ]
             ++ helsinkiVTimezone

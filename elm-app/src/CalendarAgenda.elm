@@ -7,6 +7,8 @@ month's events grouped by ISO week.
 
 import Date exposing (Date)
 import FinnishTime exposing (utcStringToHelsinkiDateInput)
+import I18n exposing (MsgKey(..), t)
+import Lang exposing (Lang)
 import Types exposing (Event)
 
 
@@ -110,8 +112,8 @@ agendaWeeks year month events =
 
 {-| Heading text for a week, e.g. "Viikko 42 · 12.–18.10.".
 -}
-weekLabel : AgendaWeek -> String
-weekLabel week =
+weekLabel : Lang -> AgendaWeek -> String
+weekLabel lang week =
     let
         ( _, fromMonth, fromDay ) =
             week.monday
@@ -126,7 +128,7 @@ weekLabel week =
             else
                 String.fromInt fromDay ++ "." ++ String.fromInt fromMonth ++ "."
     in
-    "Viikko "
+    t lang CalWeek
         ++ String.fromInt week.weekNumber
         ++ " · "
         ++ from
