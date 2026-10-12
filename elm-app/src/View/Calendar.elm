@@ -21,8 +21,8 @@ import Types exposing (AuthState, CalendarPage, CalendarViewMode(..), Event, Msg
 import View.Icons exposing (featherIcon)
 
 
-view : Lang -> AuthState -> CalendarPage -> Html Msg
-view lang authState page =
+view : Lang -> String -> AuthState -> CalendarPage -> Html Msg
+view lang contactEmail authState page =
     div [ class "p-4" ]
         [ case authState of
             Types.Authenticated _ ->
@@ -34,7 +34,7 @@ view lang authState page =
                     , text " "
                     , a
                         [ class "text-brand underline"
-                        , attribute "href" "mailto:palikkaharrastajatry@outlook.com?subject=Uusi%20tapahtuma%20Palikkakalenteriin&body=Tapahtuman%20nimi%3A%0D%0A%0D%0ATarkempi%20kuvaus%3A%0D%0A%0D%0APaikkakunta%3A%0D%0A%0D%0AAlkaa%3A%0D%0A%0D%0AP%C3%A4%C3%A4ttyy%3A%0D%0A%0D%0AKotisivut%3A%0D%0A%0D%0A"
+                        , attribute "href" (I18n.submitEventMailto lang contactEmail)
                         ]
                         [ text (t lang SubmitByEmailLinkText) ]
                     ]
@@ -212,27 +212,10 @@ viewStripCell lang page events maybeDay =
                     [ type_ "button"
                     , class "h-12 pt-1 text-center cursor-pointer hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset"
                     , attribute "data-has-events" "true"
-                    , attribute "aria-label" (dayLabel lang page.month day mark.count)
+                    , attribute "aria-label" (I18n.dayLabel lang { day = day, month = page.month, count = mark.count })
                     , onClick (CalendarJumpToWeek (CalendarAgenda.weekNumberOf page.year page.month day))
                     ]
                     [ number, bar ]
-
-
-{-| Accessible name for a marked day, e.g. "17. lokakuuta, 2 tapahtumaa".
--}
-dayLabel : Lang -> Int -> Int -> Int -> String
-dayLabel lang month day count =
-    String.fromInt day
-        ++ ". "
-        ++ String.toLower (monthName (I18n.locale lang) month)
-        ++ "ta, "
-        ++ String.fromInt count
-        ++ (if count == 1 then
-                " tapahtuma"
-
-            else
-                " tapahtumaa"
-           )
 
 
 {-| The month's events as full-width cards under week headings.

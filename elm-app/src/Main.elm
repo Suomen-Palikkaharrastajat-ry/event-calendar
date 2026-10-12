@@ -147,6 +147,10 @@ init flags url key =
       , menuOpen = False
       , site = site
       , lang = lang
+      , contactEmail =
+            flags.siteConfig
+                |> Json.decodeValue (SiteSettings.appDecoder lang (Json.field "contact_email" Json.string))
+                |> Result.withDefault ""
       }
     , Cmd.batch [ cmd, Ports.setDocumentLang (Lang.toString lang) ]
     )
@@ -1511,7 +1515,7 @@ viewPage model =
                 ]
 
         PageCalendar calPage ->
-            Page.Calendar.view model.lang model.authState calPage
+            Page.Calendar.view model.lang model.contactEmail model.authState calPage
 
         PageEventList evListPage ->
             View.EventList.view model.lang model.authState model.now evListPage

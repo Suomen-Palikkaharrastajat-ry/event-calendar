@@ -7,6 +7,7 @@ rendering in View.Calendar.
 import CalendarAgenda exposing (agendaWeeks, dayMark, weekHeadingId, weekLabel, weekNumberOf)
 import Expect
 import Html.Attributes as Attr
+import I18n
 import Lang
 import RemoteData
 import Test exposing (Test, describe, test)
@@ -176,19 +177,19 @@ suite =
         , describe "View.Calendar on small screens"
             [ test "the month grid is hidden below md" <|
                 \_ ->
-                    View.Calendar.view Lang.Fi NotAuthenticated (october [ weekend ])
+                    View.Calendar.view Lang.Fi "toimisto@example.org" NotAuthenticated (october [ weekend ])
                         |> Query.fromHtml
                         |> Query.find [ Selector.attribute (Attr.attribute "data-testid" "month-grid") ]
                         |> Query.has [ Selector.classes [ "hidden", "md:block" ] ]
             , test "the mobile view is hidden from md up" <|
                 \_ ->
-                    View.Calendar.view Lang.Fi NotAuthenticated (october [ weekend ])
+                    View.Calendar.view Lang.Fi "toimisto@example.org" NotAuthenticated (october [ weekend ])
                         |> Query.fromHtml
                         |> Query.find [ Selector.attribute (Attr.attribute "data-testid" "mobile-calendar") ]
                         |> Query.has [ Selector.class "md:hidden" ]
             , test "the agenda lists the event under its week heading with full title and dates" <|
                 \_ ->
-                    View.Calendar.view Lang.Fi NotAuthenticated (october [ weekend ])
+                    View.Calendar.view Lang.Fi "toimisto@example.org" NotAuthenticated (october [ weekend ])
                         |> Query.fromHtml
                         |> Query.find [ Selector.attribute (Attr.attribute "data-testid" "mobile-calendar") ]
                         |> Query.has
@@ -198,34 +199,34 @@ suite =
                             ]
             , test "the week heading can receive focus for jump-to-week" <|
                 \_ ->
-                    View.Calendar.view Lang.Fi NotAuthenticated (october [ weekend ])
+                    View.Calendar.view Lang.Fi "toimisto@example.org" NotAuthenticated (october [ weekend ])
                         |> Query.fromHtml
                         |> Query.find [ Selector.id "agenda-week-42" ]
                         |> Query.has [ Selector.attribute (Attr.tabindex -1) ]
             , test "the month strip marks event days and leaves other days plain" <|
                 \_ ->
-                    View.Calendar.view Lang.Fi NotAuthenticated (october [ weekend ])
+                    View.Calendar.view Lang.Fi "toimisto@example.org" NotAuthenticated (october [ weekend ])
                         |> Query.fromHtml
                         |> Query.find [ Selector.attribute (Attr.attribute "data-testid" "month-strip") ]
                         |> Query.findAll [ Selector.attribute (Attr.attribute "data-has-events" "true") ]
                         |> Query.count (Expect.equal 2)
             , test "an event day in the strip is a button naming the day and its event count" <|
                 \_ ->
-                    View.Calendar.view Lang.Fi NotAuthenticated (october [ weekend ])
+                    View.Calendar.view Lang.Fi "toimisto@example.org" NotAuthenticated (october [ weekend ])
                         |> Query.fromHtml
                         |> Query.find [ Selector.attribute (Attr.attribute "data-testid" "month-strip") ]
                         |> Query.findAll [ Selector.tag "button", Selector.attribute (Attr.attribute "aria-label" "17. lokakuuta, 1 tapahtuma") ]
                         |> Query.count (Expect.equal 1)
             , test "tapping an event day jumps to its week in the agenda" <|
                 \_ ->
-                    View.Calendar.view Lang.Fi NotAuthenticated (october [ weekend ])
+                    View.Calendar.view Lang.Fi "toimisto@example.org" NotAuthenticated (october [ weekend ])
                         |> Query.fromHtml
                         |> Query.find [ Selector.tag "button", Selector.attribute (Attr.attribute "aria-label" "17. lokakuuta, 1 tapahtuma") ]
                         |> Event.simulate Event.click
                         |> Event.expect (CalendarJumpToWeek 42)
             , test "tapping an agenda card opens the event" <|
                 \_ ->
-                    View.Calendar.view Lang.Fi NotAuthenticated (october [ weekend ])
+                    View.Calendar.view Lang.Fi "toimisto@example.org" NotAuthenticated (october [ weekend ])
                         |> Query.fromHtml
                         |> Query.find [ Selector.attribute (Attr.attribute "data-testid" "mobile-calendar") ]
                         |> Query.find [ Selector.tag "button", Selector.containing [ Selector.text "Pii Poo" ] ]
@@ -233,9 +234,30 @@ suite =
                         |> Event.expect (CalendarClickEvent "Pii Poo")
             , test "a month without events says so in the mobile view" <|
                 \_ ->
-                    View.Calendar.view Lang.Fi NotAuthenticated (october [])
+                    View.Calendar.view Lang.Fi "toimisto@example.org" NotAuthenticated (october [])
                         |> Query.fromHtml
                         |> Query.find [ Selector.attribute (Attr.attribute "data-testid" "mobile-calendar") ]
                         |> Query.has [ Selector.text "Ei tapahtumia tällä kuulla" ]
+            ]
+        , describe "language-specific phrases"
+            [ test "day label is grammatical in both languages" <|
+                \_ ->
+                    ( I18n.dayLabel Lang.Fi { day = 17, month = 10, count = 2 }
+                    , I18n.dayLabel Lang.En { day = 17, month = 10, count = 1 }
+                    )
+                        |> Expect.equal ( "17. lokakuuta, 2 tapahtumaa", "17 October, 1 event" )
+            , test "the submit-by-email link goes to the configured address with a template in the language" <|
+                \_ ->
+                    Expect.all
+                        [ \_ ->
+                            I18n.submitEventMailto Lang.Fi "palikkaharrastajatry@outlook.com"
+                                |> Expect.equal "mailto:palikkaharrastajatry@outlook.com?subject=Uusi%20tapahtuma%20Palikkakalenteriin&body=Tapahtuman%20nimi%3A%0D%0A%0D%0ATarkempi%20kuvaus%3A%0D%0A%0D%0APaikkakunta%3A%0D%0A%0D%0AAlkaa%3A%0D%0A%0D%0AP%C3%A4%C3%A4ttyy%3A%0D%0A%0D%0AKotisivut%3A%0D%0A%0D%0A"
+                        , \_ -> I18n.submitEventMailto Lang.En "a@example.org" |> String.contains "Event%20name%3A" |> Expect.equal True
+                        , \_ ->
+                            View.Calendar.view Lang.Fi "toimisto@example.org" NotAuthenticated (october [])
+                                |> Query.fromHtml
+                                |> Query.has [ Selector.attribute (Attr.href (I18n.submitEventMailto Lang.Fi "toimisto@example.org")) ]
+                        ]
+                        ()
             ]
         ]

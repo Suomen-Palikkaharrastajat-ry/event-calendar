@@ -150,8 +150,8 @@ wrapCalendar innerLines =
     renderLines $
         [ "BEGIN:VCALENDAR"
         , "VERSION:2.0"
-        , "PRODID:-//" ++ SC.author SC.defaultLang ++ "//" ++ SC.siteTitle SC.defaultLang ++ "//FI"
-        , "X-WR-CALNAME:" ++ SC.staticsCalendarName SC.defaultLang
+        , "PRODID:-//" ++ escapeIcal (SC.author SC.defaultLang) ++ "//" ++ escapeIcal (SC.siteTitle SC.defaultLang) ++ "//FI"
+        , "X-WR-CALNAME:" ++ escapeIcal (SC.staticsCalendarName SC.defaultLang)
         , "X-WR-TIMEZONE:Europe/Helsinki"
         ]
             ++ helsinkiVTimezone

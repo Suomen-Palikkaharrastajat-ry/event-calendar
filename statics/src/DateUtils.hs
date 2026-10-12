@@ -7,8 +7,8 @@ module DateUtils (
     formatTime,
     formatEventDate,
     formatICalDate,
-    finnishWeekdayAbbr,
-    finnishMonthName,
+    weekdayAbbr,
+    monthName,
 ) where
 
 import Data.Time (
@@ -74,16 +74,16 @@ toHelsinki t =
      in utcToZonedTime tz t
 
 -- | Weekday abbreviation in the site's language (Mon=ma … Sun=su).
-finnishWeekdayAbbr :: DayOfWeek -> String
-finnishWeekdayAbbr day = SC.staticsWeekdays SC.defaultLang !! (fromEnum day - 1)
+weekdayAbbr :: DayOfWeek -> String
+weekdayAbbr day = SC.staticsWeekdays SC.defaultLang !! (fromEnum day - 1)
 
 -- | Month name in the site's language (1-indexed, January=1).
-finnishMonthName :: Int -> String
-finnishMonthName m = SC.staticsMonths SC.defaultLang !! (m - 1)
+monthName :: Int -> String
+monthName m = SC.staticsMonths SC.defaultLang !! (m - 1)
 
 -- | Format weekday abbreviation for a ZonedTime.
 formatDay :: ZonedTime -> String
-formatDay zt = finnishWeekdayAbbr (dayOfWeek (localDay (zonedTimeToLocalTime zt)))
+formatDay zt = weekdayAbbr (dayOfWeek (localDay (zonedTimeToLocalTime zt)))
 
 -- | Format date as "D.M." (no leading zeros, trailing dot).
 formatDate :: ZonedTime -> String

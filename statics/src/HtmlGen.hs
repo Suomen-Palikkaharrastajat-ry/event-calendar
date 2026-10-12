@@ -63,7 +63,7 @@ siteLogo =
                 ++ "<source type=\"image/svg+xml\" srcset=\"logo/horizontal/svg/horizontal-full.svg\">"
                 ++ "<source type=\"image/webp\" srcset=\"logo/horizontal/png/horizontal-full.webp\">"
                 ++ "<img src=\"logo/horizontal/png/horizontal-full.png\""
-                ++ " alt=\"" ++ SC.staticsLogoAlt SC.defaultLang ++ "\" style=\"max-width:200px;height:auto;\">"
+                ++ " alt=\"" ++ escapeAttr (SC.staticsLogoAlt SC.defaultLang) ++ "\" style=\"max-width:200px;height:auto;\">"
                 ++ "</picture>"
                 :: String
             )
@@ -306,9 +306,19 @@ groupEventsByMonth events =
                     let zt = DU.toHelsinki (PB.eventStartDate ev)
                         local = zonedTimeToLocalTime zt
                         (y, m, _) = toGregorian (localDay local)
-                        label = DU.finnishMonthName m ++ " " ++ show y
+                        label = DU.monthName m ++ " " ++ show y
                      in (label, ev)
                 )
                 sorted
         grps = groupBy (\(a, _) (b, _) -> a == b) labeled
      in [(label, map snd grp) | grp@((label, _) : _) <- grps]
+
+-- | Escape text for use inside a double-quoted HTML attribute.
+escapeAttr :: String -> String
+escapeAttr = concatMap esc
+  where
+    esc '&' = "&amp;"
+    esc '"' = "&quot;"
+    esc '<' = "&lt;"
+    esc '>' = "&gt;"
+    esc c = [c]

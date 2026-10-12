@@ -1,4 +1,4 @@
-module I18n exposing (MsgKey(..), locale, stateLabel, t)
+module I18n exposing (MsgKey(..), dayLabel, kmlDone, locale, stateLabel, submitEventMailto, t)
 
 {-| UI strings per language, keyed by MsgKey, plus event state labels.
 -}
@@ -6,6 +6,7 @@ module I18n exposing (MsgKey(..), locale, stateLabel, t)
 import Lang exposing (Lang(..))
 import Locale exposing (Locale)
 import Types exposing (EventState(..))
+import Url
 
 
 type MsgKey
@@ -62,13 +63,11 @@ type MsgKey
     | EventListOf
     | KmlImport
     | KmlImporting
-    | KmlDone
     | KmlError
     | LoginPrompt
     | LoginButton
     | LogoutButton
     | AuthFailed
-    | ContactEmail
     | FeedIcal
     | FeedHtml
     | FeedRss
@@ -297,9 +296,6 @@ fi key =
         KmlImporting ->
             "Tuodaan..."
 
-        KmlDone ->
-            "Tuonti valmis"
-
         KmlError ->
             "Tuontivirhe"
 
@@ -314,9 +310,6 @@ fi key =
 
         AuthFailed ->
             "Kirjautuminen epäonnistui"
-
-        ContactEmail ->
-            "palikkaharrastajatry@outlook.com"
 
         FeedIcal ->
             "iCalendar-syöte"
@@ -637,9 +630,6 @@ en key =
         KmlImporting ->
             "Importing..."
 
-        KmlDone ->
-            "Import finished"
-
         KmlError ->
             "Import error"
 
@@ -654,9 +644,6 @@ en key =
 
         AuthFailed ->
             "Sign-in failed"
-
-        ContactEmail ->
-            "palikkaharrastajatry@outlook.com"
 
         FeedIcal ->
             "iCalendar feed"
@@ -836,3 +823,78 @@ stateLabel lang state =
 locale : Lang -> Locale
 locale lang =
     Locale.forCode (Lang.toString lang)
+
+
+{-| Accessible name of a calendar day that has events, e.g.
+"17. lokakuuta, 2 tapahtumaa" or "17 October, 2 events".
+-}
+dayLabel : Lang -> { day : Int, month : Int, count : Int } -> String
+dayLabel lang { day, month, count } =
+    let
+        monthName =
+            (locale lang).monthName month
+    in
+    case lang of
+        Fi ->
+            String.fromInt day
+                ++ ". "
+                ++ String.toLower monthName
+                ++ "ta, "
+                ++ String.fromInt count
+                ++ (if count == 1 then
+                        " tapahtuma"
+
+                    else
+                        " tapahtumaa"
+                   )
+
+        En ->
+            String.fromInt day
+                ++ " "
+                ++ monthName
+                ++ ", "
+                ++ String.fromInt count
+                ++ (if count == 1 then
+                        " event"
+
+                    else
+                        " events"
+                   )
+
+
+{-| Status line after a KML import of `count` events.
+-}
+kmlDone : Lang -> Int -> String
+kmlDone lang count =
+    case lang of
+        Fi ->
+            String.fromInt count ++ " Tuonti valmis"
+
+        En ->
+            "Import finished: " ++ String.fromInt count
+
+
+{-| `mailto:` link with which a non-member sends an event to the given
+address, with a subject and a body template in the language.
+-}
+submitEventMailto : Lang -> String -> String
+submitEventMailto lang address =
+    let
+        ( subject, fields ) =
+            case lang of
+                Fi ->
+                    ( "Uusi tapahtuma Palikkakalenteriin"
+                    , [ "Tapahtuman nimi:", "Tarkempi kuvaus:", "Paikkakunta:", "Alkaa:", "Päättyy:", "Kotisivut:" ]
+                    )
+
+                En ->
+                    ( "New event for Palikkakalenteri"
+                    , [ "Event name:", "Description:", "Town:", "Starts:", "Ends:", "Website:" ]
+                    )
+    in
+    "mailto:"
+        ++ address
+        ++ "?subject="
+        ++ Url.percentEncode subject
+        ++ "&body="
+        ++ Url.percentEncode (String.concat (List.map (\field -> field ++ "\u{000D}\n\u{000D}\n") fields))

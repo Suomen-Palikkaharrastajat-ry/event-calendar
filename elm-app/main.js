@@ -83,7 +83,7 @@ const flags = {
   now: Date.now(),
   pbBaseUrl,
   siteConfig,
-  requestedLang: requestedLang(),
+  requestedLang: requestedLang(siteConfig),
 }
 
 const app = Elm.Main.init({

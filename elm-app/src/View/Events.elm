@@ -59,7 +59,7 @@ viewKmlStatus lang status =
 
         Types.KmlDone n ->
             span [ class "type-caption text-brand" ]
-                [ text (String.fromInt n ++ " " ++ t lang I18n.KmlDone) ]
+                [ text (I18n.kmlDone lang n) ]
 
         Types.KmlError err ->
             span [ class "type-caption text-brand-red" ] [ text (t lang I18n.KmlError ++ ": " ++ err) ]

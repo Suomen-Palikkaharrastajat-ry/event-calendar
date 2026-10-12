@@ -81,7 +81,7 @@ suite =
                         |> List.all (\row -> List.length row == 7)
                         |> Expect.equal True
             ]
-        , describe "finnishMonthName"
+        , describe "monthName"
             [ test "January" <|
                 \_ -> monthName Locale.fi 1 |> Expect.equal "Tammikuu"
             , test "December" <|

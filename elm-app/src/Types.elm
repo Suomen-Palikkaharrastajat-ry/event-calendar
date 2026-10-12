@@ -391,6 +391,7 @@ type alias Model =
     , menuOpen : Bool
     , site : SiteSettings
     , lang : Lang
+    , contactEmail : String
     }
 
 

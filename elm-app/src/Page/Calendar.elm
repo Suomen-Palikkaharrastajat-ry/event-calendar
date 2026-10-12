@@ -74,7 +74,7 @@ update msg page =
             ( page, Cmd.none )
 
 
-view : Lang -> AuthState -> CalendarPage -> Html Msg
+view : Lang -> String -> AuthState -> CalendarPage -> Html Msg
 view lang =
     View.Calendar.view lang
 

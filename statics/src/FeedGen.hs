@@ -269,7 +269,7 @@ buildAtomEntry ctx ev = do
             , "    <title type=\"html\">" ++ xmlEscape (feedItemTitle ev) ++ "</title>"
             , "    " ++ xmlText "published" (formatRfc3339 (PB.eventCreated ev))
             , "    " ++ xmlText "updated" (formatRfc3339 (PB.eventUpdated ev))
-            , "    <author><name>" ++ SC.author SC.defaultLang ++ "</name></author>"
+            , "    <author>" ++ xmlText "name" (SC.author SC.defaultLang) ++ "</author>"
             , "    <link rel=\"alternate\" href=\""
                 ++ maybe "" (xmlEscape . T.unpack) (PB.eventUrl ev)
                 ++ "\"/>"
@@ -299,7 +299,7 @@ generateAtom ctx events = do
             , "  " ++ xmlEl "logo" feedLogoUrl
             , "  " ++ xmlEl "icon" (Config.siteBaseUrl ++ "/favicon.ico")
             , "  " ++ xmlText "generator" "Emmet"
-            , "  <author><name>" ++ SC.author SC.defaultLang ++ "</name><email>" ++ SC.appContactEmail SC.defaultLang ++ "</email><uri>" ++ SC.appOrganisationUrl SC.defaultLang ++ "</uri></author>"
+            , "  <author>" ++ xmlText "name" (SC.author SC.defaultLang) ++ xmlText "email" (SC.appContactEmail SC.defaultLang) ++ xmlText "uri" (SC.appOrganisationUrl SC.defaultLang) ++ "</author>"
             , concat entries
             , "</feed>"
             ]
