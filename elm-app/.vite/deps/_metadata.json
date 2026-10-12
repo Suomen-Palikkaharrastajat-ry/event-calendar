@@ -1,19 +1,19 @@
 {
-  "hash": "9daf9ac2",
-  "configHash": "a8f2a544",
+  "hash": "990db258",
+  "configHash": "0fa46c76",
   "lockfileHash": "cb2f1b7c",
-  "browserHash": "7718f90c",
+  "browserHash": "b9945275",
   "optimized": {
     "leaflet": {
-      "src": "../../../../../../../../../nix/store/aaqjkxndm9i3kig2zmrqhsx5pjmlp9m0-event-calendar-npm-tools-1.0.0/lib/node_modules/leaflet/dist/leaflet-src.js",
+      "src": "../../../../../../nix/store/aaqjkxndm9i3kig2zmrqhsx5pjmlp9m0-event-calendar-npm-tools-1.0.0/lib/node_modules/leaflet/dist/leaflet-src.js",
       "file": "leaflet.js",
-      "fileHash": "933e7450",
+      "fileHash": "2b31ca79",
       "needsInterop": true
     },
     "pocketbase": {
-      "src": "../../../../../../../../../nix/store/aaqjkxndm9i3kig2zmrqhsx5pjmlp9m0-event-calendar-npm-tools-1.0.0/lib/node_modules/pocketbase/dist/pocketbase.es.mjs",
+      "src": "../../../../../../nix/store/aaqjkxndm9i3kig2zmrqhsx5pjmlp9m0-event-calendar-npm-tools-1.0.0/lib/node_modules/pocketbase/dist/pocketbase.es.mjs",
       "file": "pocketbase.js",
-      "fileHash": "278ba52e",
+      "fileHash": "237b9440",
       "needsInterop": false
     }
   },

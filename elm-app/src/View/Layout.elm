@@ -214,18 +214,9 @@ viewMobileDrawer menuOpen activeRoute authState =
 
 viewBrandFooter : Html Msg
 viewBrandFooter =
-    Footer.viewWith
-        { topMargin = False
+    Family.view
+        { currentSite = "https://kalenteri.palikkaharrastajat.fi"
+        , year = 2026
+        , topMargin = False
         , extra = []
-        }
-        { logo = Just Family.logo
-        , siteLabel = Just "Palikkaharrastajat"
-        , links =
-            [ { label = "Kotisivut", href = "https://palikkaharrastajat.fi" }
-            , { label = "Palikkakalenteri", href = "https://kalenteri.palikkaharrastajat.fi" }
-            , { label = "Palikkalinkit", href = "https://linkit.palikkaharrastajat.fi" }
-            ]
-        , groups = []
-        , copyright = Family.copyright 2026
-        , disclaimer = Just Family.disclaimer
         }

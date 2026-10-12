@@ -2,9 +2,9 @@ import {
   __commonJS
 } from "./chunk-BUSYA2B4.js";
 
-// ../../../../../../../nix/store/aaqjkxndm9i3kig2zmrqhsx5pjmlp9m0-event-calendar-npm-tools-1.0.0/lib/node_modules/leaflet/dist/leaflet-src.js
+// ../../../../nix/store/aaqjkxndm9i3kig2zmrqhsx5pjmlp9m0-event-calendar-npm-tools-1.0.0/lib/node_modules/leaflet/dist/leaflet-src.js
 var require_leaflet_src = __commonJS({
-  "../../../../../../../nix/store/aaqjkxndm9i3kig2zmrqhsx5pjmlp9m0-event-calendar-npm-tools-1.0.0/lib/node_modules/leaflet/dist/leaflet-src.js"(exports, module) {
+  "../../../../nix/store/aaqjkxndm9i3kig2zmrqhsx5pjmlp9m0-event-calendar-npm-tools-1.0.0/lib/node_modules/leaflet/dist/leaflet-src.js"(exports, module) {
     (function(global, factory) {
       typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.leaflet = {}));
     })(exports, (function(exports2) {
