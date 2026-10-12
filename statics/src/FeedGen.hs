@@ -312,7 +312,7 @@ jsonFeedItem ev =
     let contentHtml =
             DH.descriptionWithDateHtml (PB.eventDescription ev) (DU.formatEventDate ev)
         baseFields =
-            [ "id" .= (Config.siteBaseUrl ++ "/#/events/" ++ PB.eventId ev)
+            [ "id" .= (Config.siteBaseUrl ++ "/#/events/" ++ PB.eventId ev :: String)
             , "title" .= feedItemTitle ev
             , "content_html" .= contentHtml
             , "date_published" .= formatRfc3339Ms (PB.eventCreated ev)

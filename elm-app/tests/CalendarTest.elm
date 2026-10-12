@@ -3,8 +3,9 @@ module CalendarTest exposing (suite)
 {-| Unit tests for the Calendar module.
 -}
 
-import DateUtils exposing (..)
+import DateUtils exposing (formatEventDateDisplay)
 import Expect
+import FinnishTime exposing (firstDayOfWeek, formDateTimeToUtc, utcStringToHelsinkiDateInput, utcStringToHelsinkiTimeInput)
 import Page.Calendar as PageCalendar
 import Route exposing (toHref)
 import Test exposing (Test, describe, test)

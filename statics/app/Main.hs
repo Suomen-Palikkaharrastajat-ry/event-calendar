@@ -108,8 +108,7 @@ run = do
 
 -- | Write a file to assets/ (and dist/ if it exists).
 writeStaticFile :: FilePath -> String -> IO ()
-writeStaticFile path content = do
-    writeFile path content
+writeStaticFile = writeFile
 
 {- | True if an event's effective end (end_date if set, else start_date) is today or later.
 All-day events compare by Helsinki calendar date (their dates are stored as Helsinki midnight

@@ -6,7 +6,7 @@ month's events grouped by ISO week.
 -}
 
 import Date exposing (Date)
-import DateUtils exposing (utcStringToHelsinkiDateInput)
+import FinnishTime exposing (utcStringToHelsinkiDateInput)
 import Types exposing (Event)
 
 

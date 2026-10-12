@@ -11,7 +11,7 @@ an incomplete picture of the calendar feature.
 import Api
 import Browser.Dom
 import CalendarAgenda
-import DateUtils
+import FinnishTime
 import Html exposing (Html)
 import RemoteData
 import Task
@@ -26,7 +26,7 @@ init pbBaseUrl maybeDate now =
         -- Use Helsinki timezone so the calendar opens on the correct month
         -- near midnight instead of the UTC date, which can differ by ±1 day.
         helsinkiOffsetMin =
-            DateUtils.helsinkiOffset now
+            FinnishTime.helsinkiOffset now
 
         helsinkiZone =
             Time.customZone helsinkiOffsetMin []
@@ -38,7 +38,7 @@ init pbBaseUrl maybeDate now =
       , year = year
       , month = month
       , todayYear = Time.toYear helsinkiZone now
-      , todayMonth = DateUtils.monthToInt (Time.toMonth helsinkiZone now)
+      , todayMonth = FinnishTime.monthToInt (Time.toMonth helsinkiZone now)
       , todayDay = Time.toDay helsinkiZone now
       , viewMode = MonthGrid
       }
@@ -86,14 +86,14 @@ dateQueryToYearMonth : Time.Posix -> Maybe String -> ( Int, Int )
 dateQueryToYearMonth now maybeDate =
     let
         helsinkiOffsetMin =
-            DateUtils.helsinkiOffset now
+            FinnishTime.helsinkiOffset now
 
         helsinkiZone =
             Time.customZone helsinkiOffsetMin []
 
         currentMonth =
             ( Time.toYear helsinkiZone now
-            , DateUtils.monthToInt (Time.toMonth helsinkiZone now)
+            , FinnishTime.monthToInt (Time.toMonth helsinkiZone now)
             )
     in
     maybeDate
@@ -121,7 +121,7 @@ parseYearMonth dateStr =
                             && day
                             >= 1
                             && day
-                            <= DateUtils.daysInMonth year month
+                            <= FinnishTime.daysInMonth year month
                     then
                         Just ( year, month )
 

@@ -14,8 +14,8 @@ module Api exposing
 {-| PocketBase REST API client: request builders, JSON decoders/encoders and image URL helpers.
 -}
 
-import DateUtils exposing (formDateTimeToUtc)
 import File exposing (File)
+import FinnishTime exposing (formDateTimeToUtc)
 import Http
 import Json.Decode as Json exposing (Decoder)
 import Json.Encode as Encode

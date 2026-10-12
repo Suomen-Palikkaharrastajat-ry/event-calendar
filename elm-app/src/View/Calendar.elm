@@ -8,8 +8,9 @@ strip (days marked with bars) above an agenda grouped by week.
 import Api
 import CalendarAgenda exposing (AgendaWeek)
 import Component.LoadState as LoadState
-import DateUtils exposing (daysInMonth, finnishMonthName, formatEventDateDisplay, monthGrid, nextMonth, prevMonth, utcStringToHelsinkiDateInput)
+import DateUtils exposing (formatEventDateDisplay)
 import FeatherIcons
+import FinnishTime exposing (daysInMonth, finnishMonthName, monthGrid, nextMonth, prevMonth, utcStringToHelsinkiDateInput)
 import Html exposing (Html, a, button, div, h3, li, p, section, span, text, ul)
 import Html.Attributes exposing (attribute, class, classList, id, tabindex, type_)
 import Html.Events exposing (onClick)

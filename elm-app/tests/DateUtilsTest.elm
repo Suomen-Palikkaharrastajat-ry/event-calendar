@@ -3,8 +3,8 @@ module DateUtilsTest exposing (suite)
 {-| Unit tests for the DateUtils module.
 -}
 
-import DateUtils exposing (..)
 import Expect
+import FinnishTime exposing (..)
 import Test exposing (Test, describe, test)
 import Time
 

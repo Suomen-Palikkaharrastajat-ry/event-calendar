@@ -28,8 +28,9 @@ import Browser.Navigation as Nav
 import Component.SkipLink as SkipLink
 import Date
 import DatePicker
-import DateUtils exposing (utcStringToHelsinkiDateInput, utcStringToHelsinkiTimeInput)
 import File
+import FinnishDatePicker
+import FinnishTime exposing (helsinkiZone, utcStringToHelsinkiDateInput, utcStringToHelsinkiTimeInput)
 import Geocoding
 import Html exposing (Html, a, div, main_, text)
 import Html.Attributes exposing (attribute, class, href, id)
@@ -67,7 +68,6 @@ import View.EventDetail
 import View.EventForm
 import View.EventList
 import View.Events
-import View.FinnishDatePicker as FinnishDatePicker
 import View.Layout
 
 
@@ -564,7 +564,7 @@ update msg model =
                         Ok _ ->
                             let
                                 currentDate =
-                                    Date.fromPosix (DateUtils.helsinkiZone model.now) model.now
+                                    Date.fromPosix (helsinkiZone model.now) model.now
 
                                 freshStartDatePicker =
                                     DatePicker.initFromDate currentDate

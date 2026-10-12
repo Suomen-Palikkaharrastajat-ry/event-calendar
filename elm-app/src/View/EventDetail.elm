@@ -7,8 +7,9 @@ import Api
 import Component.Alert as Alert
 import Component.Button as Button
 import Component.LoadState as LoadState
-import DateUtils exposing (formatEventDateDisplay, utcStringToHelsinkiDateInput)
+import DateUtils exposing (formatEventDateDisplay)
 import FeatherIcons
+import FinnishTime exposing (utcStringToHelsinkiDateInput)
 import Html exposing (Html, a, div, h1, img, p, span, text)
 import Html.Attributes exposing (alt, class, href, src, target)
 import Html.Events exposing (onClick)

@@ -11,7 +11,7 @@ Main.elm (search for `PageEventEdit`).
 import Api
 import Date
 import DatePicker
-import DateUtils
+import FinnishTime
 import Html exposing (Html)
 import RemoteData
 import Time exposing (Posix)
@@ -23,7 +23,7 @@ init : Posix -> String -> Maybe String -> String -> ( EventEditPage, Cmd Msg )
 init now pbBaseUrl maybeToken id =
     let
         currentDate =
-            Date.fromPosix (DateUtils.helsinkiZone now) now
+            Date.fromPosix (FinnishTime.helsinkiZone now) now
 
         startDatePicker =
             DatePicker.initFromDate currentDate

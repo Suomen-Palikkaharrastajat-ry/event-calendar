@@ -10,7 +10,7 @@ View.Events. The update logic for EventsPage messages is in Main.elm
 
 import Date
 import DatePicker
-import DateUtils
+import FinnishTime
 import Html exposing (Html)
 import Time exposing (Posix)
 import Types exposing (AuthState, EventsPage, FormStatus(..), KmlImportStatus(..), Msg(..), emptyEventFormData)
@@ -21,7 +21,7 @@ init : Posix -> String -> Maybe String -> ( EventsPage, Cmd Msg )
 init now _ _ =
     let
         currentDate =
-            Date.fromPosix (DateUtils.helsinkiZone now) now
+            Date.fromPosix (FinnishTime.helsinkiZone now) now
 
         startDatePicker =
             DatePicker.initFromDate currentDate

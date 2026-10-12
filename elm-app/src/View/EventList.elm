@@ -6,8 +6,9 @@ module View.EventList exposing (view)
 import Api
 import Component.Button as Button
 import Component.LoadState as LoadState
-import DateUtils exposing (formatEventDateDisplay, parseUtcString, toHelsinkiParts)
+import DateUtils exposing (formatEventDateDisplay)
 import FeatherIcons
+import FinnishTime exposing (parseUtcString, toHelsinkiParts)
 import Html exposing (Html, a, div, h1, h3, p, text)
 import Html.Attributes exposing (attribute, class, href, target)
 import I18n exposing (MsgKey(..), t)
