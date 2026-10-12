@@ -4,86 +4,72 @@ module View.Layout exposing (viewBrandFooter, viewFooter, viewHeader, viewMobile
 -}
 
 import Component.Button as Button
+import Component.FeedLinks as FeedLinks
+import Component.Footer as Footer
+import Component.Footer.Family as Family
 import Component.MobileDrawer as MobileDrawer
+import Component.Navbar as Navbar
+import Component.Toast as Toast
 import FeatherIcons
-import Html exposing (Html, a, button, div, footer, h3, header, img, li, nav, p, span, text, ul)
-import Html.Attributes exposing (alt, attribute, class, href, src, style)
-import Html.Events exposing (onClick)
+import Html exposing (Html, div, nav, span, text, ul)
+import Html.Attributes exposing (attribute, class)
 import I18n exposing (MsgKey(..), t)
 import Route exposing (Route(..), toHref)
 import Types exposing (AuthState(..), AuthUser, Msg(..), Toast, ToastKind(..))
-import View.Icons exposing (featherIcon)
 
 
-viewHeader : AuthState -> Bool -> Html Msg
-viewHeader authState menuOpen =
-    header [ class "bg-brand border-b border-brand sticky md:static top-0 z-50" ]
-        [ -- Short toolbar (h-14, matches planet design)
-          div [ class "flex items-center justify-between px-4 h-14" ]
-            [ -- Square logo + site name
-              a [ href (toHref (Route.RouteCalendar Nothing)), class "flex items-center gap-2" ]
-                [ img
-                    [ src "/logo/square/square-smile.svg"
-                    , alt ""
-                    , attribute "aria-hidden" "true"
-                    , class "h-8 w-8"
-                    ]
-                    []
-                , span [ class "type-h4 text-white" ] [ text (t NavbarTitle) ]
-                ]
-            , -- Desktop nav + auth (hidden on mobile)
-              div [ class "hidden md:flex items-center gap-6" ]
-                [ nav [ class "flex gap-4" ]
-                    [ a [ href (toHref (Route.RouteCalendar Nothing)), class "type-caption text-white/80 hover:text-white hover:underline" ]
-                        [ text (t NavHome) ]
-                    , a [ href (toHref Route.RouteEvents), class "type-caption text-white/80 hover:text-white hover:underline" ]
-                        [ text (t NavEvents) ]
-                    ]
-                , viewDesktopAuthControls authState
-                ]
-            , -- Hamburger button (mobile only)
-              button
-                [ onClick ToggleMenu
-                , class "md:hidden p-2 rounded-lg text-white"
-                , style "cursor" "pointer"
-                , attribute "aria-label"
-                    (if menuOpen then
-                        "Sulje valikko"
-
-                     else
-                        "Avaa valikko"
-                    )
-                , attribute "aria-controls" "mobile-nav"
-                , attribute "aria-expanded"
-                    (if menuOpen then
-                        "true"
-
-                     else
-                        "false"
-                    )
-                ]
-                [ featherIcon
-                    (if menuOpen then
-                        FeatherIcons.x
-
-                     else
-                        FeatherIcons.menu
-                    )
-                    24
-                ]
+viewHeader : AuthState -> Bool -> Maybe Route -> Html Msg
+viewHeader authState menuOpen activeRoute =
+    let
+        isActive route =
+            Just route == activeRoute
+    in
+    Navbar.viewAppHeader
+        { brand =
+            Navbar.viewBrand
+                { href = toHref (RouteCalendar Nothing)
+                , iconSrc = "/logo/square/square-smile.svg"
+                , title = t NavbarTitle
+                , onClick = Nothing
+                }
+        , navLabel = t A11yNavMain
+        , links =
+            [ { label = t NavHome
+              , href = toHref (RouteCalendar Nothing)
+              , mobileOnly = False
+              , isActive = isActive (RouteCalendar Nothing)
+              }
+            , { label = t NavEvents
+              , href = toHref RouteEvents
+              , mobileOnly = False
+              , isActive = isActive RouteEvents
+              }
             ]
-        ]
+        , trailing =
+            [ viewDesktopAuthControls authState ]
+        , menuToggle =
+            Just
+                (Navbar.viewMenuToggle
+                    { isOpen = menuOpen
+                    , onToggle = ToggleMenu
+                    , controls = "mobile-nav"
+                    , openLabel = "Avaa valikko"
+                    , closeLabel = "Sulje valikko"
+                    }
+                )
+        , sticky = True
+        }
 
 
 viewDesktopAuthControls : AuthState -> Html Msg
 viewDesktopAuthControls authState =
     case authState of
         NotAuthenticated ->
-            div [ class "flex gap-2 items-center" ]
+            div [ class "hidden md:flex gap-2 items-center" ]
                 [ authButton LoginClicked (t LoginButton) ]
 
         Authenticated user ->
-            div [ class "flex gap-2 items-center" ]
+            div [ class "hidden md:flex gap-2 items-center" ]
                 [ span [ class "type-caption text-white/80" ] [ text user.name ]
                 , span [ attribute "title" (userTooltip user), class "inline-flex" ]
                     [ authButton LogOut (t LogoutButton) ]
@@ -107,15 +93,10 @@ viewMobileAuthControls authState =
 
 authButton : Msg -> String -> Html Msg
 authButton msg label =
-    Button.view
-        { label = label
-        , variant = Button.Primary
-        , size = Button.Small
-        , onClick = msg
-        , disabled = False
-        , loading = False
-        , ariaPressedState = Nothing
-        }
+    Button.new { label = label, onClick = msg }
+        |> Button.withVariant Button.Primary
+        |> Button.withSize Button.Small
+        |> Button.toHtml
 
 
 userTooltip : AuthUser -> String
@@ -143,100 +124,62 @@ viewFooter =
         siteUrl =
             "https://kalenteri.palikkaharrastajat.fi"
     in
-    footer [ class "mt-auto border-t border-border-default bg-bg-subtle p-4" ]
-        [ div [ class "mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3" ]
-            [ -- iCalendar
-              a
-                [ href "webcal://kalenteri.palikkaharrastajat.fi/kalenteri.ics"
-                , attribute "target" "_blank"
-                , class "block rounded-lg p-4 text-left motion-safe:transition-colors hover:bg-bg-subtle"
-                ]
-                [ div [ class "mb-3 flex items-center" ]
-                    [ div [ class "mr-2 text-brand" ]
-                        [ featherIcon FeatherIcons.calendar 32 ]
-                    , h3 [ class "type-h3" ] [ text "iCalendar" ]
-                    ]
-                , p [ class "type-caption text-text-muted" ]
-                    [ text "Kalenterivienti (ICS) tilaa tai integroi koko kalenterin helposti. Klikkaa kalenteri puhelimeesi!" ]
-                ]
-            , -- HTML | PDF
-              a
-                [ href (siteUrl ++ "/kalenteri.html")
-                , attribute "target" "_blank"
-                , class "block rounded-lg p-4 text-left motion-safe:transition-colors hover:bg-bg-subtle"
-                ]
-                [ div [ class "mb-3 flex items-center" ]
-                    [ div [ class "mr-2 text-brand" ]
-                        [ featherIcon FeatherIcons.fileText 32 ]
-                    , h3 [ class "type-h3" ] [ text "HTML | PDF" ]
-                    ]
-                , p [ class "type-caption text-text-muted" ]
-                    [ text "Upota tai tulosta valmis tapahtumalistaus. Sisältää kalenterilinkit yksittäisiin tapahtumiin." ]
-                ]
-            , -- Feeds
-              div [ class "p-4 text-left" ]
-                [ div [ class "mb-3 flex items-center" ]
-                    [ div [ class "mr-2 text-brand" ]
-                        [ featherIcon FeatherIcons.rss 32 ]
-                    , h3 [ class "type-h3" ] [ text "Syötteet" ]
-                    ]
-                , p [ class "mb-3 type-caption text-text-muted" ]
-                    [ text "Syötteet integroivat uudet tapahtumat verkkosivuille. Nämäkin sisältävät kalenterilinkit." ]
-                , div [ class "text-center type-caption" ]
-                    [ feedLink (siteUrl ++ "/kalenteri.atom") "ATOM"
-                    , text " | "
-                    , feedLink (siteUrl ++ "/kalenteri.rss") "RSS"
-                    , text " | "
-                    , feedLink (siteUrl ++ "/kalenteri.json") "JSON"
-                    , text " | "
-                    , feedLink (siteUrl ++ "/kalenteri.geo.json") "GeoJSON"
-                    ]
-                ]
+    FeedLinks.view
+        { label = t A11yFeedLinks
+        , newTabHint = t NewTabHint
+        , cards =
+            [ { icon = FeatherIcons.calendar
+              , title = "iCalendar"
+              , description = "Kalenterivienti (ICS) tilaa tai integroi koko kalenterin helposti. Klikkaa kalenteri puhelimeesi!"
+              , href = "webcal://kalenteri.palikkaharrastajat.fi/kalenteri.ics"
+              }
+            , { icon = FeatherIcons.fileText
+              , title = "HTML | PDF"
+              , description = "Upota tai tulosta valmis tapahtumalistaus. Sisältää kalenterilinkit yksittäisiin tapahtumiin."
+              , href = siteUrl ++ "/kalenteri.html"
+              }
             ]
-        ]
-
-
-feedLink : String -> String -> Html Msg
-feedLink url label =
-    a
-        [ href url
-        , attribute "target" "_blank"
-        , class "mx-1 text-brand no-underline hover:underline"
-        ]
-        [ text label ]
+        , feeds =
+            Just
+                { icon = FeatherIcons.rss
+                , title = "Syötteet"
+                , description = "Syötteet integroivat uudet tapahtumat verkkosivuille. Nämäkin sisältävät kalenterilinkit."
+                , links =
+                    [ { label = "ATOM", href = siteUrl ++ "/kalenteri.atom" }
+                    , { label = "RSS", href = siteUrl ++ "/kalenteri.rss" }
+                    , { label = "JSON", href = siteUrl ++ "/kalenteri.json" }
+                    , { label = "GeoJSON", href = siteUrl ++ "/kalenteri.geo.json" }
+                    ]
+                }
+        }
 
 
 viewToasts : List Toast -> Html Msg
 viewToasts toasts =
-    div [ class "fixed bottom-4 right-4 flex flex-col gap-2 z-50" ]
-        (List.map viewToast toasts)
+    Toast.region
+        { label = t ToastRegionLabel
+        , closeLabel = t ToastClose
+        }
+        (List.map toSharedToast toasts)
 
 
-viewToast : Toast -> Html Msg
-viewToast toast =
-    let
-        colorClass =
-            case toast.kind of
-                ToastSuccess ->
-                    "bg-brand-nougat-dark"
+toSharedToast : Toast -> Toast.Toast Msg
+toSharedToast toast =
+    { id = String.fromInt toast.id
+    , title = Nothing
+    , body = toast.message
+    , variant =
+        case toast.kind of
+            ToastSuccess ->
+                Toast.Success
 
-                ToastError ->
-                    "bg-brand-red"
+            ToastError ->
+                Toast.Danger
 
-                ToastInfo ->
-                    "bg-brand"
-    in
-    div
-        [ class ("flex items-center gap-2 px-4 py-2 rounded text-white shadow-lg " ++ colorClass)
-        ]
-        [ text toast.message
-        , button
-            [ onClick (DismissToast toast.id)
-            , class "ml-2 hover:opacity-75"
-            , attribute "aria-label" "Sulje"
-            ]
-            [ featherIcon FeatherIcons.x 16 ]
-        ]
+            ToastInfo ->
+                Toast.Default
+    , onClose = Just (DismissToast toast.id)
+    }
 
 
 viewMobileOverlay : Bool -> Html Msg
@@ -257,7 +200,7 @@ viewMobileDrawer menuOpen activeRoute authState =
         , onClose = CloseMenu
         , breakpoint = MobileDrawer.Md
         , content =
-            [ nav [ class "p-4", attribute "aria-label" (t A11yNavMobile) ]
+            [ nav [ class "p-4", attribute "aria-label" (t A11yNavMain) ]
                 [ ul [ class "flex flex-col gap-1 list-none m-0 p-0" ]
                     [ MobileDrawer.viewNavLink { href = toHref (RouteCalendar Nothing), label = t NavHome, isActive = isActive (RouteCalendar Nothing), onClose = CloseMenu }
                     , MobileDrawer.viewNavLink { href = toHref RouteEvents, label = t NavEvents, isActive = isActive RouteEvents, onClose = CloseMenu }
@@ -271,56 +214,18 @@ viewMobileDrawer menuOpen activeRoute authState =
 
 viewBrandFooter : Html Msg
 viewBrandFooter =
-    footer
-        [ class "bg-brand text-white py-12 px-4" ]
-        [ div [ class "max-w-5xl mx-auto" ]
-            [ div
-                [ class "grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-8 sm:items-end" ]
-                [ -- Col 1: service links + logo
-                  div [ class "flex items-start gap-4" ]
-                    [ img
-                        [ src "/logo/square/square-smile-full-dark-bold.svg"
-                        , alt ""
-                        , attribute "aria-hidden" "true"
-                        , class "h-35 w-35 flex-shrink-0"
-                        ]
-                        []
-                    , div [ class "space-y-3" ]
-                        [ p [ class "text-xs font-semibold text-white/50 uppercase tracking-wider" ]
-                            [ text "Palikkaharrastajat" ]
-                        , ul [ class "space-y-2 list-none m-0 p-0" ]
-                            [ li []
-                                [ a
-                                    [ href "https://palikkaharrastajat.fi"
-                                    , class "text-sm text-white/80 hover:text-white underline transition-colors"
-                                    ]
-                                    [ text "Kotisivut" ]
-                                ]
-                            , li []
-                                [ a
-                                    [ href "https://kalenteri.palikkaharrastajat.fi"
-                                    , class "text-sm text-white/80 hover:text-white underline transition-colors"
-                                    ]
-                                    [ text "Palikkakalenteri" ]
-                                ]
-                            , li []
-                                [ a
-                                    [ href "https://linkit.palikkaharrastajat.fi"
-                                    , class "text-sm text-white/80 hover:text-white underline transition-colors"
-                                    ]
-                                    [ text "Palikkalinkit" ]
-                                ]
-                            ]
-                        ]
-                    ]
-                , -- Col 2: org name & legal
-                  div [ class "space-y-1 sm:text-right" ]
-                    [ div [ class "space-y-1 text-xs text-white/50" ]
-                        [ p [] [ text "© 2026 Suomen Palikkaharrastajat ry" ]
-                        , p [] [ text "LEGO® on LEGO Groupin rekisteröity tavaramerkki." ]
-                        , p [] [ text "LEGO Group ei ylläpidä tai tue tätä itsenäistä sivustoa." ]
-                        ]
-                    ]
-                ]
+    Footer.viewWith
+        { topMargin = False
+        , extra = []
+        }
+        { logo = Just Family.logo
+        , siteLabel = Just "Palikkaharrastajat"
+        , links =
+            [ { label = "Kotisivut", href = "https://palikkaharrastajat.fi" }
+            , { label = "Palikkakalenteri", href = "https://kalenteri.palikkaharrastajat.fi" }
+            , { label = "Palikkalinkit", href = "https://linkit.palikkaharrastajat.fi" }
             ]
-        ]
+        , groups = []
+        , copyright = Family.copyright 2026
+        , disclaimer = Just Family.disclaimer
+        }

@@ -25,14 +25,16 @@ import Auth
 import Browser
 import Browser.Events
 import Browser.Navigation as Nav
+import Component.SkipLink as SkipLink
 import Date
 import DatePicker
 import DateUtils exposing (utcStringToHelsinkiDateInput, utcStringToHelsinkiTimeInput)
 import File
 import Geocoding
-import Html exposing (Html, a, div, text)
-import Html.Attributes exposing (class, href)
+import Html exposing (Html, a, div, main_, text)
+import Html.Attributes exposing (attribute, class, href, id)
 import Http
+import I18n exposing (t)
 import Json.Decode as Json
 import Page.Calendar
 import Page.EventDetail
@@ -1434,9 +1436,15 @@ view : Model -> Browser.Document Msg
 view model =
     { title = pageTitle model.page
     , body =
-        [ div [ class "min-h-screen flex flex-col" ]
-            [ View.Layout.viewHeader model.authState model.menuOpen
-            , div [ class "flex-1 max-w-5xl mx-auto w-full" ] [ viewPage model ]
+        [ SkipLink.view { target = "main-content", label = t I18n.SkipToContent }
+        , div [ class "min-h-screen flex flex-col" ]
+            [ View.Layout.viewHeader model.authState model.menuOpen (activeMenuRoute model.url)
+            , main_
+                [ id "main-content"
+                , attribute "tabindex" "-1"
+                , class "flex-1 max-w-5xl mx-auto w-full focus:outline-none"
+                ]
+                [ viewPage model ]
             , View.Layout.viewFooter
             , View.Layout.viewBrandFooter
             , View.Layout.viewMobileOverlay model.menuOpen
@@ -1454,6 +1462,9 @@ activeMenuRoute url =
             Just (RouteCalendar Nothing)
 
         RouteEvents ->
+            Just RouteEvents
+
+        RouteEventNew ->
             Just RouteEvents
 
         _ ->

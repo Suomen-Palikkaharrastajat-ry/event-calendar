@@ -10,7 +10,13 @@ type MsgKey
     = AppTitle
     | NavbarTitle
     | NavHome
+    | A11yNavMain
     | A11yNavMobile
+    | A11yFeedLinks
+    | NewTabHint
+    | ToastRegionLabel
+    | ToastClose
+    | SkipToContent
     | NavEvents
     | NavLogin
     | NavLogout
@@ -90,6 +96,7 @@ type MsgKey
     | ImportSuccess
     | SubmitByEmailText
     | SubmitByEmailLinkText
+    | Retry
 
 
 t : MsgKey -> String
@@ -104,8 +111,26 @@ t key =
         NavHome ->
             "Kalenteri"
 
+        A11yNavMain ->
+            "Päävalikko"
+
         A11yNavMobile ->
             "Mobiilivalikko"
+
+        A11yFeedLinks ->
+            "Tilaa tai vie kalenteri"
+
+        NewTabHint ->
+            "(avautuu uuteen välilehteen)"
+
+        ToastRegionLabel ->
+            "Ilmoitukset"
+
+        ToastClose ->
+            "Sulje"
+
+        SkipToContent ->
+            "Hyppää pääsisältöön"
 
         NavEvents ->
             "Tulevat tapahtumat"
@@ -343,6 +368,9 @@ t key =
 
         SubmitByEmailLinkText ->
             "lähetä tapahtumasi meille sähköpostilla."
+
+        Retry ->
+            "Yritä uudelleen"
 
 
 stateLabel : EventState -> String

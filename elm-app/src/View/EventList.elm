@@ -3,9 +3,9 @@ module View.EventList exposing (view)
 {-| Public events list page view.
 -}
 
-import Component.Alert as Alert
+import Api
 import Component.Button as Button
-import Component.Spinner as Spinner
+import Component.LoadState as LoadState
 import DateUtils exposing (formatEventDateDisplay, parseUtcString, toHelsinkiParts)
 import FeatherIcons
 import Html exposing (Html, a, div, h1, h3, p, text)
@@ -25,37 +25,25 @@ view authState now page =
             [ h1 [ class "type-h1" ] [ text (t NavEvents) ]
             , case authState of
                 Authenticated _ ->
-                    Button.viewLink
+                    Button.link
                         { label = "+ " ++ t EventListNewEvent
-                        , variant = Button.Primary
-                        , size = Button.Small
                         , href = toHref RouteEventNew
-                        , target = Nothing
                         }
+                        |> Button.withVariant Button.Primary
+                        |> Button.withSize Button.Small
+                        |> Button.toHtml
 
                 NotAuthenticated ->
                     text ""
             ]
-        , case page.events of
-            RemoteData.NotAsked ->
-                text ""
-
-            RemoteData.Loading ->
-                div [ class "flex justify-center py-8" ]
-                    [ Spinner.view { size = Spinner.Medium, label = t Loading } ]
-
-            RemoteData.Failure _ ->
-                div [ class "py-4" ]
-                    [ Alert.view
-                        { alertType = Alert.Error
-                        , title = Nothing
-                        , body = [ text (t ErrorUnknown) ]
-                        , customIcon = Nothing
-                        , onDismiss = Nothing
-                        }
-                    ]
-
-            RemoteData.Success events ->
+        , LoadState.view
+            { loadingLabel = t Loading
+            , errorMessage = Api.httpErrorToString
+            , onRetry = Nothing
+            , retryLabel = ""
+            }
+            (fromRemoteData page.events)
+            (\events ->
                 let
                     items =
                         reorderEvents now events
@@ -66,7 +54,24 @@ view authState now page =
                 else
                     div [ class "flex flex-col gap-4" ]
                         (List.map (viewEvent now authState) items)
+            )
         ]
+
+
+fromRemoteData : RemoteData e a -> LoadState.State e a
+fromRemoteData rd =
+    case rd of
+        RemoteData.NotAsked ->
+            LoadState.NotAsked
+
+        RemoteData.Loading ->
+            LoadState.Loading
+
+        RemoteData.Failure e ->
+            LoadState.Failure e
+
+        RemoteData.Success a ->
+            LoadState.Success a
 
 
 {-| Reorder events so upcoming events appear before past events, preserving relative order.

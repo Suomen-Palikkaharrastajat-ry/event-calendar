@@ -3,13 +3,13 @@ module View.EventForm exposing (view, viewEdit)
 {-| Event create and edit form views.
 -}
 
-import Component.Alert as Alert
+import Api
 import Component.Button as Button
-import Component.Spinner as Spinner
+import Component.LoadState as LoadState
 import DatePicker
 import FeatherIcons
 import File exposing (File)
-import Html exposing (Html, button, div, h2, img, input, label, p, text, textarea)
+import Html exposing (Html, div, h2, img, input, label, p, text, textarea)
 import Html.Attributes exposing (accept, alt, checked, class, disabled, for, id, name, src, step, type_, value)
 import Html.Events exposing (on, onCheck, onClick, onInput)
 import I18n exposing (MsgKey(..), stateLabel, t)
@@ -103,23 +103,33 @@ viewEdit : EventEditPage -> Html Msg
 viewEdit editPage =
     div [ class "max-w-2xl mx-auto p-4" ]
         [ h2 [ class "type-h3 mb-4" ] [ text (t FormEditTitle) ]
-        , case editPage.event of
-            RemoteData.Loading ->
-                div [ class "flex justify-center py-8" ]
-                    [ Spinner.view { size = Spinner.Medium, label = t Loading } ]
-
-            RemoteData.Failure _ ->
-                Alert.view
-                    { alertType = Alert.Error
-                    , title = Nothing
-                    , body = [ text (t ErrorUnknown) ]
-                    , customIcon = Nothing
-                    , onDismiss = Nothing
-                    }
-
-            _ ->
+        , LoadState.view
+            { loadingLabel = t Loading
+            , errorMessage = Api.httpErrorToString
+            , onRetry = Nothing
+            , retryLabel = ""
+            }
+            (fromRemoteData editPage.event)
+            (\_ ->
                 viewSharedFields editFormMsgs editPage.form editPage.startDatePicker editPage.endDatePicker editPage.formStatus True
+            )
         ]
+
+
+fromRemoteData : RemoteData.RemoteData e a -> LoadState.State e a
+fromRemoteData rd =
+    case rd of
+        RemoteData.NotAsked ->
+            LoadState.NotAsked
+
+        RemoteData.Loading ->
+            LoadState.Loading
+
+        RemoteData.Failure e ->
+            LoadState.Failure e
+
+        RemoteData.Success a ->
+            LoadState.Success a
 
 
 
@@ -154,12 +164,12 @@ viewGeocodeSection : FormMsgs -> EventFormData -> Html Msg
 viewGeocodeSection msgs form =
     div [ class "flex flex-col gap-2" ]
         [ div [ class "flex items-center gap-2" ]
-            [ button
-                [ onClick msgs.onGeocode
-                , class "type-caption inline-flex items-center gap-1 whitespace-nowrap px-2 py-1 bg-brand-yellow text-brand rounded hover:opacity-90 disabled:opacity-60"
-                , disabled (String.isEmpty (String.trim form.location))
-                ]
-                [ featherIcon FeatherIcons.mapPin 14, text (t FormGeocode) ]
+            [ Button.new { label = t FormGeocode, onClick = msgs.onGeocode }
+                |> Button.withVariant Button.Primary
+                |> Button.withSize Button.Small
+                |> Button.withIcon FeatherIcons.mapPin
+                |> Button.withDisabled (String.isEmpty (String.trim form.location))
+                |> Button.toHtml
             ]
         , div [ class "flex gap-2" ]
             [ div [ class "flex-1" ]
@@ -384,34 +394,32 @@ viewStateRadio inputId groupName radioState currentState toMsg =
 viewFormButtons : FormStatus -> Bool -> Html Msg
 viewFormButtons formStatus isEdit =
     div [ class "flex gap-2 pt-2" ]
-        [ Button.view
+        [ Button.new
             { label =
                 if formStatus == FormSubmitting then
                     t Saving
 
                 else
                     t FormSave
-            , variant = Button.Primary
-            , size = Button.Medium
             , onClick =
                 if isEdit then
                     EditFormSubmit
 
                 else
                     EventsFormSubmit
-            , disabled = formStatus == FormSubmitting
-            , loading = formStatus == FormSubmitting
-            , ariaPressedState = Nothing
             }
-        , Button.view
+            |> Button.withVariant Button.Primary
+            |> Button.withSize Button.Medium
+            |> Button.withDisabled (formStatus == FormSubmitting)
+            |> Button.withLoading (formStatus == FormSubmitting)
+            |> Button.toHtml
+        , Button.new
             { label = t FormCancel
-            , variant = Button.Secondary
-            , size = Button.Medium
             , onClick = NavigateTo RouteEvents
-            , disabled = False
-            , loading = False
-            , ariaPressedState = Nothing
             }
+            |> Button.withVariant Button.Secondary
+            |> Button.withSize Button.Medium
+            |> Button.toHtml
         ]
 
 

@@ -5,9 +5,9 @@ below `md` the grid cannot fit readable titles, so it becomes a compact month
 strip (days marked with bars) above an agenda grouped by week.
 -}
 
+import Api
 import CalendarAgenda exposing (AgendaWeek)
-import Component.Alert as Alert
-import Component.Spinner as Spinner
+import Component.LoadState as LoadState
 import DateUtils exposing (daysInMonth, finnishMonthName, formatEventDateDisplay, monthGrid, nextMonth, prevMonth, utcStringToHelsinkiDateInput)
 import FeatherIcons
 import Html exposing (Html, a, button, div, h3, li, p, section, span, text, ul)
@@ -39,26 +39,14 @@ view authState page =
         , viewCalendarNav page
         , case page.viewMode of
             MonthGrid ->
-                case page.events of
-                    RemoteData.NotAsked ->
-                        text ""
-
-                    RemoteData.Loading ->
-                        div [ class "flex justify-center py-8" ]
-                            [ Spinner.view { size = Spinner.Medium, label = t Loading } ]
-
-                    RemoteData.Failure _ ->
-                        div [ class "py-4" ]
-                            [ Alert.view
-                                { alertType = Alert.Error
-                                , title = Nothing
-                                , body = [ text (t ErrorUnknown) ]
-                                , customIcon = Nothing
-                                , onDismiss = Nothing
-                                }
-                            ]
-
-                    RemoteData.Success events ->
+                LoadState.view
+                    { loadingLabel = t Loading
+                    , errorMessage = Api.httpErrorToString
+                    , onRetry = Just (CalendarSetMonth page.year page.month)
+                    , retryLabel = t Retry
+                    }
+                    (fromRemoteData page.events)
+                    (\events ->
                         div []
                             [ div [ attribute "data-testid" "month-grid", class "hidden md:block" ]
                                 [ viewMonthGrid page events ]
@@ -67,30 +55,34 @@ view authState page =
                                 , viewAgenda page events
                                 ]
                             ]
+                    )
 
             ListView ->
-                case page.events of
-                    RemoteData.NotAsked ->
-                        text ""
-
-                    RemoteData.Loading ->
-                        div [ class "flex justify-center py-8" ]
-                            [ Spinner.view { size = Spinner.Medium, label = t Loading } ]
-
-                    RemoteData.Failure _ ->
-                        div [ class "py-4" ]
-                            [ Alert.view
-                                { alertType = Alert.Error
-                                , title = Nothing
-                                , body = [ text (t ErrorUnknown) ]
-                                , customIcon = Nothing
-                                , onDismiss = Nothing
-                                }
-                            ]
-
-                    RemoteData.Success events ->
-                        viewListView page events
+                LoadState.view
+                    { loadingLabel = t Loading
+                    , errorMessage = Api.httpErrorToString
+                    , onRetry = Just (CalendarSetMonth page.year page.month)
+                    , retryLabel = t Retry
+                    }
+                    (fromRemoteData page.events)
+                    (viewListView page)
         ]
+
+
+fromRemoteData : RemoteData e a -> LoadState.State e a
+fromRemoteData rd =
+    case rd of
+        RemoteData.NotAsked ->
+            LoadState.NotAsked
+
+        RemoteData.Loading ->
+            LoadState.Loading
+
+        RemoteData.Failure e ->
+            LoadState.Failure e
+
+        RemoteData.Success a ->
+            LoadState.Success a
 
 
 viewCalendarNav : CalendarPage -> Html Msg
