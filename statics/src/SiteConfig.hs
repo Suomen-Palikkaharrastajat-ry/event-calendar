@@ -28,7 +28,7 @@ module SiteConfig (
 ) where
 
 -- | The languages the site declares in @[i18n] languages@.
-data Lang = Fi
+data Lang = Fi | En
     deriving (Eq, Show)
 
 -- | @[i18n] default@: the language static files are generated in.
@@ -42,63 +42,79 @@ siteUrl = "https://kalenteri.palikkaharrastajat.fi"
 -- | @[site] title@.
 siteTitle :: Lang -> String
 siteTitle Fi = "Palikkakalenteri"
+siteTitle En = "Palikkakalenteri"
 
 -- | @[site] description@.
 siteDescription :: Lang -> String
 siteDescription Fi = "Suomen Palikkaharrastajat ry:n yll\228\&pit\228\&m\228\& tapahtumakalenteri"
+siteDescription En = "Event calendar maintained by Suomen Palikkaharrastajat ry"
 
 -- | @[metadata] author@: the organisation behind the site.
 author :: Lang -> String
 author Fi = "Suomen Palikkaharrastajat ry"
+author En = "Suomen Palikkaharrastajat ry"
 
 -- | @[app] pocketbase_url@.
 appPocketbaseUrl :: Lang -> String
 appPocketbaseUrl Fi = "https://data.palikkaharrastajat.fi"
+appPocketbaseUrl En = "https://data.palikkaharrastajat.fi"
 
 -- | @[app] refresh_label@.
 appRefreshLabel :: Lang -> String
 appRefreshLabel Fi = "\10227\& P\228\&ivit\228\& sivu"
+appRefreshLabel En = "\10227\& Refresh page"
 
 -- | @[app] contact_email@.
 appContactEmail :: Lang -> String
 appContactEmail Fi = "palikkaharrastajatry@outlook.com"
+appContactEmail En = "palikkaharrastajatry@outlook.com"
 
 -- | @[app] organisation_url@.
 appOrganisationUrl :: Lang -> String
 appOrganisationUrl Fi = "https://palikkaharrastajat.fi/"
+appOrganisationUrl En = "https://palikkaharrastajat.fi/"
 
 -- | @[app.statics] months@.
 staticsMonths :: Lang -> [String]
 staticsMonths Fi = ["Tammikuu", "Helmikuu", "Maaliskuu", "Huhtikuu", "Toukokuu", "Kes\228\&kuu", "Hein\228\&kuu", "Elokuu", "Syyskuu", "Lokakuu", "Marraskuu", "Joulukuu"]
+staticsMonths En = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
 -- | @[app.statics] weekdays@.
 staticsWeekdays :: Lang -> [String]
 staticsWeekdays Fi = ["ma", "ti", "ke", "to", "pe", "la", "su"]
+staticsWeekdays En = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 -- | @[app.statics] at_time@.
 staticsAtTime :: Lang -> String
 staticsAtTime Fi = " klo "
+staticsAtTime En = " at "
 
 -- | @[app.statics] cancelled_prefix@.
 staticsCancelledPrefix :: Lang -> String
 staticsCancelledPrefix Fi = "PERUTTU: "
+staticsCancelledPrefix En = "CANCELLED: "
 
 -- | @[app.statics] add_to_calendar@.
 staticsAddToCalendar :: Lang -> String
 staticsAddToCalendar Fi = "Lis\228\&\228\& kalenteriin"
+staticsAddToCalendar En = "Add to calendar"
 
 -- | @[app.statics] read_more@.
 staticsReadMore :: Lang -> String
 staticsReadMore Fi = "Lue lis\228\&\228\&\8230\&"
+staticsReadMore En = "Read more\8230\&"
 
 -- | @[app.statics] calendar_name@.
 staticsCalendarName :: Lang -> String
 staticsCalendarName Fi = "Suomen Palikkaharrastajat ry:n Palikkakalenteri"
+staticsCalendarName En = "Palikkakalenteri of Suomen Palikkaharrastajat ry"
 
 -- | @[app.statics] feed_description@.
 staticsFeedDescription :: Lang -> String
 staticsFeedDescription Fi = "Suomen Palikkaharrastajat ry:n Palikkakalenteri"
+staticsFeedDescription En = "Palikkakalenteri of Suomen Palikkaharrastajat ry"
 
 -- | @[app.statics] logo_alt@.
 staticsLogoAlt :: Lang -> String
 staticsLogoAlt Fi = "Suomen Palikkaharrastajat"
+staticsLogoAlt En = "Suomen Palikkaharrastajat"

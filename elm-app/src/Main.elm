@@ -281,7 +281,13 @@ update msg model =
         LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl model.key (Url.toString url) )
+                    if Lang.isSwitch model.lang url.query then
+                        -- The language is read at startup, so switching it loads the
+                        -- page; the current route (the fragment) is kept.
+                        ( model, Nav.load (Url.toString { url | fragment = model.url.fragment }) )
+
+                    else
+                        ( model, Nav.pushUrl model.key (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Nav.load href )

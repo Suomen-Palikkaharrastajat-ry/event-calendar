@@ -6,16 +6,23 @@
 
 [i18n]
 default   = "fi"
-languages = ["fi"]
+languages = ["fi", "en"]
 
 [site]
 url         = "https://kalenteri.palikkaharrastajat.fi"
 title       = "Palikkakalenteri"
 description = "Suomen Palikkaharrastajat ry:n ylläpitämä tapahtumakalenteri"
 
+[site.en]
+title       = "Palikkakalenteri"
+description = "Event calendar maintained by Suomen Palikkaharrastajat ry"
+
 [pwa]
 start_url   = "/#/events"
 description = "Suomen Palikkaharrastajat ry:n tapahtumakalenteri LEGO-harrastajille."
+
+[pwa.en]
+description = "Event calendar of Suomen Palikkaharrastajat ry for LEGO enthusiasts."
 
 [navbar]
 variant = "app"
@@ -36,4 +43,18 @@ add_to_calendar  = "Lisää kalenteriin"
 read_more        = "Lue lisää…"
 calendar_name    = "Suomen Palikkaharrastajat ry:n Palikkakalenteri"
 feed_description = "Suomen Palikkaharrastajat ry:n Palikkakalenteri"
+logo_alt         = "Suomen Palikkaharrastajat"
+
+[app.en]
+refresh_label = "⟳ Refresh page"
+
+[app.en.statics]
+months           = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+weekdays         = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+at_time          = " at "
+cancelled_prefix = "CANCELLED: "
+add_to_calendar  = "Add to calendar"
+read_more        = "Read more…"
+calendar_name    = "Palikkakalenteri of Suomen Palikkaharrastajat ry"
+feed_description = "Palikkakalenteri of Suomen Palikkaharrastajat ry"
 logo_alt         = "Suomen Palikkaharrastajat"

@@ -124,10 +124,6 @@ type MsgKey
 
 
 {-| The text of a key in a language.
-
-English is not translated yet: the site declares only Finnish in its
-`config.toml`, so English falls back to Finnish until it is.
-
 -}
 t : Lang -> MsgKey -> String
 t lang key =
@@ -136,7 +132,7 @@ t lang key =
             fi key
 
         En ->
-            fi key
+            en key
 
 
 fi : MsgKey -> String
@@ -477,6 +473,346 @@ fi key =
 
         TitleEditEvent ->
             "Muokkaa tapahtumaa"
+
+
+en : MsgKey -> String
+en key =
+    case key of
+        NavHome ->
+            "Calendar"
+
+        A11yFeedLinks ->
+            "Subscribe to or export the calendar"
+
+        NavEvents ->
+            "Upcoming events"
+
+        CalMonthGrid ->
+            "Month view"
+
+        CalListView ->
+            "List view"
+
+        CalToday ->
+            "Today"
+
+        CalNoEvents ->
+            "No events this month"
+
+        CalPrev ->
+            "Previous"
+
+        CalNext ->
+            "Next"
+
+        StateDraft ->
+            "Draft"
+
+        StatePending ->
+            "Pending"
+
+        StatePublished ->
+            "Published"
+
+        StateDeleted ->
+            "Deleted"
+
+        FormEditTitle ->
+            "Edit event"
+
+        FormTitle ->
+            "Event name"
+
+        FormLocation ->
+            "Location"
+
+        FormDescription ->
+            "Description"
+
+        FormUrl ->
+            "Website"
+
+        FormImage ->
+            "Image"
+
+        FormImageAlt ->
+            "Alternative text for the image"
+
+        FormStartDate ->
+            "Start date"
+
+        FormStartTime ->
+            "Start time"
+
+        FormEndDate ->
+            "End date"
+
+        FormEndTime ->
+            "End time"
+
+        FormAllDay ->
+            "All-day event"
+
+        FormCancelled ->
+            "Cancelled"
+
+        FormStatus ->
+            "Status"
+
+        FormTag ->
+            "Tag"
+
+        TagNone ->
+            "None"
+
+        TagExhibition ->
+            "Exhibition"
+
+        TagEvent ->
+            "Event"
+
+        TagCompetition ->
+            "Competition"
+
+        FormSave ->
+            "Save"
+
+        FormCancel ->
+            "Cancel"
+
+        FormGeocode ->
+            "Look up coordinates"
+
+        FormManualCoords ->
+            "Enter coordinates manually"
+
+        FormLat ->
+            "Latitude"
+
+        FormLon ->
+            "Longitude"
+
+        DetailEdit ->
+            "Edit"
+
+        DetailDelete ->
+            "Delete"
+
+        DetailDeleteConfirm ->
+            "Confirm deletion"
+
+        DetailDeleteCancel ->
+            "Cancel"
+
+        DetailBack ->
+            "Back"
+
+        DetailLocation ->
+            "Location"
+
+        DetailMoreInfo ->
+            "More information"
+
+        EventListTitle ->
+            "My events"
+
+        EventListEmpty ->
+            "No events"
+
+        EventListNewEvent ->
+            "Create a new event"
+
+        EventListEdit ->
+            "Edit"
+
+        EventListPage ->
+            "Page"
+
+        EventListOf ->
+            "/"
+
+        KmlImport ->
+            "Import a KML file"
+
+        KmlImporting ->
+            "Importing..."
+
+        KmlDone ->
+            "Import finished"
+
+        KmlError ->
+            "Import error"
+
+        LoginPrompt ->
+            "Not a member? Send your event by email."
+
+        LoginButton ->
+            "Sign in"
+
+        LogoutButton ->
+            "Sign out"
+
+        AuthFailed ->
+            "Sign-in failed"
+
+        ContactEmail ->
+            "palikkaharrastajatry@outlook.com"
+
+        FeedIcal ->
+            "iCalendar feed"
+
+        FeedHtml ->
+            "Printable version"
+
+        FeedRss ->
+            "RSS feed"
+
+        FeedAtom ->
+            "Atom feed"
+
+        FeedJson ->
+            "JSON feed"
+
+        FeedGeoJson ->
+            "GeoJSON"
+
+        ErrorNetwork ->
+            "Network error"
+
+        ErrorNotFound ->
+            "Event not found"
+
+        ErrorUnknown ->
+            "Unknown error"
+
+        Loading ->
+            "Loading..."
+
+        Saving ->
+            "Saving..."
+
+        GeocodingSearching ->
+            "Looking up the location..."
+
+        GeocodingNotFound ->
+            "Location not found"
+
+        GeocodingError ->
+            "Geocoding error"
+
+        SaveSuccess ->
+            "Event saved"
+
+        DeleteSuccess ->
+            "Event deleted"
+
+        ImportSuccess ->
+            "events imported"
+
+        SubmitByEmailText ->
+            "If you are not a member of Suomen Palikkaharrastajat ry,"
+
+        SubmitByEmailLinkText ->
+            "send us your event by email."
+
+        Retry ->
+            "Try again"
+
+        DateAtTime ->
+            " at "
+
+        LoggedInAs ->
+            "Signed in: "
+
+        FeedIcalDescription ->
+            "The calendar export (ICS) lets you subscribe to or integrate the whole calendar. Add it to your phone with one click!"
+
+        FeedHtmlDescription ->
+            "Embed or print a ready-made event listing. Includes calendar links to the individual events."
+
+        FeedsTitle ->
+            "Feeds"
+
+        FeedsDescription ->
+            "Feeds bring new events to other websites. They include the calendar links too."
+
+        CalMore ->
+            " more"
+
+        CalPrevMonth ->
+            "Previous month"
+
+        CalNextMonth ->
+            "Next month"
+
+        CalWeek ->
+            "Week "
+
+        ListShowOnMap ->
+            "Show on map"
+
+        ListOpenWebsite ->
+            "Open the event's website"
+
+        FormCurrentImage ->
+            "Current image"
+
+        ErrBadUrl ->
+            "Invalid URL: "
+
+        ErrTimeout ->
+            "The request timed out"
+
+        ErrNetwork ->
+            "Network error"
+
+        ErrBadStatus ->
+            "Server error: "
+
+        ErrBadBody ->
+            "Response error: "
+
+        LoginRequired ->
+            "Sign in to manage events"
+
+        LoginSuccess ->
+            "Signed in"
+
+        LoginFailed ->
+            "Sign-in failed"
+
+        EventSaved ->
+            "Event saved"
+
+        EventDeleted ->
+            "Event deleted"
+
+        DetailDeleteQuestion ->
+            "Delete the event?"
+
+        PageLoadingText ->
+            "Loading..."
+
+        PageSigningIn ->
+            "Signing in..."
+
+        PageNotFoundText ->
+            "Page not found"
+
+        BackToCalendar ->
+            "Back to the calendar"
+
+        TitleLogin ->
+            "Sign in"
+
+        TitleUpcoming ->
+            "Upcoming events"
+
+        TitleEvent ->
+            "Event"
+
+        TitleEditEvent ->
+            "Edit event"
 
 
 stateLabel : Lang -> EventState -> String

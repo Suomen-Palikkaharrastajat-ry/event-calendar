@@ -29,4 +29,14 @@ suite =
             , test "SaveSuccess is non-empty" <|
                 \_ -> t Lang.Fi SaveSuccess |> String.isEmpty |> Expect.equal False
             ]
+        , describe "languages"
+            [ test "Finnish and English have their own text" <|
+                \_ ->
+                    ( t Lang.Fi NavEvents, t Lang.En NavEvents )
+                        |> Expect.equal ( "Tulevat tapahtumat", "Upcoming events" )
+            , test "state labels follow the language" <|
+                \_ ->
+                    ( stateLabel Lang.Fi Draft, stateLabel Lang.En Draft )
+                        |> Expect.equal ( "Luonnos", "Draft" )
+            ]
         ]

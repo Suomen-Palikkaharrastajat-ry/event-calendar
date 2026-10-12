@@ -4,7 +4,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import PocketBase from 'pocketbase'
 import siteConfig from 'virtual:site-config'
-import { appSettings, requestedLang, setDocumentLang } from './packages/site-config/browser.mjs'
+import { appSettings, pickLang, requestedLang, setDocumentLang } from './packages/site-config/browser.mjs'
 
 // Fix Leaflet default icon paths broken by Vite bundling
 import markerIconUrl from 'leaflet/dist/images/marker-icon.png'
@@ -20,8 +20,8 @@ L.Icon.Default.mergeOptions({
 
 // ── App init ─────────────────────────────────────────────────────────────────
 
-// App settings come from [app] in ../config.toml.
-const settings = appSettings(siteConfig)
+// App settings come from [app] in ../config.toml, in the language being shown.
+const settings = appSettings(siteConfig, pickLang(siteConfig))
 const pbBaseUrl = import.meta.env.VITE_POCKETBASE_URL || settings.pocketbase_url
 
 function readStoredAuth() {
