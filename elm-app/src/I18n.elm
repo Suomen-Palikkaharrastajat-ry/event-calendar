@@ -1,8 +1,9 @@
-module I18n exposing (MsgKey(..), dayLabel, importedCount, kmlDone, locale, stateLabel, submitEventMailto, t)
+module I18n exposing (MsgKey(..), contentAttrs, dayLabel, importedCount, kmlDone, locale, stateLabel, submitEventMailto, t)
 
 {-| UI strings per language, keyed by MsgKey, plus event state labels.
 -}
 
+import Html
 import Lang exposing (Lang(..))
 import Locale exposing (Locale)
 import Types exposing (EventState(..))
@@ -13,12 +14,8 @@ type MsgKey
     = NavHome
     | A11yFeedLinks
     | NavEvents
-    | CalMonthGrid
-    | CalListView
     | CalToday
     | CalNoEvents
-    | CalPrev
-    | CalNext
     | StateDraft
     | StatePending
     | StatePublished
@@ -45,7 +42,6 @@ type MsgKey
     | FormSave
     | FormCancel
     | FormGeocode
-    | FormManualCoords
     | FormLat
     | FormLon
     | DetailEdit
@@ -55,35 +51,17 @@ type MsgKey
     | DetailBack
     | DetailLocation
     | DetailMoreInfo
-    | EventListTitle
     | EventListEmpty
     | EventListNewEvent
     | EventListEdit
     | EventListPage
-    | EventListOf
     | KmlImport
     | KmlImporting
     | KmlError
-    | LoginPrompt
     | LoginButton
     | LogoutButton
-    | AuthFailed
-    | FeedIcal
-    | FeedHtml
-    | FeedRss
-    | FeedAtom
-    | FeedJson
-    | FeedGeoJson
-    | ErrorNetwork
-    | ErrorNotFound
-    | ErrorUnknown
     | Loading
     | Saving
-    | GeocodingSearching
-    | GeocodingNotFound
-    | GeocodingError
-    | SaveSuccess
-    | DeleteSuccess
     | SubmitByEmailText
     | SubmitByEmailLinkText
     | Retry
@@ -146,23 +124,11 @@ fi key =
         NavEvents ->
             "Tulevat tapahtumat"
 
-        CalMonthGrid ->
-            "Kuukausinäkymä"
-
-        CalListView ->
-            "Listanäkymä"
-
         CalToday ->
             "Tänään"
 
         CalNoEvents ->
             "Ei tapahtumia tällä kuulla"
-
-        CalPrev ->
-            "Edellinen"
-
-        CalNext ->
-            "Seuraava"
 
         StateDraft ->
             "Luonnos"
@@ -242,9 +208,6 @@ fi key =
         FormGeocode ->
             "Hae koordinaatit"
 
-        FormManualCoords ->
-            "Syötä koordinaatit käsin"
-
         FormLat ->
             "Leveysaste"
 
@@ -272,9 +235,6 @@ fi key =
         DetailMoreInfo ->
             "Lisätietoja"
 
-        EventListTitle ->
-            "Omat tapahtumat"
-
         EventListEmpty ->
             "Ei tapahtumia"
 
@@ -287,9 +247,6 @@ fi key =
         EventListPage ->
             "Sivu"
 
-        EventListOf ->
-            "/"
-
         KmlImport ->
             "Tuo KML-tiedosto"
 
@@ -299,65 +256,17 @@ fi key =
         KmlError ->
             "Tuontivirhe"
 
-        LoginPrompt ->
-            "Etkö ole jäsen? Lähetä tapahtuma sähköpostilla."
-
         LoginButton ->
             "Kirjaudu sisään"
 
         LogoutButton ->
             "Kirjaudu ulos"
 
-        AuthFailed ->
-            "Kirjautuminen epäonnistui"
-
-        FeedIcal ->
-            "iCalendar-syöte"
-
-        FeedHtml ->
-            "Tulostettava versio"
-
-        FeedRss ->
-            "RSS-syöte"
-
-        FeedAtom ->
-            "Atom-syöte"
-
-        FeedJson ->
-            "JSON-syöte"
-
-        FeedGeoJson ->
-            "GeoJSON"
-
-        ErrorNetwork ->
-            "Verkkovirhe"
-
-        ErrorNotFound ->
-            "Tapahtumaa ei löydy"
-
-        ErrorUnknown ->
-            "Tuntematon virhe"
-
         Loading ->
             "Ladataan..."
 
         Saving ->
             "Tallennetaan..."
-
-        GeocodingSearching ->
-            "Haetaan sijaintia..."
-
-        GeocodingNotFound ->
-            "Sijaintia ei löydy"
-
-        GeocodingError ->
-            "Geokoodausvirhe"
-
-        SaveSuccess ->
-            "Tapahtuma tallennettu"
-
-        DeleteSuccess ->
-            "Tapahtuma poistettu"
 
         SubmitByEmailText ->
             "Jos et ole Suomen Palikkaharrastajat ry:n jäsen,"
@@ -480,23 +389,11 @@ en key =
         NavEvents ->
             "Upcoming events"
 
-        CalMonthGrid ->
-            "Month view"
-
-        CalListView ->
-            "List view"
-
         CalToday ->
             "Today"
 
         CalNoEvents ->
             "No events this month"
-
-        CalPrev ->
-            "Previous"
-
-        CalNext ->
-            "Next"
 
         StateDraft ->
             "Draft"
@@ -576,9 +473,6 @@ en key =
         FormGeocode ->
             "Look up coordinates"
 
-        FormManualCoords ->
-            "Enter coordinates manually"
-
         FormLat ->
             "Latitude"
 
@@ -606,9 +500,6 @@ en key =
         DetailMoreInfo ->
             "More information"
 
-        EventListTitle ->
-            "My events"
-
         EventListEmpty ->
             "No events"
 
@@ -621,9 +512,6 @@ en key =
         EventListPage ->
             "Page"
 
-        EventListOf ->
-            "/"
-
         KmlImport ->
             "Import a KML file"
 
@@ -633,65 +521,17 @@ en key =
         KmlError ->
             "Import error"
 
-        LoginPrompt ->
-            "Not a member? Send your event by email."
-
         LoginButton ->
             "Sign in"
 
         LogoutButton ->
             "Sign out"
 
-        AuthFailed ->
-            "Sign-in failed"
-
-        FeedIcal ->
-            "iCalendar feed"
-
-        FeedHtml ->
-            "Printable version"
-
-        FeedRss ->
-            "RSS feed"
-
-        FeedAtom ->
-            "Atom feed"
-
-        FeedJson ->
-            "JSON feed"
-
-        FeedGeoJson ->
-            "GeoJSON"
-
-        ErrorNetwork ->
-            "Network error"
-
-        ErrorNotFound ->
-            "Event not found"
-
-        ErrorUnknown ->
-            "Unknown error"
-
         Loading ->
             "Loading..."
 
         Saving ->
             "Saving..."
-
-        GeocodingSearching ->
-            "Looking up the location..."
-
-        GeocodingNotFound ->
-            "Location not found"
-
-        GeocodingError ->
-            "Geocoding error"
-
-        SaveSuccess ->
-            "Event saved"
-
-        DeleteSuccess ->
-            "Event deleted"
 
         SubmitByEmailText ->
             "If you are not a member of Suomen Palikkaharrastajat ry,"
@@ -916,3 +756,12 @@ importedCount lang count =
                     else
                         " events imported"
                    )
+
+
+{-| Attributes for content the organisers wrote. Events and places are entered
+in Finnish, so inside another interface language they are marked as Finnish for
+screen readers.
+-}
+contentAttrs : Lang -> List (Html.Attribute msg)
+contentAttrs lang =
+    Lang.attributeFor { interface = lang, content = Fi }

@@ -252,13 +252,13 @@ viewAgendaEvent lang event =
         , onClick (CalendarClickEvent event.id)
         ]
         [ span [ class "block type-caption text-text-muted" ] [ text (formatEventDateDisplay lang event) ]
-        , span [ class "block type-h4" ] [ text (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event) ]
+        , span [ class "block type-h4" ] [ span (I18n.contentAttrs lang) [ text (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event) ] ]
         , case event.location of
             Nothing ->
                 text ""
 
             Just loc ->
-                span [ class "block type-caption text-text-muted" ] [ text loc ]
+                span [ class "block type-caption text-text-muted" ] [ span (I18n.contentAttrs lang) [ text loc ] ]
         ]
 
 
@@ -386,17 +386,19 @@ viewEventChip lang pos event =
                     "\u{00A0}"
     in
     div
-        [ classList
+        ([ classList
             [ ( "event-all-day", event.allDay )
             , ( "event-timed", not event.allDay )
             ]
-        , class shapeClass
-        , onClick (CalendarClickEvent event.id)
-        , tabindex 0
-        , attribute "role" "button"
-        , attribute "title" (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event)
-        , attribute "aria-label" (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event)
-        ]
+         , class shapeClass
+         , onClick (CalendarClickEvent event.id)
+         , tabindex 0
+         , attribute "role" "button"
+         , attribute "title" (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event)
+         , attribute "aria-label" (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event)
+         ]
+            ++ I18n.contentAttrs lang
+        )
         [ text label ]
 
 
@@ -421,13 +423,13 @@ viewListEvent lang event =
         , onClick (CalendarClickEvent event.id)
         ]
         [ p [ class "type-caption text-text-muted" ] [ text (formatEventDateDisplay lang event) ]
-        , h3 [ class "type-h4" ] [ text (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event) ]
+        , h3 [ class "type-h4" ] [ span (I18n.contentAttrs lang) [ text (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event) ] ]
         , case event.location of
             Nothing ->
                 text ""
 
             Just loc ->
-                p [ class "type-caption text-text-muted" ] [ text loc ]
+                p [ class "type-caption text-text-muted" ] [ span (I18n.contentAttrs lang) [ text loc ] ]
         ]
 
 

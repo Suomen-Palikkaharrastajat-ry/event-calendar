@@ -16,7 +16,6 @@ module SiteConfig (
     monthNames,
     weekdayAbbrs,
     appPocketbaseUrl,
-    appRefreshLabel,
     appContactEmail,
     appOrganisationUrl,
     staticsAtTime,
@@ -75,11 +74,6 @@ weekdayAbbrs En = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 appPocketbaseUrl :: Lang -> String
 appPocketbaseUrl Fi = "https://data.palikkaharrastajat.fi"
 appPocketbaseUrl En = "https://data.palikkaharrastajat.fi"
-
--- | @[app] refresh_label@.
-appRefreshLabel :: Lang -> String
-appRefreshLabel Fi = "\10227\& P\228\&ivit\228\& sivu"
-appRefreshLabel En = "\10227\& Refresh page"
 
 -- | @[app] contact_email@.
 appContactEmail :: Lang -> String

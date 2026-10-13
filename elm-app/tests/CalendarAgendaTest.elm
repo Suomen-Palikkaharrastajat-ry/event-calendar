@@ -239,6 +239,21 @@ suite =
                         |> Query.find [ Selector.attribute (Attr.attribute "data-testid" "mobile-calendar") ]
                         |> Query.has [ Selector.text "Ei tapahtumia tällä kuulla" ]
             ]
+        , describe "content language"
+            [ test "event text is marked as Finnish inside the English interface, and not otherwise" <|
+                \_ ->
+                    Expect.all
+                        [ \_ ->
+                            View.Calendar.view Lang.En "toimisto@example.org" NotAuthenticated (october [ weekend ])
+                                |> Query.fromHtml
+                                |> Query.has [ Selector.attribute (Attr.lang "fi") ]
+                        , \_ ->
+                            View.Calendar.view Lang.Fi "toimisto@example.org" NotAuthenticated (october [ weekend ])
+                                |> Query.fromHtml
+                                |> Query.hasNot [ Selector.attribute (Attr.lang "fi") ]
+                        ]
+                        ()
+            ]
         , describe "language-specific phrases"
             [ test "week label follows the language's date conventions" <|
                 \_ ->

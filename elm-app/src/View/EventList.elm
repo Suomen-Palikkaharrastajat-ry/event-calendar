@@ -9,7 +9,7 @@ import Component.LoadState as LoadState
 import DateUtils exposing (formatEventDateDisplay)
 import FeatherIcons
 import FinnishTime exposing (parseUtcString, toHelsinkiParts)
-import Html exposing (Html, a, div, h1, h3, p, text)
+import Html exposing (Html, a, div, h1, h3, p, span, text)
 import Html.Attributes exposing (attribute, class, href, target)
 import I18n exposing (MsgKey(..), t)
 import Lang exposing (Lang)
@@ -207,14 +207,14 @@ viewEvent lang now authState event =
                         [ href (toHref (RouteEventDetail event.id))
                         , class "hover:underline"
                         ]
-                        [ text (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event) ]
+                        [ span (I18n.contentAttrs lang) [ text (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event) ] ]
                     ]
                 , case event.location of
                     Nothing ->
                         text ""
 
                     Just loc ->
-                        p [ class "type-caption text-text-muted" ] [ text loc ]
+                        p [ class "type-caption text-text-muted" ] [ span (I18n.contentAttrs lang) [ text loc ] ]
                 ]
             , div [ class "flex items-center gap-2 shrink-0" ]
                 [ case event.point of

@@ -41,7 +41,7 @@ view lang pbBaseUrl authState _ detPage =
                 (\event ->
                     div []
                         [ div [ class "flex justify-between items-start mb-2" ]
-                            [ h1 [ class "type-h1" ] [ text (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event) ]
+                            [ h1 [ class "type-h1" ] [ span (I18n.contentAttrs lang) [ text (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event) ] ]
                             , if isAuthenticated authState then
                                 div [ class "flex gap-2 ml-4 shrink-0" ]
                                     [ Button.new
@@ -104,7 +104,7 @@ view lang pbBaseUrl authState _ detPage =
                                     , case event.point of
                                         Just pt ->
                                             if pt.lat == 0 && pt.lon == 0 then
-                                                span [] [ text loc ]
+                                                span [] [ span (I18n.contentAttrs lang) [ text loc ] ]
 
                                             else
                                                 a
@@ -123,14 +123,14 @@ view lang pbBaseUrl authState _ detPage =
                                                     ]
 
                                         Nothing ->
-                                            span [] [ text loc ]
+                                            span [] [ span (I18n.contentAttrs lang) [ text loc ] ]
                                     ]
                         , case event.description of
                             Nothing ->
                                 text ""
 
                             Just desc ->
-                                div [ class "mb-4 whitespace-pre-line text-text-primary" ] [ text desc ]
+                                div [ class "mb-4 whitespace-pre-line text-text-primary" ] [ span (I18n.contentAttrs lang) [ text desc ] ]
                         , case event.image of
                             Nothing ->
                                 text ""

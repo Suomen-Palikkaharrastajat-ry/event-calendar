@@ -94,6 +94,7 @@ const app = Elm.Main.init({
 // ── Nav ports ─────────────────────────────────────────────────────────────────
 
 app.ports.setDocumentLang.subscribe((lang) => showLanguage(siteConfig, lang))
+app.ports.reportError.subscribe((problem) => console.error(problem))
 
 app.ports.focusMobileNav.subscribe(function () {
   requestAnimationFrame(function () {
@@ -259,7 +260,7 @@ function setupPullToRefresh() {
   ].join(';')
 
   const label = document.createElement('span')
-  label.textContent = settings.refresh_label
+  label.textContent = settings.strings.refresh
 
   action.appendChild(label)
   indicator.appendChild(action)

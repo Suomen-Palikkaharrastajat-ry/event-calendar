@@ -119,19 +119,22 @@ init flags url key =
         now =
             Time.millisToPosix flags.now
 
-        localized =
-            Json.decodeValue SiteSettings.localizedDecoder flags.siteConfig
+        settings =
+            SiteSettings.fromFlags flags.requestedLang flags.siteConfig
 
         lang =
-            localized
-                |> Result.map (SiteSettings.pickLang flags.requestedLang)
-                |> Result.withDefault Lang.Fi
+            settings.lang
 
         site =
-            localized
-                |> Result.toMaybe
-                |> Maybe.andThen (SiteSettings.forLang lang)
-                |> Maybe.withDefault (SiteSettings.placeholder lang)
+            settings.site
+
+        reportConfigError =
+            case settings.error of
+                Just problem ->
+                    Ports.reportError problem
+
+                Nothing ->
+                    Cmd.none
 
         ( page, cmd ) =
             initPage lang flags.pbBaseUrl key route authState url now
@@ -152,7 +155,7 @@ init flags url key =
                 |> Json.decodeValue (SiteSettings.appDecoder lang (Json.field "contact_email" Json.string))
                 |> Result.withDefault ""
       }
-    , Cmd.batch [ cmd, Ports.setDocumentLang (Lang.toString lang) ]
+    , Cmd.batch [ cmd, Ports.setDocumentLang (Lang.toString lang), reportConfigError ]
     )
 
 

@@ -16,6 +16,7 @@ port module Ports exposing
       -- Map (outbound)
     , parseKml
       -- KML (inbound)
+    , reportError
     , saveAuthToken
     , setDocumentLang
     , setMapMarker
@@ -120,3 +121,9 @@ port parseKml : String -> Cmd msg
 {-| Receive parsed KML placemarks from JS as a JSON value.
 -}
 port kmlParsed : (Json.Value -> msg) -> Sub msg
+
+
+{-| Writes a problem the visitor cannot act on (unreadable configuration) to
+the browser console.
+-}
+port reportError : String -> Cmd msg

@@ -26,8 +26,6 @@ suite =
         , describe "translate"
             [ test "CalNoEvents is non-empty" <|
                 \_ -> t Lang.Fi CalNoEvents |> String.isEmpty |> Expect.equal False
-            , test "SaveSuccess is non-empty" <|
-                \_ -> t Lang.Fi SaveSuccess |> String.isEmpty |> Expect.equal False
             ]
         , describe "languages"
             [ test "Finnish and English have their own text" <|

@@ -29,9 +29,12 @@ variant = "app"
 
 [app]
 pocketbase_url = "https://data.palikkaharrastajat.fi"
-refresh_label  = "⟳ Päivitä sivu"
 contact_email    = "palikkaharrastajatry@outlook.com"
 organisation_url = "https://palikkaharrastajat.fi/"
+
+# Text main.js renders itself.
+[app.strings]
+refresh = "⟳ Päivitä sivu"
 
 # Text of the generated feeds, iCalendar file and HTML export (statics/).
 [app.statics]
@@ -44,8 +47,8 @@ feed_description = "Suomen Palikkaharrastajat ry:n Palikkakalenteri"
 logo_alt         = "Suomen Palikkaharrastajat"
 qr_alt           = "QR-koodi kalenteriin"
 
-[app.en]
-refresh_label = "⟳ Refresh page"
+[app.en.strings]
+refresh = "⟳ Refresh page"
 
 [app.en.statics]
 at_time          = " at "
