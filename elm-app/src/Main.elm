@@ -25,6 +25,7 @@ import Auth
 import Browser
 import Browser.Events
 import Browser.Navigation as Nav
+import Component.Layout as Layout
 import Date
 import DatePicker
 import File
@@ -1198,13 +1199,17 @@ update msg model =
         -- ── Mobile menu ──────────────────────────────────────────────────────────
         ToggleMenu ->
             if model.menuOpen then
-                ( { model | menuOpen = False }, Cmd.none )
+                ( { model | menuOpen = False }, Layout.onMenuClosed CalendarNoOp )
 
             else
-                ( { model | menuOpen = True }, Ports.focusMobileNav () )
+                ( { model | menuOpen = True }, Layout.onMenuOpened CalendarNoOp )
 
         CloseMenu ->
-            ( { model | menuOpen = False }, Cmd.none )
+            if model.menuOpen then
+                ( { model | menuOpen = False }, Layout.onMenuClosed CalendarNoOp )
+
+            else
+                ( model, Cmd.none )
 
         -- ── Time ─────────────────────────────────────────────────────────────────
         Tick _ ->
@@ -1579,17 +1584,7 @@ subscriptions model =
     let
         keyboardSub =
             if model.menuOpen then
-                Browser.Events.onKeyDown
-                    (Json.field "key" Json.string
-                        |> Json.andThen
-                            (\key ->
-                                if key == "Escape" then
-                                    Json.succeed CloseMenu
-
-                                else
-                                    Json.fail "not escape"
-                            )
-                    )
+                Layout.subscriptions { isOpen = True, onClose = CloseMenu }
 
             else
                 case model.page of

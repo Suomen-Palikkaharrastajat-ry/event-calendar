@@ -3,7 +3,6 @@ port module Ports exposing
     , clearAuthToken
     , destroyMap
       -- Map (inbound)
-    , focusMobileNav
     , getCallbackParams
       -- Auth (inbound)
     , initMap
@@ -30,11 +29,6 @@ import Json.Decode as Json
 
 
 -- ── Nav ports ─────────────────────────────────────────────────────────────────
-
-
-{-| Focus the first nav item in the mobile menu.
--}
-port focusMobileNav : () -> Cmd msg
 
 
 {-| Sets the document's `lang` attribute to the language being shown.

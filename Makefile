@@ -32,21 +32,11 @@ shell: vendor ## Enter devenv shell
 
 # ── Site configuration ────────────────────────────────────────────────────────
 
-# config.toml is the single source of the site's URL, title, text and settings
-# (see vendor/master-builder/docs/site-config.md). Vite reads it directly; the
-# files below are derived from it and committed.
-SITE_CONFIG := vendor/master-builder/packages/site-config
-
-.PHONY: site-config
-site-config: ## Regenerate the files derived from config.toml
-	node $(SITE_CONFIG)/gen-fixture.mjs --config config.toml --out elm-app/tests/SiteFixture.elm
-	node $(SITE_CONFIG)/gen-haskell.mjs --config config.toml --out statics/src/SiteConfig.hs
-
-.PHONY: site-config-check
-site-config-check: ## Check config.toml, its derived files, and that display text stays in translations
-	node $(SITE_CONFIG)/gen-fixture.mjs --config config.toml --out elm-app/tests/SiteFixture.elm --check
-	node $(SITE_CONFIG)/gen-haskell.mjs --config config.toml --out statics/src/SiteConfig.hs --check
-	node vendor/master-builder/script/check-i18n.mjs elm-app/src elm-app/main.js statics/src statics/app
+# config.toml is the single source of the site's URL, title, text and settings.
+# The shared targets `site-config` and `site-config-check` come from the hub.
+SITE_CONFIG_HASKELL := statics/src/SiteConfig.hs
+SITE_CONFIG_I18N := elm-app/src elm-app/main.js statics/src statics/app
+include vendor/master-builder/mk/site-config.mk
 
 # ── Elm frontend ──────────────────────────────────────────────────────────────
 
@@ -58,7 +48,7 @@ elm-dev: ## Start Elm + Vite dev server (hot reload)
 elm-dev-local: ## Start Elm + Vite dev server against local PocketBase
 	cd elm-app && VITE_POCKETBASE_URL=$(LOCAL_PB_URL) vite $(VITE_FLAGS)
 
-dist/.elm-stamp: $(shell find elm-app/src -name '*.elm') $(shell find vendor/master-builder/packages \( -name '*.elm' -o -name '*.css' \) -not -path '*/elm-stuff/*' -not -path '*/tests/*' -not -path '*/node_modules/*') elm-app/elm.json elm-app/main.css elm-app/index.html elm-app/main.js config.toml $(SITE_CONFIG)/family.toml $(wildcard $(SITE_CONFIG)/*.mjs)
+dist/.elm-stamp: $(shell find elm-app/src -name '*.elm') $(shell find vendor/master-builder/packages \( -name '*.elm' -o -name '*.css' \) -not -path '*/elm-stuff/*' -not -path '*/tests/*' -not -path '*/node_modules/*') elm-app/elm.json elm-app/main.css elm-app/index.html elm-app/main.js $(SITE_CONFIG_DEPS)
 	cd elm-app && vite build $(VITE_FLAGS)
 	touch $@
 

@@ -58,15 +58,12 @@ type MsgKey
     | KmlImport
     | KmlImporting
     | KmlError
-    | LoginButton
-    | LogoutButton
     | Loading
     | Saving
     | SubmitByEmailText
     | SubmitByEmailLinkText
     | Retry
     | DateAtTime
-    | LoggedInAs
     | FeedIcalDescription
     | FeedHtmlDescription
     | FeedsTitle
@@ -256,12 +253,6 @@ fi key =
         KmlError ->
             "Tuontivirhe"
 
-        LoginButton ->
-            "Kirjaudu sisään"
-
-        LogoutButton ->
-            "Kirjaudu ulos"
-
         Loading ->
             "Ladataan..."
 
@@ -279,9 +270,6 @@ fi key =
 
         DateAtTime ->
             " klo "
-
-        LoggedInAs ->
-            "Kirjautunut: "
 
         FeedIcalDescription ->
             "Kalenterivienti (ICS) tilaa tai integroi koko kalenterin helposti. Klikkaa kalenteri puhelimeesi!"
@@ -521,12 +509,6 @@ en key =
         KmlError ->
             "Import error"
 
-        LoginButton ->
-            "Sign in"
-
-        LogoutButton ->
-            "Sign out"
-
         Loading ->
             "Loading..."
 
@@ -544,9 +526,6 @@ en key =
 
         DateAtTime ->
             " at "
-
-        LoggedInAs ->
-            "Signed in: "
 
         FeedIcalDescription ->
             "The calendar export (ICS) lets you subscribe to or integrate the whole calendar. Add it to your phone with one click!"

@@ -61,11 +61,9 @@ jobs:
       - name: Update Cabal package index
         run: devenv shell --profile ci -- cabal update
 
-      # TODO: add `make check` here once the pre-existing elm-review violations
-      # are cleared (28 errors in 28 files, mostly RequireModuleDoc on tests/).
-      # planet already runs this step; see docs/conventions.md.
-      - name: Check config.toml and its derived files
-        run: devenv shell --profile ci -- make site-config-check
+      # Formatting, lint, and config.toml with its derived files.
+      - name: Check
+        run: devenv shell --profile ci -- make check
 
       - name: Run tests
         run: devenv shell --profile ci -- make test

@@ -4,7 +4,7 @@ module View.Layout exposing (view)
 controls, feed links and toasts.
 -}
 
-import Component.Button as Button
+import Component.Account as Account
 import Component.FeedLinks as FeedLinks
 import Component.Layout as Layout
 import Component.Toast as Toast
@@ -55,7 +55,7 @@ view config =
             [ link (RouteCalendar Nothing) (t lang NavHome)
             , link RouteEvents (t lang NavEvents)
             ]
-        , headerActions = [ viewDesktopAuthControls lang config.authState ]
+        , headerActions = [ Account.viewHeader (account strings config.authState) ]
         , showHeader = True
         , menu =
             Just
@@ -66,7 +66,7 @@ view config =
                     \links ->
                         [ nav [ class "p-4", attribute "aria-label" strings.mainNav ] [ links ]
                         , div [ class "p-4 border-t border-border-default" ]
-                            [ viewMobileAuthControls lang config.authState ]
+                            [ Account.viewDrawer (account strings config.authState) ]
                         ]
                 }
         , main = config.main
@@ -78,61 +78,21 @@ view config =
         }
 
 
-viewDesktopAuthControls : Lang -> AuthState -> Html Msg
-viewDesktopAuthControls lang authState =
-    case authState of
-        NotAuthenticated ->
-            div [ class "hidden md:flex gap-2 items-center" ]
-                [ authButton LoginClicked (t lang LoginButton) ]
+{-| What the shared account controls need: the signed-in user, if any.
+-}
+account : UiStrings -> AuthState -> { strings : UiStrings, user : Maybe AuthUser, onSignIn : Msg, onSignOut : Msg }
+account strings authState =
+    { strings = strings
+    , user =
+        case authState of
+            Authenticated user ->
+                Just user
 
-        Authenticated user ->
-            div [ class "hidden md:flex gap-2 items-center" ]
-                [ span [ class "type-caption text-white/80" ] [ text user.name ]
-                , span [ attribute "title" (userTooltip lang user), class "inline-flex" ]
-                    [ authButton LogOut (t lang LogoutButton) ]
-                ]
-
-
-viewMobileAuthControls : Lang -> AuthState -> Html Msg
-viewMobileAuthControls lang authState =
-    case authState of
-        NotAuthenticated ->
-            div [ class "flex" ]
-                [ authButton LoginClicked (t lang LoginButton) ]
-
-        Authenticated user ->
-            div [ class "flex flex-col items-start gap-3" ]
-                [ span [ class "type-caption text-text-muted" ] [ text user.name ]
-                , span [ attribute "title" (userTooltip lang user), class "inline-flex" ]
-                    [ authButton LogOut (t lang LogoutButton) ]
-                ]
-
-
-authButton : Msg -> String -> Html Msg
-authButton msg label =
-    Button.new { label = label, onClick = msg }
-        |> Button.withVariant Button.Primary
-        |> Button.withSize Button.Small
-        |> Button.toHtml
-
-
-userTooltip : Lang -> AuthUser -> String
-userTooltip lang user =
-    let
-        namePart =
-            String.trim user.name
-
-        emailPart =
-            String.trim user.email
-    in
-    if String.isEmpty namePart then
-        t lang LoggedInAs ++ emailPart
-
-    else if String.isEmpty emailPart then
-        t lang LoggedInAs ++ namePart
-
-    else
-        t lang LoggedInAs ++ namePart ++ " (" ++ emailPart ++ ")"
+            NotAuthenticated ->
+                Nothing
+    , onSignIn = LoginClicked
+    , onSignOut = LogOut
+    }
 
 
 viewFeedLinks : Lang -> UiStrings -> SiteSettings -> Html Msg
