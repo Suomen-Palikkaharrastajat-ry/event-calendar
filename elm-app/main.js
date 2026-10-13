@@ -4,7 +4,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import PocketBase from 'pocketbase'
 import siteConfig from 'virtual:site-config'
-import { appSettings, pickLang, requestedLang, setDocumentLang } from './packages/site-config/browser.mjs'
+import { appSettings, pickLang, requestedLang, showLanguage } from './packages/site-config/browser.mjs'
 
 // Fix Leaflet default icon paths broken by Vite bundling
 import markerIconUrl from 'leaflet/dist/images/marker-icon.png'
@@ -93,7 +93,7 @@ const app = Elm.Main.init({
 
 // ── Nav ports ─────────────────────────────────────────────────────────────────
 
-app.ports.setDocumentLang.subscribe(setDocumentLang)
+app.ports.setDocumentLang.subscribe((lang) => showLanguage(siteConfig, lang))
 
 app.ports.focusMobileNav.subscribe(function () {
   requestAnimationFrame(function () {

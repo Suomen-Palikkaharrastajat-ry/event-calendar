@@ -252,7 +252,7 @@ viewAgendaEvent lang event =
         , onClick (CalendarClickEvent event.id)
         ]
         [ span [ class "block type-caption text-text-muted" ] [ text (formatEventDateDisplay lang event) ]
-        , span [ class "block type-h4" ] [ text (Types.displayTitle event) ]
+        , span [ class "block type-h4" ] [ text (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event) ]
         , case event.location of
             Nothing ->
                 text ""
@@ -302,7 +302,7 @@ viewDayCell lang page events maybeDay =
                     ]
                     [ text (String.fromInt day) ]
                 , div [ class "mt-5 flex flex-col gap-0.5 -mx-1" ]
-                    (List.take 3 (List.map (\ev -> viewEventChip (chipPos page.year page.month day ev) ev) dayEvents)
+                    (List.take 3 (List.map (\ev -> viewEventChip lang (chipPos page.year page.month day ev) ev) dayEvents)
                         ++ (if List.length dayEvents > 3 then
                                 [ div [ class "type-caption text-text-muted mx-1" ]
                                     [ text ("+" ++ String.fromInt (List.length dayEvents - 3) ++ t lang CalMore) ]
@@ -357,8 +357,8 @@ chipPos year month day event =
             ChipMiddle
 
 
-viewEventChip : ChipPosition -> Event -> Html Msg
-viewEventChip pos event =
+viewEventChip : Lang -> ChipPosition -> Event -> Html Msg
+viewEventChip lang pos event =
     let
         shapeClass =
             case pos of
@@ -377,10 +377,10 @@ viewEventChip pos event =
         label =
             case pos of
                 ChipSingle ->
-                    Types.displayTitle event
+                    Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event
 
                 ChipStart ->
-                    Types.displayTitle event
+                    Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event
 
                 _ ->
                     "\u{00A0}"
@@ -394,8 +394,8 @@ viewEventChip pos event =
         , onClick (CalendarClickEvent event.id)
         , tabindex 0
         , attribute "role" "button"
-        , attribute "title" (Types.displayTitle event)
-        , attribute "aria-label" (Types.displayTitle event)
+        , attribute "title" (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event)
+        , attribute "aria-label" (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event)
         ]
         [ text label ]
 
@@ -421,7 +421,7 @@ viewListEvent lang event =
         , onClick (CalendarClickEvent event.id)
         ]
         [ p [ class "type-caption text-text-muted" ] [ text (formatEventDateDisplay lang event) ]
-        , h3 [ class "type-h4" ] [ text (Types.displayTitle event) ]
+        , h3 [ class "type-h4" ] [ text (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event) ]
         , case event.location of
             Nothing ->
                 text ""

@@ -12,12 +12,12 @@ module SiteConfig (
     siteTitle,
     siteDescription,
     author,
+    monthNames,
+    weekdayAbbrs,
     appPocketbaseUrl,
     appRefreshLabel,
     appContactEmail,
     appOrganisationUrl,
-    staticsMonths,
-    staticsWeekdays,
     staticsAtTime,
     staticsCancelledPrefix,
     staticsAddToCalendar,
@@ -25,6 +25,7 @@ module SiteConfig (
     staticsCalendarName,
     staticsFeedDescription,
     staticsLogoAlt,
+    staticsQrAlt,
 ) where
 
 -- | The languages the site declares in @[i18n] languages@.
@@ -54,6 +55,16 @@ author :: Lang -> String
 author Fi = "Suomen Palikkaharrastajat ry"
 author En = "Suomen Palikkaharrastajat ry"
 
+-- | Month names, January first.
+monthNames :: Lang -> [String]
+monthNames Fi = ["Tammikuu", "Helmikuu", "Maaliskuu", "Huhtikuu", "Toukokuu", "Kes\228\&kuu", "Hein\228\&kuu", "Elokuu", "Syyskuu", "Lokakuu", "Marraskuu", "Joulukuu"]
+monthNames En = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+-- | Weekday abbreviations, Monday first.
+weekdayAbbrs :: Lang -> [String]
+weekdayAbbrs Fi = ["ma", "ti", "ke", "to", "pe", "la", "su"]
+weekdayAbbrs En = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
 -- | @[app] pocketbase_url@.
 appPocketbaseUrl :: Lang -> String
 appPocketbaseUrl Fi = "https://data.palikkaharrastajat.fi"
@@ -73,16 +84,6 @@ appContactEmail En = "palikkaharrastajatry@outlook.com"
 appOrganisationUrl :: Lang -> String
 appOrganisationUrl Fi = "https://palikkaharrastajat.fi/"
 appOrganisationUrl En = "https://palikkaharrastajat.fi/"
-
--- | @[app.statics] months@.
-staticsMonths :: Lang -> [String]
-staticsMonths Fi = ["Tammikuu", "Helmikuu", "Maaliskuu", "Huhtikuu", "Toukokuu", "Kes\228\&kuu", "Hein\228\&kuu", "Elokuu", "Syyskuu", "Lokakuu", "Marraskuu", "Joulukuu"]
-staticsMonths En = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-
--- | @[app.statics] weekdays@.
-staticsWeekdays :: Lang -> [String]
-staticsWeekdays Fi = ["ma", "ti", "ke", "to", "pe", "la", "su"]
-staticsWeekdays En = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 -- | @[app.statics] at_time@.
 staticsAtTime :: Lang -> String
@@ -118,3 +119,8 @@ staticsFeedDescription En = "Palikkakalenteri of Suomen Palikkaharrastajat ry"
 staticsLogoAlt :: Lang -> String
 staticsLogoAlt Fi = "Suomen Palikkaharrastajat"
 staticsLogoAlt En = "Suomen Palikkaharrastajat"
+
+-- | @[app.statics] qr_alt@.
+staticsQrAlt :: Lang -> String
+staticsQrAlt Fi = "QR-koodi kalenteriin"
+staticsQrAlt En = "QR code to the calendar"

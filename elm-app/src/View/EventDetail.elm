@@ -41,7 +41,7 @@ view lang pbBaseUrl authState _ detPage =
                 (\event ->
                     div []
                         [ div [ class "flex justify-between items-start mb-2" ]
-                            [ h1 [ class "type-h1" ] [ text (Types.displayTitle event) ]
+                            [ h1 [ class "type-h1" ] [ text (Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event) ]
                             , if isAuthenticated authState then
                                 div [ class "flex gap-2 ml-4 shrink-0" ]
                                     [ Button.new

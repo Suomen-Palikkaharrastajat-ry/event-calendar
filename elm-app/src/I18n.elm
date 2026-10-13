@@ -1,4 +1,4 @@
-module I18n exposing (MsgKey(..), dayLabel, kmlDone, locale, stateLabel, submitEventMailto, t)
+module I18n exposing (MsgKey(..), dayLabel, importedCount, kmlDone, locale, stateLabel, submitEventMailto, t)
 
 {-| UI strings per language, keyed by MsgKey, plus event state labels.
 -}
@@ -84,7 +84,6 @@ type MsgKey
     | GeocodingError
     | SaveSuccess
     | DeleteSuccess
-    | ImportSuccess
     | SubmitByEmailText
     | SubmitByEmailLinkText
     | Retry
@@ -120,6 +119,7 @@ type MsgKey
     | TitleUpcoming
     | TitleEvent
     | TitleEditEvent
+    | CancelledPrefix
 
 
 {-| The text of a key in a language.
@@ -359,9 +359,6 @@ fi key =
         DeleteSuccess ->
             "Tapahtuma poistettu"
 
-        ImportSuccess ->
-            "tapahtumat tuotu"
-
         SubmitByEmailText ->
             "Jos et ole Suomen Palikkaharrastajat ry:n jäsen,"
 
@@ -466,6 +463,9 @@ fi key =
 
         TitleEditEvent ->
             "Muokkaa tapahtumaa"
+
+        CancelledPrefix ->
+            "PERUTTU: "
 
 
 en : MsgKey -> String
@@ -693,9 +693,6 @@ en key =
         DeleteSuccess ->
             "Event deleted"
 
-        ImportSuccess ->
-            "events imported"
-
         SubmitByEmailText ->
             "If you are not a member of Suomen Palikkaharrastajat ry,"
 
@@ -801,6 +798,9 @@ en key =
         TitleEditEvent ->
             "Edit event"
 
+        CancelledPrefix ->
+            "CANCELLED: "
+
 
 stateLabel : Lang -> EventState -> String
 stateLabel lang state =
@@ -898,3 +898,21 @@ submitEventMailto lang address =
         ++ Url.percentEncode subject
         ++ "&body="
         ++ Url.percentEncode (String.concat (List.map (\field -> field ++ "\u{000D}\n\u{000D}\n") fields))
+
+
+{-| Message after a KML import of `count` events.
+-}
+importedCount : Lang -> Int -> String
+importedCount lang count =
+    case lang of
+        Fi ->
+            String.fromInt count ++ " tapahtumaa tuotu"
+
+        En ->
+            String.fromInt count
+                ++ (if count == 1 then
+                        " event imported"
+
+                    else
+                        " events imported"
+                   )

@@ -181,10 +181,12 @@ type alias Event =
     }
 
 
-displayTitle : Event -> String
-displayTitle event =
+{-| The title as shown; `cancelledPrefix` is put in front of a cancelled event.
+-}
+displayTitle : String -> Event -> String
+displayTitle cancelledPrefix event =
     if event.cancelled then
-        "PERUTTU: " ++ event.title
+        cancelledPrefix ++ event.title
 
     else
         event.title

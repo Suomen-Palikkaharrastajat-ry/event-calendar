@@ -178,7 +178,7 @@ renderQrCode eventPageUrl =
                 $ do
                     H.img
                         ! A.src (H.toValue uri)
-                        ! A.alt "QR-koodi kalenteriin"
+                        ! A.alt (H.toValue (SC.staticsQrAlt SC.defaultLang))
                         ! A.style "width: 100px; height: 100px;"
                     H.div ! A.class_ "cal-icon" $ mempty
 

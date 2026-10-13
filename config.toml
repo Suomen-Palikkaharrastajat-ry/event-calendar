@@ -35,8 +35,6 @@ organisation_url = "https://palikkaharrastajat.fi/"
 
 # Text of the generated feeds, iCalendar file and HTML export (statics/).
 [app.statics]
-months           = ["Tammikuu", "Helmikuu", "Maaliskuu", "Huhtikuu", "Toukokuu", "Kesäkuu", "Heinäkuu", "Elokuu", "Syyskuu", "Lokakuu", "Marraskuu", "Joulukuu"]
-weekdays         = ["ma", "ti", "ke", "to", "pe", "la", "su"]
 at_time          = " klo "
 cancelled_prefix = "PERUTTU: "
 add_to_calendar  = "Lisää kalenteriin"
@@ -44,13 +42,12 @@ read_more        = "Lue lisää…"
 calendar_name    = "Suomen Palikkaharrastajat ry:n Palikkakalenteri"
 feed_description = "Suomen Palikkaharrastajat ry:n Palikkakalenteri"
 logo_alt         = "Suomen Palikkaharrastajat"
+qr_alt           = "QR-koodi kalenteriin"
 
 [app.en]
 refresh_label = "⟳ Refresh page"
 
 [app.en.statics]
-months           = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-weekdays         = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 at_time          = " at "
 cancelled_prefix = "CANCELLED: "
 add_to_calendar  = "Add to calendar"
@@ -58,3 +55,4 @@ read_more        = "Read more…"
 calendar_name    = "Palikkakalenteri of Suomen Palikkaharrastajat ry"
 feed_description = "Palikkakalenteri of Suomen Palikkaharrastajat ry"
 logo_alt         = "Suomen Palikkaharrastajat"
+qr_alt           = "QR code to the calendar"

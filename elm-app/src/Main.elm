@@ -739,7 +739,7 @@ update msg model =
                                         addToast
                                             { model | page = PageEvents { evPage | kmlImportStatus = KmlDone done } }
                                             ToastSuccess
-                                            (String.fromInt done ++ " tapahtumaa tuotu")
+                                            (I18n.importedCount model.lang done)
                                 in
                                 ( model1, toastCmd )
 
@@ -1558,7 +1558,7 @@ pageTitle lang siteTitle page =
         PageEventDetail _ evPage ->
             case evPage.event of
                 RemoteData.Success event ->
-                    Types.displayTitle event ++ " — " ++ siteTitle
+                    Types.displayTitle (I18n.t lang I18n.CancelledPrefix) event ++ " — " ++ siteTitle
 
                 _ ->
                     titled I18n.TitleEvent
