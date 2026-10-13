@@ -35,6 +35,8 @@ organisation_url = "https://palikkaharrastajat.fi/"
 # Text main.js renders itself.
 [app.strings]
 refresh = "⟳ Päivitä sivu"
+zoom_in  = "Lähennä"
+zoom_out = "Loitonna"
 
 # Text of the generated feeds, iCalendar file and HTML export (statics/).
 [app.statics]
@@ -49,6 +51,8 @@ qr_alt           = "QR-koodi kalenteriin"
 
 [app.en.strings]
 refresh = "⟳ Refresh page"
+zoom_in  = "Zoom in"
+zoom_out = "Zoom out"
 
 [app.en.statics]
 at_time          = " at "

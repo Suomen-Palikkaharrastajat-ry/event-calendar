@@ -147,7 +147,11 @@ app.ports.initMap.subscribe(({ containerId, lat, lon, zoom, markerLat, markerLon
       delete maps[containerId]
     }
 
-    const map = L.map(containerId).setView([lat, lon], zoom)
+    // The zoom buttons are named in the language being shown, not Leaflet's English.
+    const map = L.map(containerId, { zoomControl: false }).setView([lat, lon], zoom)
+    L.control
+      .zoom({ zoomInTitle: settings.strings.zoom_in, zoomOutTitle: settings.strings.zoom_out })
+      .addTo(map)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map)
