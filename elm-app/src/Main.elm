@@ -284,7 +284,7 @@ update msg model =
                         ( page, cmd ) =
                             initPage model.lang model.pbBaseUrl model.key route model.authState url model.now
                     in
-                    ( { model | url = url, page = page, menuOpen = False }, Cmd.batch [ mapCleanupCmd, cmd ] )
+                    ( { model | url = url, page = page, menuOpen = False }, Cmd.batch [ mapCleanupCmd, cmd, menuClosedCmd model ] )
 
         LinkClicked urlRequest ->
             case urlRequest of
@@ -310,7 +310,8 @@ update msg model =
         LogOut ->
             ( { model | authState = NotAuthenticated, menuOpen = False }
             , Cmd.batch
-                [ Ports.clearAuthToken ()
+                [ menuClosedCmd model
+                , Ports.clearAuthToken ()
                 , Nav.pushUrl model.key (toHref (RouteCalendar Nothing))
                 ]
             )
@@ -1487,6 +1488,19 @@ view model =
                     [ viewPage model ]
             }
     }
+
+
+{-| Returns focus to the menu button when a message closes an open menu as a
+side effect (navigation, signing out). Otherwise focus is left inside the
+closed, inert drawer and drops to the top of the page.
+-}
+menuClosedCmd : Model -> Cmd Msg
+menuClosedCmd model =
+    if model.menuOpen then
+        Layout.onMenuClosed CalendarNoOp
+
+    else
+        Cmd.none
 
 
 activeMenuRoute : Url -> Maybe Route

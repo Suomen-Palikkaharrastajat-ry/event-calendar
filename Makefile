@@ -36,7 +36,8 @@ shell: vendor ## Enter devenv shell
 # The shared targets `site-config` and `site-config-check` come from the hub.
 SITE_CONFIG_HASKELL := statics/src/SiteConfig.hs
 SITE_CONFIG_I18N := elm-app/src elm-app/main.js statics/src statics/app
-include vendor/master-builder/mk/site-config.mk
+# `-include`: the file only exists once `make vendor` has fetched the submodule.
+-include vendor/master-builder/mk/site-config.mk
 
 # ── Elm frontend ──────────────────────────────────────────────────────────────
 
