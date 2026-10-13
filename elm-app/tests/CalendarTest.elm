@@ -58,6 +58,15 @@ suite =
                         }
                         |> formatEventDateDisplay Lang.Fi
                         |> Expect.equal "ti 5.5. klo 14.00–17.00"
+            , test "timed same-day in English" <|
+                \_ ->
+                    makeEvent
+                        { start = "2026-05-05T11:00:00.000Z"
+                        , end = Just "2026-05-05T14:00:00.000Z"
+                        , allDay = False
+                        }
+                        |> formatEventDateDisplay Lang.En
+                        |> Expect.equal "Tue 5/5 at 14:00–17:00"
             , test "all-day single (no end): shows weekday and date" <|
                 \_ ->
                     -- 2026-06-15T21:00Z → June 16 00:00 Helsinki (EEST), Tuesday

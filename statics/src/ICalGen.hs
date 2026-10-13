@@ -10,6 +10,7 @@ module ICalGen (
     generateEventIcs,
 ) where
 
+import Data.Char (toUpper)
 import qualified Config
 import qualified Data.Text as T
 import Data.Time (LocalTime (..), UTCTime, ZonedTime (..), getCurrentTime)
@@ -150,7 +151,7 @@ wrapCalendar innerLines =
     renderLines $
         [ "BEGIN:VCALENDAR"
         , "VERSION:2.0"
-        , "PRODID:-//" ++ escapeIcal (SC.author SC.defaultLang) ++ "//" ++ escapeIcal (SC.siteTitle SC.defaultLang) ++ "//FI"
+        , "PRODID:-//" ++ escapeIcal (SC.author SC.defaultLang) ++ "//" ++ escapeIcal (SC.siteTitle SC.defaultLang) ++ "//" ++ map toUpper (SC.langCode SC.defaultLang)
         , "X-WR-CALNAME:" ++ escapeIcal (SC.staticsCalendarName SC.defaultLang)
         , "X-WR-TIMEZONE:Europe/Helsinki"
         ]

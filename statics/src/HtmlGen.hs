@@ -235,7 +235,7 @@ generateCalendarHtml events = do
     -- Pre-generate per-event ICS strings (needed for inline data URIs)
     icsList <- mapM (\ev -> (,) (PB.eventId ev) <$> ICalGen.generateEventIcs ev) events
     let grouped = groupEventsByMonth events
-    return $ renderHtml $ H.docTypeHtml ! A.lang "fi" $ do
+    return $ renderHtml $ H.docTypeHtml ! A.lang (H.toValue (SC.langCode SC.defaultLang)) $ do
         H.head $ do
             H.meta ! A.charset "UTF-8"
             H.title (H.toHtml (SC.siteTitle SC.defaultLang))
@@ -257,7 +257,7 @@ generateEventHtml :: PB.Event -> IO String
 generateEventHtml ev = do
     ics <- ICalGen.generateEventIcs ev
     let dateStr = DU.formatEventDate ev
-    return $ renderHtml $ H.docTypeHtml ! A.lang "fi" $ do
+    return $ renderHtml $ H.docTypeHtml ! A.lang (H.toValue (SC.langCode SC.defaultLang)) $ do
         H.head $ do
             H.meta ! A.charset "UTF-8"
             H.meta ! A.name "viewport" ! A.content "width=device-width, initial-scale=1.0"

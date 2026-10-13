@@ -110,33 +110,37 @@ agendaWeeks year month events =
         mondays
 
 
-{-| Heading text for a week, e.g. "Viikko 42 · 12.–18.10.".
+{-| Heading text for a week, e.g. "Viikko 42 · 12.–18.10." or
+"Week 42 · 12–18/10".
 -}
 weekLabel : Lang -> AgendaWeek -> String
 weekLabel lang week =
     let
+        locale =
+            I18n.locale lang
+
         ( _, fromMonth, fromDay ) =
             week.monday
 
         ( _, toMonth, toDay ) =
             week.sunday
 
+        dayAndMonth day month =
+            String.fromInt day ++ locale.dateSeparator ++ String.fromInt month ++ locale.shortDateSuffix
+
         from =
             if fromMonth == toMonth then
-                String.fromInt fromDay ++ "."
+                String.fromInt fromDay ++ locale.shortDateSuffix
 
             else
-                String.fromInt fromDay ++ "." ++ String.fromInt fromMonth ++ "."
+                dayAndMonth fromDay fromMonth
     in
     t lang CalWeek
         ++ String.fromInt week.weekNumber
         ++ " · "
         ++ from
         ++ "–"
-        ++ String.fromInt toDay
-        ++ "."
-        ++ String.fromInt toMonth
-        ++ "."
+        ++ dayAndMonth toDay toMonth
 
 
 {-| ISO week number of a calendar date.

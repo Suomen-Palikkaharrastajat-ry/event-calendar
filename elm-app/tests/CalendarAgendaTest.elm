@@ -240,7 +240,18 @@ suite =
                         |> Query.has [ Selector.text "Ei tapahtumia tällä kuulla" ]
             ]
         , describe "language-specific phrases"
-            [ test "day label is grammatical in both languages" <|
+            [ test "week label follows the language's date conventions" <|
+                \_ ->
+                    let
+                        week =
+                            { weekNumber = 42, monday = ( 2026, 10, 12 ), sunday = ( 2026, 10, 18 ), events = [] }
+
+                        acrossMonths =
+                            { weekNumber = 40, monday = ( 2026, 9, 28 ), sunday = ( 2026, 10, 4 ), events = [] }
+                    in
+                    [ weekLabel Lang.Fi week, weekLabel Lang.En week, weekLabel Lang.Fi acrossMonths, weekLabel Lang.En acrossMonths ]
+                        |> Expect.equal [ "Viikko 42 · 12.–18.10.", "Week 42 · 12–18/10", "Viikko 40 · 28.9.–4.10.", "Week 40 · 28/9–4/10" ]
+            , test "day label is grammatical in both languages" <|
                 \_ ->
                     ( I18n.dayLabel Lang.Fi { day = 17, month = 10, count = 2 }
                     , I18n.dayLabel Lang.En { day = 17, month = 10, count = 1 }

@@ -116,7 +116,7 @@ All commands are defined in the `Makefile`. Run them from the repo root:
 - `PageEventList` is the public events list page; the calendar has no list-view toggle.
 - Maps use **Leaflet** via Elm ports (`elm-app/src/Ports.elm`). Geocoding uses Nominatim.
 - Auth is OAuth2/OIDC via PocketBase. `requireAuth` takes a `Browser.Navigation.Key`.
-- PocketBase URL is compiled in via `elm-app/src/Api.elm`. For local dev, set `VITE_POCKETBASE_URL`.
+- PocketBase URL comes from `[app] pocketbase_url` in `config.toml`. For local dev, set `VITE_POCKETBASE_URL`.
 - `RemoteData` (krisajenkins/remotedata) is used for async API state.
 - Pagination uses a custom `PbList a` wrapper (not plain `List a`).
 
@@ -235,3 +235,9 @@ Note: `Component.Alert`, `Component.Dialog`, and `Component.Toast` each depend o
 - The backend is PocketBase at `https://data.palikkaharrastajat.fi`. Ensure PocketBase collection rules are correctly configured to prevent unauthorized reads/writes.
 - Authentication is OAuth2/OIDC via PocketBase. Auth logic lives in `elm-app/src/Auth.elm`.
 - When modifying auth or data-access logic, run `make test` and manually verify the E2E checklist above.
+
+## Configuration and translations
+
+- `config.toml` is the single source of the site URL, title, description, languages and `[app]` settings (see `vendor/master-builder/docs/site-config.md`). After editing it run `make site-config` and commit the regenerated `elm-app/tests/SiteFixture.elm` and `statics/src/SiteConfig.hs`; `make site-config-check` fails in CI otherwise.
+- No display text in views, `main.js` or the Haskell generators: put it in `elm-app/src/I18n.elm` (Finnish and English) or in `config.toml`. `make site-config-check` flags Finnish text elsewhere.
+- Page chrome comes from the hub's `Component.Layout`; do not assemble header, drawer or footer here.

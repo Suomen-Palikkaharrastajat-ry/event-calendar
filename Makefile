@@ -123,7 +123,7 @@ statics-check: ## Lint Haskell source (hlint)
 
 .PHONY: statics-format
 statics-format: ## Auto-format Haskell source (fourmolu)
-	find statics/src statics/app -name '*.hs' | xargs fourmolu --mode inplace
+	find statics/src statics/app -name '*.hs' ! -name SiteConfig.hs | xargs fourmolu --mode inplace
 
 .PHONY: repl
 repl: ## Start the Haskell REPL
