@@ -23,6 +23,7 @@ statics/statics
 # --- Elm build artifacts ---
 elm-app/elm-stuff/
 elm-app/.elm-tailwind/
+elm-app/.vite/
 /dist/
 
 # --- Generated static files ---
@@ -51,3 +52,6 @@ Thumbs.db
 .claude/
 TODO*
 review/elm-stuff/
+
+# --- Logs / local test artifacts ---
+*.log
