@@ -28,7 +28,7 @@ module SiteConfig (
     staticsQrAlt,
 ) where
 
--- | The languages the site declares in @[i18n] languages@.
+-- | The languages the site declares in @[i18n] languages@, hidden ones included.
 data Lang = Fi | En
     deriving (Eq, Show)
 

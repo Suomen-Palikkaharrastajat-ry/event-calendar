@@ -6,23 +6,24 @@
 
 [i18n]
 default   = "fi"
-languages = ["fi"]
+languages = ["fi", "en"]
+hidden    = ["en"]
 
 [site]
 url         = "https://kalenteri.palikkaharrastajat.fi"
 title       = "Palikkakalenteri"
 description = "Suomen Palikkaharrastajat ry:n ylläpitämä tapahtumakalenteri"
 
-# [site.en]
-# title       = "Palikkakalenteri"
-# description = "Event calendar maintained by Suomen Palikkaharrastajat ry"
+[site.en]
+title       = "Palikkakalenteri"
+description = "Event calendar maintained by Suomen Palikkaharrastajat ry"
 
 [pwa]
 start_url   = "/#/events"
 description = "Suomen Palikkaharrastajat ry:n tapahtumakalenteri LEGO-harrastajille."
 
-# [pwa.en]
-# description = "Event calendar of Suomen Palikkaharrastajat ry for LEGO enthusiasts."
+[pwa.en]
+description = "Event calendar of Suomen Palikkaharrastajat ry for LEGO enthusiasts."
 
 [navbar]
 variant = "app"
@@ -49,17 +50,17 @@ feed_description = "Suomen Palikkaharrastajat ry:n Palikkakalenteri"
 logo_alt         = "Suomen Palikkaharrastajat"
 qr_alt           = "QR-koodi kalenteriin"
 
-# [app.en.strings]
-# refresh = "⟳ Refresh page"
-# zoom_in  = "Zoom in"
-# zoom_out = "Zoom out"
+[app.en.strings]
+refresh = "⟳ Refresh page"
+zoom_in  = "Zoom in"
+zoom_out = "Zoom out"
 
-# [app.en.statics]
-# at_time          = " at "
-# cancelled_prefix = "CANCELLED: "
-# add_to_calendar  = "Add to calendar"
-# read_more        = "Read more…"
-# calendar_name    = "Palikkakalenteri of Suomen Palikkaharrastajat ry"
-# feed_description = "Palikkakalenteri of Suomen Palikkaharrastajat ry"
-# logo_alt         = "Suomen Palikkaharrastajat"
-# qr_alt           = "QR code to the calendar"
+[app.en.statics]
+at_time          = " at "
+cancelled_prefix = "CANCELLED: "
+add_to_calendar  = "Add to calendar"
+read_more        = "Read more…"
+calendar_name    = "Palikkakalenteri of Suomen Palikkaharrastajat ry"
+feed_description = "Palikkakalenteri of Suomen Palikkaharrastajat ry"
+logo_alt         = "Suomen Palikkaharrastajat"
+qr_alt           = "QR code to the calendar"
