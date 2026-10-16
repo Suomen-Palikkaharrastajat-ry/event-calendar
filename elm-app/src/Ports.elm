@@ -1,20 +1,12 @@
 port module Ports exposing
-    ( callbackParams
-    , clearAuthToken
+    ( clearAuthToken
     , destroyMap
-      -- Map (inbound)
-    , getCallbackParams
-      -- Auth (inbound)
     , initMap
-    , -- Auth (outbound)
-      initiateOAuth
+    , initiateOAuth
     , kmlParsed
     , mapMarkerMoved
-      -- KML (outbound)
     , oauthPopupResult
-      -- Map (outbound)
     , parseKml
-      -- KML (inbound)
     , reportError
     , saveAuthToken
     , setDocumentLang
@@ -53,16 +45,6 @@ port saveAuthToken : { token : String, model : String } -> Cmd msg
 {-| Clear auth token + user model from localStorage.
 -}
 port clearAuthToken : () -> Cmd msg
-
-
-{-| Request stored OAuth callback params (codeVerifier, state) from sessionStorage.
--}
-port getCallbackParams : () -> Cmd msg
-
-
-{-| Receive stored callback params from sessionStorage.
--}
-port callbackParams : ({ codeVerifier : String, state : String } -> msg) -> Sub msg
 
 
 {-| Receive OAuth2 popup result from PocketBase SDK (token + user model JSON).

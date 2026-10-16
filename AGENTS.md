@@ -235,7 +235,7 @@ Note: `Component.Alert`, `Component.Dialog`, and `Component.Toast` each depend o
 ## Security Considerations
 
 - The backend is PocketBase at `https://data.palikkaharrastajat.fi`. Ensure PocketBase collection rules are correctly configured to prevent unauthorized reads/writes.
-- Authentication is OAuth2/OIDC via PocketBase. Auth logic lives in the hub's `PocketBaseAuth` (`vendor/master-builder/packages/app-toolkit/src/PocketBaseAuth.elm`) and its sign-in script `js/pocketbase-auth.js` (start-up token refresh, OAuth popup, token storage); `elm-app/main.js` only wires them. Sign-in is the PocketBase popup flow (`authWithOAuth2`, returning to PocketBase's `/api/oauth2-redirect`); the app's `#/callback` route and `getCallbackParams`/`callbackParams` ports are legacy and unused.
+- Authentication is OAuth2/OIDC via PocketBase. Auth logic lives in the hub's `PocketBaseAuth` (`vendor/master-builder/packages/app-toolkit/src/PocketBaseAuth.elm`) and its sign-in script `js/pocketbase-auth.js` (start-up token refresh, OAuth popup, token storage); `elm-app/main.js` only wires them. Sign-in is the PocketBase popup flow (`authWithOAuth2`, returning to PocketBase's `/api/oauth2-redirect`). The app has no `#/callback` route: such a URL is treated as not found.
 - When modifying auth or data-access logic, run `make test` and manually verify the E2E checklist above.
 
 ## Configuration and translations

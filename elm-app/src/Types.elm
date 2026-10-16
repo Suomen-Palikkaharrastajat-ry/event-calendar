@@ -37,7 +37,7 @@ import File exposing (File)
 import Http
 import Json.Decode as Json
 import Lang exposing (Lang)
-import PocketBaseAuth exposing (AuthState, AuthUser)
+import PocketBaseAuth exposing (AuthState)
 import RemoteData exposing (RemoteData)
 import Route exposing (Route)
 import SiteSettings exposing (SiteSettings)
@@ -315,7 +315,6 @@ type Page
     | PageEventList EventListPage
     | PageEventDetail String EventDetailPage
     | PageEventEdit String EventEditPage
-    | PageAuthCallback
     | PageNotFound
     | PageLoading
 
@@ -386,9 +385,7 @@ type
     | LinkClicked Browser.UrlRequest
     | NavigateTo Route
       -- Auth
-    | GotAuthResult (Result Http.Error AuthUser)
     | OAuthPopupResult { token : String, model : String }
-    | AuthCallbackReceived String String
     | LogOut
     | LoginClicked
       -- Event list page (public)

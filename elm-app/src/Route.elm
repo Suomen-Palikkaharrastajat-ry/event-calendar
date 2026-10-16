@@ -14,7 +14,6 @@ type Route
     | RouteEventNew
     | RouteEventDetail String
     | RouteEventEdit String
-    | RouteAuthCallback
     | RouteNotFound
 
 
@@ -33,8 +32,6 @@ routeParser =
             (Url.Parser.s "events" </> Url.Parser.string </> Url.Parser.s "edit")
         , Url.Parser.map RouteEventDetail
             (Url.Parser.s "events" </> Url.Parser.string)
-        , Url.Parser.map RouteAuthCallback
-            (Url.Parser.s "callback")
         ]
 
 
@@ -95,9 +92,6 @@ toHref route =
 
                 RouteEventEdit id ->
                     "/events/" ++ id ++ "/edit"
-
-                RouteAuthCallback ->
-                    "/callback"
 
                 RouteNotFound ->
                     "/404"

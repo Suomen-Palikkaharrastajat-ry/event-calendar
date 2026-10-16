@@ -11,7 +11,6 @@ Pages, routes, and the modules that handle them:
     /#/events/new       PageEvents         Page.Events          View.Events
     /#/events/:id       PageEventDetail    Page.EventDetail     View.EventDetail
     /#/events/:id/edit  PageEventEdit      Page.EventEdit       View.EventForm
-    /#/callback         PageAuthCallback   (inline in Main)     (inline in Main)
     (not found)         PageNotFound       —                    (inline in Main)
 
 Update logic lives in this file's `update` function. Page-specific helpers
@@ -227,9 +226,6 @@ initPage lang pbBaseUrl key route authState url now =
                         ]
                     )
 
-        RouteAuthCallback ->
-            ( PageAuthCallback, Ports.getCallbackParams () )
-
         RouteNotFound ->
             ( PageNotFound, Cmd.none )
 
@@ -311,63 +307,6 @@ update msg model =
                 [ menuClosedCmd model
                 , Ports.clearAuthToken ()
                 , Nav.pushUrl model.key (toHref (RouteCalendar Nothing))
-                ]
-            )
-
-        AuthCallbackReceived codeVerifier providerState ->
-            let
-                query =
-                    PocketBaseAuth.callbackQuery model.url
-            in
-            case ( query.code, query.state ) of
-                ( Just code, Just stateParam ) ->
-                    if stateParam /= providerState then
-                        let
-                            ( model1, toastCmd ) =
-                                addToast model ToastError (t model.lang I18n.LoginFailed)
-                        in
-                        ( model1
-                        , Cmd.batch
-                            [ Nav.pushUrl model.key (toHref (RouteCalendar Nothing))
-                            , toastCmd
-                            ]
-                        )
-
-                    else
-                        ( model
-                        , PocketBaseAuth.fetchOAuthUser model.pbBaseUrl
-                            code
-                            codeVerifier
-                            (PocketBaseAuth.callbackRedirectUrl model.url)
-                            providerState
-                            GotAuthResult
-                        )
-
-                _ ->
-                    ( model, Nav.pushUrl model.key (toHref (RouteCalendar Nothing)) )
-
-        GotAuthResult (Ok user) ->
-            let
-                ( model1, toastCmd ) =
-                    addToast { model | authState = Authenticated user } ToastSuccess (t model.lang I18n.LoginSuccess)
-            in
-            ( model1
-            , Cmd.batch
-                [ Ports.saveAuthToken { token = user.token, model = PocketBaseAuth.authUserModelJson user }
-                , Nav.pushUrl model.key (toHref RouteEvents)
-                , toastCmd
-                ]
-            )
-
-        GotAuthResult (Err _) ->
-            let
-                ( model1, toastCmd ) =
-                    addToast model ToastError (t model.lang I18n.LoginFailed)
-            in
-            ( model1
-            , Cmd.batch
-                [ Nav.pushUrl model.key (toHref (RouteCalendar Nothing))
-                , toastCmd
                 ]
             )
 
@@ -1489,9 +1428,6 @@ viewPage model =
         PageLoading ->
             div [ class "p-8 text-center text-text-muted" ] [ text (t model.lang I18n.PageLoadingText) ]
 
-        PageAuthCallback ->
-            div [ class "p-8 text-center text-text-muted" ] [ text (t model.lang I18n.PageSigningIn) ]
-
         PageNotFound ->
             div [ class "p-8 text-center" ]
                 [ div [ class "type-h1 mb-2" ] [ text "404" ]
@@ -1525,9 +1461,6 @@ pageTitle lang siteTitle page =
     case page of
         PageLoading ->
             titled I18n.PageLoadingText
-
-        PageAuthCallback ->
-            titled I18n.TitleLogin
 
         PageNotFound ->
             titled I18n.PageNotFoundText
@@ -1580,9 +1513,7 @@ subscriptions model =
                         Sub.none
     in
     Sub.batch
-        [ Ports.callbackParams
-            (\params -> AuthCallbackReceived params.codeVerifier params.state)
-        , Ports.oauthPopupResult OAuthPopupResult
+        [ Ports.oauthPopupResult OAuthPopupResult
         , Ports.mapMarkerMoved (\pos -> MapMarkerMoved pos.lat pos.lon)
         , Ports.kmlParsed EventsKmlParsed
         , keyboardSub

@@ -87,10 +87,8 @@ type MsgKey
     | EventDeleted
     | DetailDeleteQuestion
     | PageLoadingText
-    | PageSigningIn
     | PageNotFoundText
     | BackToCalendar
-    | TitleLogin
     | TitleUpcoming
     | TitleEvent
     | TitleEditEvent
@@ -340,17 +338,11 @@ fi key =
         PageLoadingText ->
             "Ladataan..."
 
-        PageSigningIn ->
-            "Kirjaudutaan..."
-
         PageNotFoundText ->
             "Sivua ei löydy"
 
         BackToCalendar ->
             "Takaisin kalenteriin"
-
-        TitleLogin ->
-            "Kirjautuminen"
 
         TitleUpcoming ->
             "Tulevat tapahtumat"
@@ -596,17 +588,11 @@ en key =
         PageLoadingText ->
             "Loading..."
 
-        PageSigningIn ->
-            "Signing in..."
-
         PageNotFoundText ->
             "Page not found"
 
         BackToCalendar ->
             "Back to the calendar"
-
-        TitleLogin ->
-            "Sign in"
 
         TitleUpcoming ->
             "Upcoming events"
