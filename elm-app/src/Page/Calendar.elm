@@ -14,10 +14,11 @@ import CalendarAgenda
 import FinnishTime
 import Html exposing (Html)
 import Lang exposing (Lang)
+import PocketBaseAuth exposing (AuthState)
 import RemoteData
 import Task
 import Time
-import Types exposing (AuthState, CalendarPage, CalendarViewMode(..), Msg(..))
+import Types exposing (CalendarPage, CalendarViewMode(..), Msg(..))
 import View.Calendar
 
 

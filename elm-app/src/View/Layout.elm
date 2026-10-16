@@ -13,9 +13,10 @@ import Html exposing (Html, div, nav, span, text)
 import Html.Attributes exposing (attribute, class)
 import I18n exposing (MsgKey(..), t)
 import Lang exposing (Lang)
+import PocketBaseAuth exposing (AuthState(..), AuthUser)
 import Route exposing (Route(..), toHref)
 import SiteSettings exposing (SiteSettings)
-import Types exposing (AuthState(..), AuthUser, Msg(..), Toast, ToastKind(..))
+import Types exposing (Msg(..), Toast, ToastKind(..))
 import UiStrings exposing (UiStrings)
 
 

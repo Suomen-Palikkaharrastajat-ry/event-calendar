@@ -11,7 +11,6 @@ Pages, routes, and the modules that handle them:
     /#/events/new       PageEvents         Page.Events          View.Events
     /#/events/:id       PageEventDetail    Page.EventDetail     View.EventDetail
     /#/events/:id/edit  PageEventEdit      Page.EventEdit       View.EventForm
-    /#/callback         PageAuthCallback   (inline in Main)     (inline in Main)
     (not found)         PageNotFound       —                    (inline in Main)
 
 Update logic lives in this file's `update` function. Page-specific helpers
@@ -21,7 +20,6 @@ Page module or modify the model directly.
 -}
 
 import Api
-import Auth
 import Browser
 import Browser.Events
 import Browser.Navigation as Nav
@@ -42,6 +40,7 @@ import Page.Calendar
 import Page.EventDetail
 import Page.EventEdit
 import Page.Events
+import PocketBaseAuth exposing (AuthState(..), getToken)
 import Ports
 import Process
 import RemoteData exposing (RemoteData(..))
@@ -51,8 +50,7 @@ import Task
 import Time
 import Types
     exposing
-        ( AuthState(..)
-        , EventFormData
+        ( EventFormData
         , EventListPage
         , Flags
         , KmlImportStatus(..)
@@ -63,7 +61,6 @@ import Types
         , ToastKind(..)
         , emptyEventFormData
         , emptyPbList
-        , getToken
         )
 import Url exposing (Url)
 import View.EventDetail
@@ -115,7 +112,7 @@ init flags url key =
             parseUrl url
 
         authState =
-            Auth.restoreAuthFromFlags flags.authToken flags.authModel
+            PocketBaseAuth.restoreAuthFromFlags flags.authToken flags.authModel
 
         now =
             Time.millisToPosix flags.now
@@ -160,7 +157,7 @@ init flags url key =
     )
 
 
-initPage : Lang -> String -> Nav.Key -> Route -> Types.AuthState -> Url -> Time.Posix -> ( Page, Cmd Msg )
+initPage : Lang -> String -> Nav.Key -> Route -> AuthState -> Url -> Time.Posix -> ( Page, Cmd Msg )
 initPage lang pbBaseUrl key route authState url now =
     case route of
         RouteCalendar maybeDate ->
@@ -228,9 +225,6 @@ initPage lang pbBaseUrl key route authState url now =
                         , Task.perform identity (Task.succeed (AddToast ToastInfo (t lang I18n.LoginRequired)))
                         ]
                     )
-
-        RouteAuthCallback ->
-            ( PageAuthCallback, Ports.getCallbackParams () )
 
         RouteNotFound ->
             ( PageNotFound, Cmd.none )
@@ -316,97 +310,38 @@ update msg model =
                 ]
             )
 
-        GotOAuthUrl _ ->
-            ( model, Cmd.none )
-
-        ReceivedAuthToken _ ->
-            ( model, Cmd.none )
-
-        AuthCallbackReceived codeVerifier _ ->
-            let
-                code =
-                    extractCode model.url
-            in
-            case code of
-                Just c ->
-                    ( model, Auth.fetchOAuthToken model.pbBaseUrl c codeVerifier "" )
+        OAuthPopupResult data ->
+            case PocketBaseAuth.userFromPopupResult data of
+                Just user ->
+                    let
+                        ( model1, toastCmd ) =
+                            addToast
+                                { model | authState = Authenticated user }
+                                ToastSuccess
+                                (t model.lang I18n.LoginSuccess)
+                    in
+                    ( model1
+                    , Cmd.batch
+                        [ Ports.saveAuthToken { token = user.token, model = PocketBaseAuth.authUserModelJson user }
+                        , Nav.pushUrl model.key (toHref RouteEvents)
+                        , toastCmd
+                        ]
+                    )
 
                 Nothing ->
-                    ( model, Nav.pushUrl model.key (toHref (RouteCalendar Nothing)) )
-
-        GotAuthResult (Ok user) ->
-            let
-                modelJson =
-                    "{\"id\":\""
-                        ++ user.id
-                        ++ "\",\"name\":\""
-                        ++ user.name
-                        ++ "\",\"email\":\""
-                        ++ user.email
-                        ++ "\"}"
-
-                ( model1, toastCmd ) =
-                    addToast { model | authState = Authenticated user } ToastSuccess (t model.lang I18n.LoginSuccess)
-            in
-            ( model1
-            , Cmd.batch
-                [ Ports.saveAuthToken { token = user.token, model = modelJson }
-                , Nav.pushUrl model.key (toHref RouteEvents)
-                , toastCmd
-                ]
-            )
-
-        GotAuthResult (Err _) ->
-            let
-                ( model1, toastCmd ) =
-                    addToast model ToastError (t model.lang I18n.LoginFailed)
-            in
-            ( model1
-            , Cmd.batch
-                [ Nav.pushUrl model.key (toHref (RouteCalendar Nothing))
-                , toastCmd
-                ]
-            )
-
-        OAuthPopupResult data ->
-            if String.isEmpty data.token then
-                let
-                    ( model1, toastCmd ) =
-                        addToast model ToastError (t model.lang I18n.LoginFailed)
-                in
-                ( model1
-                , Cmd.batch
-                    [ Nav.pushUrl model.key (toHref (RouteCalendar Nothing))
-                    , toastCmd
-                    ]
-                )
-
-            else
-                case Json.decodeString Auth.decodeAuthUser data.model of
-                    Ok user ->
-                        let
-                            authedUser =
-                                { user | token = data.token }
-
-                            ( model1, toastCmd ) =
-                                addToast
-                                    { model | authState = Authenticated authedUser }
-                                    ToastSuccess
-                                    (t model.lang I18n.LoginSuccess)
-                        in
+                    let
+                        ( model1, toastCmd ) =
+                            addToast model ToastError (t model.lang I18n.LoginFailed)
+                    in
+                    if String.isEmpty data.token then
                         ( model1
                         , Cmd.batch
-                            [ Ports.saveAuthToken { token = data.token, model = data.model }
-                            , Nav.pushUrl model.key (toHref RouteEvents)
+                            [ Nav.pushUrl model.key (toHref (RouteCalendar Nothing))
                             , toastCmd
                             ]
                         )
 
-                    Err _ ->
-                        let
-                            ( model1, toastCmd ) =
-                                addToast model ToastError (t model.lang I18n.LoginFailed)
-                        in
+                    else
                         ( model1, toastCmd )
 
         -- ── Event list page ──────────────────────────────────────────────────────
@@ -1347,38 +1282,6 @@ addToast model kind message =
 
 
 
--- URL HELPERS
-
-
-extractCode : Url -> Maybe String
-extractCode url =
-    let
-        fragment =
-            Maybe.withDefault "" url.fragment
-
-        queryStr =
-            case String.split "?" fragment of
-                _ :: q :: _ ->
-                    q
-
-                _ ->
-                    ""
-    in
-    queryStr
-        |> String.split "&"
-        |> List.filterMap
-            (\pair ->
-                case String.split "=" pair of
-                    "code" :: rest ->
-                        Just (String.join "=" rest)
-
-                    _ ->
-                        Nothing
-            )
-        |> List.head
-
-
-
 -- DATA HELPERS
 
 
@@ -1525,9 +1428,6 @@ viewPage model =
         PageLoading ->
             div [ class "p-8 text-center text-text-muted" ] [ text (t model.lang I18n.PageLoadingText) ]
 
-        PageAuthCallback ->
-            div [ class "p-8 text-center text-text-muted" ] [ text (t model.lang I18n.PageSigningIn) ]
-
         PageNotFound ->
             div [ class "p-8 text-center" ]
                 [ div [ class "type-h1 mb-2" ] [ text "404" ]
@@ -1561,9 +1461,6 @@ pageTitle lang siteTitle page =
     case page of
         PageLoading ->
             titled I18n.PageLoadingText
-
-        PageAuthCallback ->
-            titled I18n.TitleLogin
 
         PageNotFound ->
             titled I18n.PageNotFoundText
@@ -1616,9 +1513,7 @@ subscriptions model =
                         Sub.none
     in
     Sub.batch
-        [ Ports.callbackParams
-            (\params -> AuthCallbackReceived params.codeVerifier params.state)
-        , Ports.oauthPopupResult OAuthPopupResult
+        [ Ports.oauthPopupResult OAuthPopupResult
         , Ports.mapMarkerMoved (\pos -> MapMarkerMoved pos.lat pos.lon)
         , Ports.kmlParsed EventsKmlParsed
         , keyboardSub

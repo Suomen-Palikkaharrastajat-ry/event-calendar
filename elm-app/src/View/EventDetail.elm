@@ -15,9 +15,10 @@ import Html.Attributes exposing (alt, class, href, src, target)
 import Html.Events exposing (onClick)
 import I18n exposing (MsgKey(..), t)
 import Lang exposing (Lang)
+import PocketBaseAuth exposing (AuthState(..), isAuthenticated)
 import RemoteData exposing (RemoteData)
 import Route exposing (Route(..), toHref)
-import Types exposing (AuthState(..), EventDetailPage, Msg(..), isAuthenticated)
+import Types exposing (EventDetailPage, Msg(..))
 import View.Icons exposing (featherIcon)
 
 

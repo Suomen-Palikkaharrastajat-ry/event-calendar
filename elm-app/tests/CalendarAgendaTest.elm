@@ -9,12 +9,13 @@ import Expect
 import Html.Attributes as Attr
 import I18n
 import Lang
+import PocketBaseAuth exposing (AuthState(..))
 import RemoteData
 import Test exposing (Test, describe, test)
 import Test.Html.Event as Event
 import Test.Html.Query as Query
 import Test.Html.Selector as Selector
-import Types exposing (AuthState(..), CalendarPage, CalendarViewMode(..), Event, EventState(..), Msg(..))
+import Types exposing (CalendarPage, CalendarViewMode(..), Event, EventState(..), Msg(..))
 import View.Calendar
 
 

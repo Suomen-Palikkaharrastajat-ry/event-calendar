@@ -21,7 +21,8 @@ import I18n exposing (MsgKey(..), t)
 import Json.Decode as Json exposing (Decoder)
 import Json.Encode as Encode
 import Lang exposing (Lang)
-import Types exposing (AuthState(..), Event, EventFormData, EventState, GeoPoint, Msg(..), PbList, eventStateFromString, eventStateToString)
+import PocketBaseAuth exposing (AuthState(..))
+import Types exposing (Event, EventFormData, EventState, GeoPoint, Msg(..), PbList, eventStateFromString, eventStateToString)
 import Url
 
 

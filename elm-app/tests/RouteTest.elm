@@ -49,10 +49,10 @@ suite =
                 \_ ->
                     parse "#/events/abc123/edit"
                         |> Expect.equal (RouteEventEdit "abc123")
-            , test "/callback → RouteAuthCallback" <|
+            , test "/callback → RouteNotFound (legacy OAuth redirect)" <|
                 \_ ->
                     parse "#/callback"
-                        |> Expect.equal RouteAuthCallback
+                        |> Expect.equal RouteNotFound
             , test "/nonexistent → RouteNotFound" <|
                 \_ ->
                     parse "#/nonexistent/path/that/does/not/exist"
