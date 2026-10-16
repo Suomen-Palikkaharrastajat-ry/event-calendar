@@ -365,10 +365,7 @@ update msg model =
                     updateCalendarPage msg model
 
                 dateStr =
-                    String.fromInt year
-                        ++ "-"
-                        ++ String.padLeft 2 '0' (String.fromInt month)
-                        ++ "-01"
+                    Page.Calendar.yearMonthToDateQuery year month
             in
             ( model1, Cmd.batch [ calCmd, Nav.replaceUrl model.key (toHref (RouteCalendar (Just dateStr))) ] )
 
@@ -377,6 +374,32 @@ update msg model =
 
         CalendarJumpToWeek _ ->
             updateCalendarPage msg model
+
+        CalendarTouchStart _ _ ->
+            updateCalendarPage msg model
+
+        CalendarTouchCancel ->
+            updateCalendarPage msg model
+
+        CalendarTouchEnd _ _ ->
+            let
+                ( model1, calCmd ) =
+                    updateCalendarPage msg model
+            in
+            case ( model.page, model1.page ) of
+                ( PageCalendar oldCal, PageCalendar newCal ) ->
+                    if oldCal.year /= newCal.year || oldCal.month /= newCal.month then
+                        let
+                            dateStr =
+                                Page.Calendar.yearMonthToDateQuery newCal.year newCal.month
+                        in
+                        ( model1, Cmd.batch [ calCmd, Nav.replaceUrl model.key (toHref (RouteCalendar (Just dateStr))) ] )
+
+                    else
+                        ( model1, calCmd )
+
+                _ ->
+                    ( model1, calCmd )
 
         CalendarNoOp ->
             ( model, Cmd.none )

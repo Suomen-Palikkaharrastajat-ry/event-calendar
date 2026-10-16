@@ -15,6 +15,7 @@ import Html exposing (Html, a, button, div, h3, li, p, section, span, text, ul)
 import Html.Attributes exposing (attribute, class, classList, id, tabindex, type_)
 import Html.Events exposing (onClick)
 import I18n exposing (MsgKey(..), t)
+import Json.Decode as Decode
 import Lang exposing (Lang)
 import PocketBaseAuth exposing (AuthState(..))
 import RemoteData exposing (RemoteData)
@@ -88,6 +89,55 @@ fromRemoteData rd =
             LoadState.Success a
 
 
+touchStartDecoder : Decode.Decoder Msg
+touchStartDecoder =
+    Decode.at [ "touches", "length" ] Decode.int
+        |> Decode.andThen
+            (\len ->
+                if len == 1 then
+                    Decode.at [ "touches", "0" ]
+                        (Decode.map2 CalendarTouchStart
+                            (Decode.field "clientX" Decode.float)
+                            (Decode.field "clientY" Decode.float)
+                        )
+
+                else
+                    Decode.fail "Ignore multi-touch"
+            )
+
+
+touchEndDecoder : Decode.Decoder Msg
+touchEndDecoder =
+    Decode.at [ "touches", "length" ] Decode.int
+        |> Decode.andThen
+            (\len ->
+                if len == 0 then
+                    Decode.at [ "changedTouches", "0" ]
+                        (Decode.map2 CalendarTouchEnd
+                            (Decode.field "clientX" Decode.float)
+                            (Decode.field "clientY" Decode.float)
+                        )
+
+                else
+                    Decode.fail "Ignore multi-touch"
+            )
+
+
+onTouchStart : Html.Attribute Msg
+onTouchStart =
+    Html.Events.on "touchstart" touchStartDecoder
+
+
+onTouchEnd : Html.Attribute Msg
+onTouchEnd =
+    Html.Events.on "touchend" touchEndDecoder
+
+
+onTouchCancel : Html.Attribute Msg
+onTouchCancel =
+    Html.Events.on "touchcancel" (Decode.succeed CalendarTouchCancel)
+
+
 viewCalendarNav : Lang -> CalendarPage -> Html Msg
 viewCalendarNav lang page =
     let
@@ -97,24 +147,32 @@ viewCalendarNav lang page =
         ( nextY, nextM ) =
             nextMonth page.year page.month
     in
-    div [ class "flex items-center gap-4 mb-4 flex-wrap" ]
+    div
+        [ class "flex items-center gap-2 sm:gap-4 mb-4 flex-wrap touch-pan-y touch-pinch-zoom"
+        , onTouchStart
+        , onTouchEnd
+        , onTouchCancel
+        ]
         [ button
-            [ onClick (CalendarSetMonth prevY prevM)
-            , class "px-2 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
+            [ type_ "button"
+            , onClick (CalendarSetMonth prevY prevM)
+            , class "h-8 w-8 inline-flex items-center justify-center border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
             , attribute "aria-label" (t lang CalPrevMonth)
             ]
             [ featherIcon FeatherIcons.chevronLeft 16 ]
-        , span [ class "type-h3 w-38 text-center shrink-0" ]
+        , span [ class "type-h3 min-w-36 text-center" ]
             [ text (monthName (I18n.locale lang) page.month ++ " " ++ String.fromInt page.year) ]
         , button
-            [ onClick (CalendarSetMonth nextY nextM)
-            , class "px-2 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
+            [ type_ "button"
+            , onClick (CalendarSetMonth nextY nextM)
+            , class "h-8 w-8 inline-flex items-center justify-center border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
             , attribute "aria-label" (t lang CalNextMonth)
             ]
             [ featherIcon FeatherIcons.chevronRight 16 ]
         , button
-            [ onClick (CalendarSetMonth page.todayYear page.todayMonth)
-            , class "px-3 py-1 border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
+            [ type_ "button"
+            , onClick (CalendarSetMonth page.todayYear page.todayMonth)
+            , class "h-8 px-2.5 inline-flex items-center justify-center type-body-small border rounded hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
             ]
             [ text (t lang CalToday) ]
         ]
@@ -143,7 +201,13 @@ A multi-day event shows as one continuous bar across its days.
 -}
 viewMonthStrip : Lang -> CalendarPage -> List Event -> Html Msg
 viewMonthStrip lang page events =
-    div [ attribute "data-testid" "month-strip", class "mb-6" ]
+    div
+        [ attribute "data-testid" "month-strip"
+        , class "mb-6 touch-pan-y touch-pinch-zoom"
+        , onTouchStart
+        , onTouchEnd
+        , onTouchCancel
+        ]
         [ div
             [ class "grid grid-cols-7 text-center type-overline text-text-muted mb-1"
             , attribute "aria-hidden" "true"

@@ -243,3 +243,21 @@ Note: `Component.Alert`, `Component.Dialog`, and `Component.Toast` each depend o
 - `config.toml` is the single source of the site URL, title, description, languages and `[app]` settings (see `vendor/master-builder/docs/site-config.md`). After editing it run `make site-config` and commit the regenerated `elm-app/tests/SiteFixture.elm` and `statics/src/SiteConfig.hs`; `make site-config-check` fails in CI otherwise.
 - No display text in views, `main.js` or the Haskell generators: put it in `elm-app/src/I18n.elm` (Finnish and English) or in `config.toml`. `make site-config-check` flags Finnish text elsewhere.
 - Page chrome comes from the hub's `Component.Layout`; do not assemble header, drawer or footer here.
+
+## Agent Sandbox
+
+```toml agent-sandbox
+[network]
+allowed_hosts = [
+    "*.cachix.org:443",
+    "*.github.com:443",
+    "*.github.io:443",
+    "*.gitlab.com:443",
+    "*.nixos.org:443",
+    "data.palikkaharrastajat.fi:443",
+    "package.elm-lang.org:443",
+]
+
+[ports]
+web = 5173
+```

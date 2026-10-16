@@ -1,4 +1,4 @@
-module Page.Calendar exposing (dateQueryToYearMonth, init, update, view)
+module Page.Calendar exposing (dateQueryToYearMonth, init, update, view, yearMonthToDateQuery)
 
 {-| Calendar page — owns the CalendarPage state type and init.
 
@@ -43,6 +43,7 @@ init pbBaseUrl maybeDate now =
       , todayMonth = FinnishTime.monthToInt (Time.toMonth helsinkiZone now)
       , todayDay = Time.toDay helsinkiZone now
       , viewMode = MonthGrid
+      , touchStart = Nothing
       }
     , Api.fetchPublishedEvents pbBaseUrl CalendarGotEvents
     )
@@ -58,7 +59,7 @@ update msg page =
             ( { page | events = RemoteData.Failure err }, Cmd.none )
 
         CalendarSetMonth year month ->
-            ( { page | year = year, month = month }, Cmd.none )
+            ( { page | year = year, month = month, touchStart = Nothing }, Cmd.none )
 
         CalendarSetView mode ->
             ( { page | viewMode = mode }, Cmd.none )
@@ -70,6 +71,46 @@ update msg page =
             , Browser.Dom.focus (CalendarAgenda.weekHeadingId week)
                 |> Task.attempt (\_ -> CalendarNoOp)
             )
+
+        CalendarTouchStart x y ->
+            ( { page | touchStart = Just ( x, y ) }, Cmd.none )
+
+        CalendarTouchCancel ->
+            ( { page | touchStart = Nothing }, Cmd.none )
+
+        CalendarTouchEnd endX endY ->
+            case page.touchStart of
+                Nothing ->
+                    ( page, Cmd.none )
+
+                Just ( startX, startY ) ->
+                    let
+                        dx =
+                            endX - startX
+
+                        dy =
+                            endY - startY
+
+                        isSwipe =
+                            abs dx >= 40 && abs dx > abs dy * 1.5
+                    in
+                    if isSwipe then
+                        if dx < 0 then
+                            let
+                                ( nextY, nextM ) =
+                                    FinnishTime.nextMonth page.year page.month
+                            in
+                            ( { page | year = nextY, month = nextM, touchStart = Nothing }, Cmd.none )
+
+                        else
+                            let
+                                ( prevY, prevM ) =
+                                    FinnishTime.prevMonth page.year page.month
+                            in
+                            ( { page | year = prevY, month = prevM, touchStart = Nothing }, Cmd.none )
+
+                    else
+                        ( { page | touchStart = Nothing }, Cmd.none )
 
         _ ->
             ( page, Cmd.none )
@@ -137,3 +178,11 @@ parseYearMonth dateStr =
 
         _ ->
             Nothing
+
+
+yearMonthToDateQuery : Int -> Int -> String
+yearMonthToDateQuery year month =
+    String.fromInt year
+        ++ "-"
+        ++ String.padLeft 2 '0' (String.fromInt month)
+        ++ "-01"

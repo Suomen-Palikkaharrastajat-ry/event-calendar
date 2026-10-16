@@ -8,10 +8,11 @@ import Expect
 import FinnishTime exposing (firstDayOfWeek, formDateTimeToUtc, utcStringToHelsinkiDateInput, utcStringToHelsinkiTimeInput)
 import Lang
 import Page.Calendar as PageCalendar
+import RemoteData
 import Route exposing (toHref)
 import Test exposing (Test, describe, test)
 import Time
-import Types exposing (Event, EventState(..))
+import Types exposing (CalendarPage, CalendarViewMode(..), Event, EventState(..), Msg(..))
 import View.EventDetail as EventDetail
 
 
@@ -213,5 +214,210 @@ suite =
                 \_ ->
                     formDateTimeToUtc "bad-date" "10:00" False
                         |> Expect.equal Nothing
+            ]
+        , describe "swipe support"
+            [ test "swipe left navigates to next month" <|
+                \_ ->
+                    let
+                        initialPage : CalendarPage
+                        initialPage =
+                            { events = RemoteData.NotAsked
+                            , year = 2026
+                            , month = 10
+                            , todayYear = 2026
+                            , todayMonth = 10
+                            , todayDay = 16
+                            , viewMode = MonthGrid
+                            , touchStart = Nothing
+                            }
+
+                        ( pageWithTouch, _ ) =
+                            PageCalendar.update (CalendarTouchStart 200 100) initialPage
+
+                        ( finalPage, _ ) =
+                            PageCalendar.update (CalendarTouchEnd 100 105) pageWithTouch
+                    in
+                    Expect.equal ( finalPage.year, finalPage.month, finalPage.touchStart )
+                        ( 2026, 11, Nothing )
+            , test "swipe right navigates to previous month" <|
+                \_ ->
+                    let
+                        initialPage : CalendarPage
+                        initialPage =
+                            { events = RemoteData.NotAsked
+                            , year = 2026
+                            , month = 10
+                            , todayYear = 2026
+                            , todayMonth = 10
+                            , todayDay = 16
+                            , viewMode = MonthGrid
+                            , touchStart = Nothing
+                            }
+
+                        ( pageWithTouch, _ ) =
+                            PageCalendar.update (CalendarTouchStart 100 100) initialPage
+
+                        ( finalPage, _ ) =
+                            PageCalendar.update (CalendarTouchEnd 200 95) pageWithTouch
+                    in
+                    Expect.equal ( finalPage.year, finalPage.month, finalPage.touchStart )
+                        ( 2026, 9, Nothing )
+            , test "vertical scroll does not trigger month change" <|
+                \_ ->
+                    let
+                        initialPage : CalendarPage
+                        initialPage =
+                            { events = RemoteData.NotAsked
+                            , year = 2026
+                            , month = 10
+                            , todayYear = 2026
+                            , todayMonth = 10
+                            , todayDay = 16
+                            , viewMode = MonthGrid
+                            , touchStart = Nothing
+                            }
+
+                        ( pageWithTouch, _ ) =
+                            PageCalendar.update (CalendarTouchStart 100 200) initialPage
+
+                        ( finalPage, _ ) =
+                            PageCalendar.update (CalendarTouchEnd 80 50) pageWithTouch
+                    in
+                    Expect.equal ( finalPage.year, finalPage.month )
+                        ( 2026, 10 )
+            , test "short tap does not trigger month change" <|
+                \_ ->
+                    let
+                        initialPage : CalendarPage
+                        initialPage =
+                            { events = RemoteData.NotAsked
+                            , year = 2026
+                            , month = 10
+                            , todayYear = 2026
+                            , todayMonth = 10
+                            , todayDay = 16
+                            , viewMode = MonthGrid
+                            , touchStart = Nothing
+                            }
+
+                        ( pageWithTouch, _ ) =
+                            PageCalendar.update (CalendarTouchStart 100 100) initialPage
+
+                        ( finalPage, _ ) =
+                            PageCalendar.update (CalendarTouchEnd 105 102) pageWithTouch
+                    in
+                    Expect.equal ( finalPage.year, finalPage.month )
+                        ( 2026, 10 )
+            , test "touch cancel resets touchStart" <|
+                \_ ->
+                    let
+                        initialPage : CalendarPage
+                        initialPage =
+                            { events = RemoteData.NotAsked
+                            , year = 2026
+                            , month = 10
+                            , todayYear = 2026
+                            , todayMonth = 10
+                            , todayDay = 16
+                            , viewMode = MonthGrid
+                            , touchStart = Nothing
+                            }
+
+                        ( pageWithTouch, _ ) =
+                            PageCalendar.update (CalendarTouchStart 100 100) initialPage
+
+                        ( finalPage, _ ) =
+                            PageCalendar.update CalendarTouchCancel pageWithTouch
+                    in
+                    Expect.equal finalPage.touchStart Nothing
+            , test "swipe left in December rolls over to January next year" <|
+                \_ ->
+                    let
+                        decemberPage : CalendarPage
+                        decemberPage =
+                            { events = RemoteData.NotAsked
+                            , year = 2026
+                            , month = 12
+                            , todayYear = 2026
+                            , todayMonth = 10
+                            , todayDay = 16
+                            , viewMode = MonthGrid
+                            , touchStart = Nothing
+                            }
+
+                        ( pageWithTouch, _ ) =
+                            PageCalendar.update (CalendarTouchStart 200 100) decemberPage
+
+                        ( finalPage, _ ) =
+                            PageCalendar.update (CalendarTouchEnd 100 100) pageWithTouch
+                    in
+                    Expect.equal ( finalPage.year, finalPage.month )
+                        ( 2027, 1 )
+            , test "swipe right in January rolls back to December previous year" <|
+                \_ ->
+                    let
+                        januaryPage : CalendarPage
+                        januaryPage =
+                            { events = RemoteData.NotAsked
+                            , year = 2026
+                            , month = 1
+                            , todayYear = 2026
+                            , todayMonth = 10
+                            , todayDay = 16
+                            , viewMode = MonthGrid
+                            , touchStart = Nothing
+                            }
+
+                        ( pageWithTouch, _ ) =
+                            PageCalendar.update (CalendarTouchStart 100 100) januaryPage
+
+                        ( finalPage, _ ) =
+                            PageCalendar.update (CalendarTouchEnd 200 100) pageWithTouch
+                    in
+                    Expect.equal ( finalPage.year, finalPage.month )
+                        ( 2025, 12 )
+            , test "CalendarTouchEnd with no touchStart does nothing" <|
+                \_ ->
+                    let
+                        initialPage : CalendarPage
+                        initialPage =
+                            { events = RemoteData.NotAsked
+                            , year = 2026
+                            , month = 10
+                            , todayYear = 2026
+                            , todayMonth = 10
+                            , todayDay = 16
+                            , viewMode = MonthGrid
+                            , touchStart = Nothing
+                            }
+
+                        ( finalPage, _ ) =
+                            PageCalendar.update (CalendarTouchEnd 100 100) initialPage
+                    in
+                    Expect.equal ( finalPage.year, finalPage.month, finalPage.touchStart )
+                        ( 2026, 10, Nothing )
+            , test "CalendarSetMonth clears touchStart" <|
+                \_ ->
+                    let
+                        initialPage : CalendarPage
+                        initialPage =
+                            { events = RemoteData.NotAsked
+                            , year = 2026
+                            , month = 10
+                            , todayYear = 2026
+                            , todayMonth = 10
+                            , todayDay = 16
+                            , viewMode = MonthGrid
+                            , touchStart = Just ( 100, 100 )
+                            }
+
+                        ( finalPage, _ ) =
+                            PageCalendar.update (CalendarSetMonth 2026 11) initialPage
+                    in
+                    Expect.equal finalPage.touchStart Nothing
+            , test "yearMonthToDateQuery formats canonical YYYY-MM-01 query string" <|
+                \_ ->
+                    PageCalendar.yearMonthToDateQuery 2026 5
+                        |> Expect.equal "2026-05-01"
             ]
         ]

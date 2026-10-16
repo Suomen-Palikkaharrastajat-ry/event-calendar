@@ -7,7 +7,7 @@ help: ## Show available targets
 # vite bundles vite.config.mjs into node_modules/.vite-temp before loading it,
 # but node_modules is a symlink into the read-only Nix store. --configLoader
 # runner loads the config directly and never writes that temp file.
-VITE_FLAGS ?= --configLoader runner
+VITE_FLAGS ?= --configLoader runner --host 0.0.0.0
 
 # ── Vendor / submodules ──────────────────────────────────────────────────────
 

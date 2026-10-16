@@ -259,6 +259,7 @@ type alias CalendarPage =
     , todayMonth : Int
     , todayDay : Int
     , viewMode : CalendarViewMode
+    , touchStart : Maybe ( Float, Float )
     }
 
 
@@ -396,6 +397,9 @@ type
     | CalendarSetView CalendarViewMode
     | CalendarClickEvent String
     | CalendarJumpToWeek Int
+    | CalendarTouchStart Float Float
+    | CalendarTouchEnd Float Float
+    | CalendarTouchCancel
     | CalendarNoOp
       -- Events page
     | EventsFormFieldChanged String String
