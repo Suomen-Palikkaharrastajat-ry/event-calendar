@@ -7,7 +7,9 @@ help: ## Show available targets
 # vite bundles vite.config.mjs into node_modules/.vite-temp before loading it,
 # but node_modules is a symlink into the read-only Nix store. --configLoader
 # runner loads the config directly and never writes that temp file.
-VITE_FLAGS ?= --configLoader runner --host 0.0.0.0
+VITE_FLAGS ?= --configLoader runner
+# The dev server listens on all interfaces; `vite build` has no --host option.
+VITE_DEV_FLAGS ?= $(VITE_FLAGS) --host 0.0.0.0
 
 # ── Vendor / submodules ──────────────────────────────────────────────────────
 
@@ -43,11 +45,11 @@ SITE_CONFIG_I18N := elm-app/src elm-app/main.js statics/src statics/app
 
 .PHONY: elm-dev
 elm-dev: ## Start Elm + Vite dev server (hot reload)
-	cd elm-app && vite $(VITE_FLAGS)
+	cd elm-app && vite $(VITE_DEV_FLAGS)
 
 .PHONY: elm-dev-local
 elm-dev-local: ## Start Elm + Vite dev server against local PocketBase
-	cd elm-app && VITE_POCKETBASE_URL=$(LOCAL_PB_URL) vite $(VITE_FLAGS)
+	cd elm-app && VITE_POCKETBASE_URL=$(LOCAL_PB_URL) vite $(VITE_DEV_FLAGS)
 
 dist/.elm-stamp: $(shell find elm-app/src -name '*.elm') $(shell find vendor/master-builder/packages \( -name '*.elm' -o -name '*.css' \) -not -path '*/elm-stuff/*' -not -path '*/tests/*' -not -path '*/node_modules/*') elm-app/elm.json elm-app/main.css elm-app/index.html elm-app/main.js $(SITE_CONFIG_DEPS)
 	cd elm-app && vite build $(VITE_FLAGS)
