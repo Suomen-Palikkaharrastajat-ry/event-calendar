@@ -12,10 +12,10 @@ The project was migrated from SvelteKit 5 in early 2026. There is **no TypeScrip
 
 ```
 elm-app/          Elm 0.19 SPA (Vite + vite-plugin-elm + Tailwind CSS 4)
-  src/            Elm source modules (Main, Types, Route, Api, Auth, Ports, I18n, DateUtils)
+  src/            Elm source modules (Main, Types, Route, Api, Ports, I18n, DateUtils)
   src/Page/       Page-level Elm modules (Calendar, Events, EventDetail, EventEdit)
   src/View/       View helpers (Layout, Calendar, Events, EventForm, EventDetail, EventList)
-  tests/          Elm unit tests — elm-explorations/test (81 tests)
+  tests/          Elm unit tests — elm-explorations/test (189 tests)
   public/         App-own static files (icons, logos and fonts come from the hub)
   packages/       Symlink to shared Elm packages in vendor/master-builder
 statics/          Haskell static generator (Cabal)
@@ -235,7 +235,7 @@ Note: `Component.Alert`, `Component.Dialog`, and `Component.Toast` each depend o
 ## Security Considerations
 
 - The backend is PocketBase at `https://data.palikkaharrastajat.fi`. Ensure PocketBase collection rules are correctly configured to prevent unauthorized reads/writes.
-- Authentication is OAuth2/OIDC via PocketBase. Auth logic lives in `elm-app/src/Auth.elm`.
+- Authentication is OAuth2/OIDC via PocketBase. Auth logic lives in the hub's `PocketBaseAuth` (`vendor/master-builder/packages/app-toolkit/src/PocketBaseAuth.elm`) and its sign-in script `js/pocketbase-auth.js` (start-up token refresh, OAuth popup, token storage); `elm-app/main.js` only wires them. Sign-in is the PocketBase popup flow (`authWithOAuth2`, returning to PocketBase's `/api/oauth2-redirect`); the app's `#/callback` route and `getCallbackParams`/`callbackParams` ports are legacy and unused.
 - When modifying auth or data-access logic, run `make test` and manually verify the E2E checklist above.
 
 ## Configuration and translations

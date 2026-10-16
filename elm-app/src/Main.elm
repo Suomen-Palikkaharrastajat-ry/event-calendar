@@ -21,7 +21,6 @@ Page module or modify the model directly.
 -}
 
 import Api
-import Auth
 import Browser
 import Browser.Events
 import Browser.Navigation as Nav
@@ -42,6 +41,7 @@ import Page.Calendar
 import Page.EventDetail
 import Page.EventEdit
 import Page.Events
+import PocketBaseAuth exposing (AuthState(..), getToken)
 import Ports
 import Process
 import RemoteData exposing (RemoteData(..))
@@ -51,8 +51,7 @@ import Task
 import Time
 import Types
     exposing
-        ( AuthState(..)
-        , EventFormData
+        ( EventFormData
         , EventListPage
         , Flags
         , KmlImportStatus(..)
@@ -63,7 +62,6 @@ import Types
         , ToastKind(..)
         , emptyEventFormData
         , emptyPbList
-        , getToken
         )
 import Url exposing (Url)
 import View.EventDetail
@@ -115,7 +113,7 @@ init flags url key =
             parseUrl url
 
         authState =
-            Auth.restoreAuthFromFlags flags.authToken flags.authModel
+            PocketBaseAuth.restoreAuthFromFlags flags.authToken flags.authModel
 
         now =
             Time.millisToPosix flags.now
@@ -160,7 +158,7 @@ init flags url key =
     )
 
 
-initPage : Lang -> String -> Nav.Key -> Route -> Types.AuthState -> Url -> Time.Posix -> ( Page, Cmd Msg )
+initPage : Lang -> String -> Nav.Key -> Route -> AuthState -> Url -> Time.Posix -> ( Page, Cmd Msg )
 initPage lang pbBaseUrl key route authState url now =
     case route of
         RouteCalendar maybeDate ->
@@ -316,41 +314,46 @@ update msg model =
                 ]
             )
 
-        GotOAuthUrl _ ->
-            ( model, Cmd.none )
-
-        ReceivedAuthToken _ ->
-            ( model, Cmd.none )
-
-        AuthCallbackReceived codeVerifier _ ->
+        AuthCallbackReceived codeVerifier providerState ->
             let
-                code =
-                    extractCode model.url
+                query =
+                    PocketBaseAuth.callbackQuery model.url
             in
-            case code of
-                Just c ->
-                    ( model, Auth.fetchOAuthToken model.pbBaseUrl c codeVerifier "" )
+            case ( query.code, query.state ) of
+                ( Just code, Just stateParam ) ->
+                    if stateParam /= providerState then
+                        let
+                            ( model1, toastCmd ) =
+                                addToast model ToastError (t model.lang I18n.LoginFailed)
+                        in
+                        ( model1
+                        , Cmd.batch
+                            [ Nav.pushUrl model.key (toHref (RouteCalendar Nothing))
+                            , toastCmd
+                            ]
+                        )
 
-                Nothing ->
+                    else
+                        ( model
+                        , PocketBaseAuth.fetchOAuthUser model.pbBaseUrl
+                            code
+                            codeVerifier
+                            (PocketBaseAuth.callbackRedirectUrl model.url)
+                            providerState
+                            GotAuthResult
+                        )
+
+                _ ->
                     ( model, Nav.pushUrl model.key (toHref (RouteCalendar Nothing)) )
 
         GotAuthResult (Ok user) ->
             let
-                modelJson =
-                    "{\"id\":\""
-                        ++ user.id
-                        ++ "\",\"name\":\""
-                        ++ user.name
-                        ++ "\",\"email\":\""
-                        ++ user.email
-                        ++ "\"}"
-
                 ( model1, toastCmd ) =
                     addToast { model | authState = Authenticated user } ToastSuccess (t model.lang I18n.LoginSuccess)
             in
             ( model1
             , Cmd.batch
-                [ Ports.saveAuthToken { token = user.token, model = modelJson }
+                [ Ports.saveAuthToken { token = user.token, model = PocketBaseAuth.authUserModelJson user }
                 , Nav.pushUrl model.key (toHref RouteEvents)
                 , toastCmd
                 ]
@@ -369,44 +372,37 @@ update msg model =
             )
 
         OAuthPopupResult data ->
-            if String.isEmpty data.token then
-                let
-                    ( model1, toastCmd ) =
-                        addToast model ToastError (t model.lang I18n.LoginFailed)
-                in
-                ( model1
-                , Cmd.batch
-                    [ Nav.pushUrl model.key (toHref (RouteCalendar Nothing))
-                    , toastCmd
-                    ]
-                )
+            case PocketBaseAuth.userFromPopupResult data of
+                Just user ->
+                    let
+                        ( model1, toastCmd ) =
+                            addToast
+                                { model | authState = Authenticated user }
+                                ToastSuccess
+                                (t model.lang I18n.LoginSuccess)
+                    in
+                    ( model1
+                    , Cmd.batch
+                        [ Ports.saveAuthToken { token = user.token, model = PocketBaseAuth.authUserModelJson user }
+                        , Nav.pushUrl model.key (toHref RouteEvents)
+                        , toastCmd
+                        ]
+                    )
 
-            else
-                case Json.decodeString Auth.decodeAuthUser data.model of
-                    Ok user ->
-                        let
-                            authedUser =
-                                { user | token = data.token }
-
-                            ( model1, toastCmd ) =
-                                addToast
-                                    { model | authState = Authenticated authedUser }
-                                    ToastSuccess
-                                    (t model.lang I18n.LoginSuccess)
-                        in
+                Nothing ->
+                    let
+                        ( model1, toastCmd ) =
+                            addToast model ToastError (t model.lang I18n.LoginFailed)
+                    in
+                    if String.isEmpty data.token then
                         ( model1
                         , Cmd.batch
-                            [ Ports.saveAuthToken { token = data.token, model = data.model }
-                            , Nav.pushUrl model.key (toHref RouteEvents)
+                            [ Nav.pushUrl model.key (toHref (RouteCalendar Nothing))
                             , toastCmd
                             ]
                         )
 
-                    Err _ ->
-                        let
-                            ( model1, toastCmd ) =
-                                addToast model ToastError (t model.lang I18n.LoginFailed)
-                        in
+                    else
                         ( model1, toastCmd )
 
         -- ── Event list page ──────────────────────────────────────────────────────
@@ -1344,38 +1340,6 @@ addToast model kind message =
       }
     , dismissCmd
     )
-
-
-
--- URL HELPERS
-
-
-extractCode : Url -> Maybe String
-extractCode url =
-    let
-        fragment =
-            Maybe.withDefault "" url.fragment
-
-        queryStr =
-            case String.split "?" fragment of
-                _ :: q :: _ ->
-                    q
-
-                _ ->
-                    ""
-    in
-    queryStr
-        |> String.split "&"
-        |> List.filterMap
-            (\pair ->
-                case String.split "=" pair of
-                    "code" :: rest ->
-                        Just (String.join "=" rest)
-
-                    _ ->
-                        Nothing
-            )
-        |> List.head
 
 
 

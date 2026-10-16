@@ -16,8 +16,9 @@ import Html.Attributes exposing (attribute, class, classList, id, tabindex, type
 import Html.Events exposing (onClick)
 import I18n exposing (MsgKey(..), t)
 import Lang exposing (Lang)
+import PocketBaseAuth exposing (AuthState(..))
 import RemoteData exposing (RemoteData)
-import Types exposing (AuthState, CalendarPage, CalendarViewMode(..), Event, Msg(..))
+import Types exposing (CalendarPage, CalendarViewMode(..), Event, Msg(..))
 import View.Icons exposing (featherIcon)
 
 
@@ -25,10 +26,10 @@ view : Lang -> String -> AuthState -> CalendarPage -> Html Msg
 view lang contactEmail authState page =
     div [ class "p-4" ]
         [ case authState of
-            Types.Authenticated _ ->
+            Authenticated _ ->
                 text ""
 
-            Types.NotAuthenticated ->
+            NotAuthenticated ->
                 p [ class "type-caption text-text-muted mb-2" ]
                     [ text (t lang SubmitByEmailText)
                     , text " "

@@ -13,13 +13,14 @@ import Html exposing (Html, div, main_, text)
 import Html.Attributes as Attr
 import Json.Decode as Decode
 import Lang exposing (Lang(..))
+import PocketBaseAuth exposing (AuthState(..))
 import Route exposing (Route(..))
 import SiteFixture
 import SiteSettings exposing (SiteSettings)
 import Test exposing (Test, describe, test)
 import Test.Html.Query as Query
 import Test.Html.Selector as Selector
-import Types exposing (AuthState(..), Msg, Toast, ToastKind(..))
+import Types exposing (Msg, Toast, ToastKind(..))
 import View.Layout as Layout
 
 

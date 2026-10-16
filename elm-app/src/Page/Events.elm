@@ -13,8 +13,9 @@ import DatePicker
 import FinnishTime
 import Html exposing (Html)
 import Lang exposing (Lang)
+import PocketBaseAuth exposing (AuthState)
 import Time exposing (Posix)
-import Types exposing (AuthState, EventsPage, FormStatus(..), KmlImportStatus(..), Msg(..), emptyEventFormData)
+import Types exposing (EventsPage, FormStatus(..), KmlImportStatus(..), Msg(..), emptyEventFormData)
 import View.Events
 
 

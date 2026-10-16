@@ -11,8 +11,9 @@ View.EventDetail. The update logic for Detail\* messages is in Main.elm
 import Api
 import Html exposing (Html)
 import Lang exposing (Lang)
+import PocketBaseAuth exposing (AuthState)
 import RemoteData
-import Types exposing (AuthState, EventDetailPage, Msg(..))
+import Types exposing (EventDetailPage, Msg(..))
 import View.EventDetail
 
 

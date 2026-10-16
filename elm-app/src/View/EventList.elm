@@ -13,10 +13,11 @@ import Html exposing (Html, a, div, h1, h3, p, span, text)
 import Html.Attributes exposing (attribute, class, href, target)
 import I18n exposing (MsgKey(..), t)
 import Lang exposing (Lang)
+import PocketBaseAuth exposing (AuthState(..))
 import RemoteData exposing (RemoteData)
 import Route exposing (Route(..), toHref)
 import Time exposing (Posix, posixToMillis)
-import Types exposing (AuthState(..), Event, EventListPage, EventState(..), Msg(..))
+import Types exposing (Event, EventListPage, EventState(..), Msg(..))
 import View.Icons exposing (featherIcon)
 
 

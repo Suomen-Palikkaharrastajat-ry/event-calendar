@@ -10,8 +10,9 @@ import Html.Events exposing (on)
 import I18n exposing (MsgKey(..), t)
 import Json.Decode as Json
 import Lang exposing (Lang)
+import PocketBaseAuth exposing (AuthState, isAuthenticated)
 import Time exposing (Posix)
-import Types exposing (AuthState, EventsPage, KmlImportStatus, Msg(..), isAuthenticated)
+import Types exposing (EventsPage, KmlImportStatus, Msg(..))
 import View.EventForm
 
 

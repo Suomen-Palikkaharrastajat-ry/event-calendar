@@ -1,7 +1,5 @@
 module Types exposing
-    ( AuthState(..)
-    , AuthUser
-    , CalendarPage
+    ( CalendarPage
     , CalendarViewMode(..)
     , Event
     , EventDetailPage
@@ -26,9 +24,7 @@ module Types exposing
     , emptyPbList
     , eventStateFromString
     , eventStateToString
-    , getToken
     , hasValidCoordinates
-    , isAuthenticated
     )
 
 {-| Shared types: Event, Model, Msg, form data, auth state, toasts and PbList.
@@ -41,6 +37,7 @@ import File exposing (File)
 import Http
 import Json.Decode as Json
 import Lang exposing (Lang)
+import PocketBaseAuth exposing (AuthState, AuthUser)
 import RemoteData exposing (RemoteData)
 import Route exposing (Route)
 import SiteSettings exposing (SiteSettings)
@@ -60,43 +57,6 @@ type alias Flags =
     , siteConfig : Json.Value
     , requestedLang : Maybe String
     }
-
-
-
--- AUTH
-
-
-type AuthState
-    = NotAuthenticated
-    | Authenticated AuthUser
-
-
-type alias AuthUser =
-    { id : String
-    , name : String
-    , email : String
-    , token : String
-    }
-
-
-isAuthenticated : AuthState -> Bool
-isAuthenticated authState =
-    case authState of
-        Authenticated _ ->
-            True
-
-        NotAuthenticated ->
-            False
-
-
-getToken : AuthState -> Maybe String
-getToken authState =
-    case authState of
-        Authenticated user ->
-            Just user.token
-
-        NotAuthenticated ->
-            Nothing
 
 
 
@@ -426,10 +386,8 @@ type
     | LinkClicked Browser.UrlRequest
     | NavigateTo Route
       -- Auth
-    | GotOAuthUrl (Result Http.Error String)
     | GotAuthResult (Result Http.Error AuthUser)
     | OAuthPopupResult { token : String, model : String }
-    | ReceivedAuthToken (Maybe String)
     | AuthCallbackReceived String String
     | LogOut
     | LoginClicked

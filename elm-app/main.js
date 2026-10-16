@@ -4,6 +4,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import PocketBase from 'pocketbase'
 import siteConfig from 'virtual:site-config'
+import { resolveInitAuth, wirePocketBaseAuthPorts } from './packages/app-toolkit/js/pocketbase-auth.js'
 import { appSettings, pickLang, requestedLang, showLanguage } from './packages/site-config/browser.mjs'
 
 // Fix Leaflet default icon paths broken by Vite bundling
@@ -24,58 +25,7 @@ L.Icon.Default.mergeOptions({
 const settings = appSettings(siteConfig, pickLang(siteConfig))
 const pbBaseUrl = import.meta.env.VITE_POCKETBASE_URL || settings.pocketbase_url
 
-function readStoredAuth() {
-  return {
-    authToken: localStorage.getItem('pb_auth_token') || null,
-    authModel: localStorage.getItem('pb_auth_model') || null,
-  }
-}
-
-function clearStoredAuth() {
-  localStorage.removeItem('pb_auth_token')
-  localStorage.removeItem('pb_auth_model')
-}
-
-function saveStoredAuth(token, model) {
-  localStorage.setItem('pb_auth_token', token)
-  localStorage.setItem('pb_auth_model', model)
-}
-
-function isInvalidAuthError(err) {
-  return err?.status === 401 || err?.status === 403
-}
-
-async function resolveInitAuth(pbUrl) {
-  const stored = readStoredAuth()
-  if (!stored.authToken || !stored.authModel) {
-    return { authToken: null, authModel: null }
-  }
-
-  const pb = new PocketBase(pbUrl)
-  pb.authStore.save(stored.authToken, null)
-
-  try {
-    const authData = await pb.collection('users').authRefresh()
-    const refreshedModel = JSON.stringify({
-      id: authData.record.id,
-      name: authData.record.name || '',
-      email: authData.record.email || '',
-    })
-
-    saveStoredAuth(authData.token, refreshedModel)
-    return { authToken: authData.token, authModel: refreshedModel }
-  } catch (err) {
-    if (isInvalidAuthError(err)) {
-      clearStoredAuth()
-      return { authToken: null, authModel: null }
-    }
-
-    console.warn('Auth refresh failed during app init, keeping stored auth:', err)
-    return stored
-  }
-}
-
-const initAuth = await resolveInitAuth(pbBaseUrl)
+const initAuth = await resolveInitAuth(pbBaseUrl, { PocketBase })
 
 const flags = {
   authToken: initAuth.authToken,
@@ -98,40 +48,7 @@ app.ports.reportError.subscribe((problem) => console.error(problem))
 
 // ── Auth ports ────────────────────────────────────────────────────────────────
 
-app.ports.initiateOAuth.subscribe(async (pbBaseUrl) => {
-  try {
-    const pb = new PocketBase(pbBaseUrl)
-    const authData = await pb.collection('users').authWithOAuth2({ provider: 'oidc' })
-    app.ports.oauthPopupResult.send({
-      token: authData.token,
-      model: JSON.stringify({
-        id: authData.record.id,
-        name: authData.record.name || '',
-        email: authData.record.email || '',
-      }),
-    })
-  } catch (err) {
-    console.error('OAuth2 login failed:', err)
-    app.ports.oauthPopupResult.send({ token: '', model: '{}' })
-  }
-})
-
-app.ports.saveAuthToken.subscribe(({ token, model }) => {
-  localStorage.setItem('pb_auth_token', token)
-  localStorage.setItem('pb_auth_model', model)
-})
-
-app.ports.clearAuthToken.subscribe(() => {
-  localStorage.removeItem('pb_auth_token')
-  localStorage.removeItem('pb_auth_model')
-})
-
-app.ports.getCallbackParams.subscribe(() => {
-  app.ports.callbackParams.send({
-    codeVerifier: sessionStorage.getItem('pb_code_verifier') || '',
-    state: sessionStorage.getItem('pb_provider_state') || '',
-  })
-})
+wirePocketBaseAuthPorts(app, { PocketBase })
 
 // ── Map ports (Leaflet) ───────────────────────────────────────────────────────
 
