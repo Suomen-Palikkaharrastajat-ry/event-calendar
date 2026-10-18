@@ -302,19 +302,21 @@ function setupSwipeFeedback() {
   document.documentElement.appendChild(hint)
 
   let area = null
+  let moving = null // the calendar content inside the area; nav and header stay put
   let startX = 0
   let startY = 0
   let mode = 'pending' // 'pending' | 'horizontal' | 'vertical'
 
   function reset(animate) {
-    if (area) {
-      area.style.transition = animate && !reduceMotion.matches ? 'transform 200ms ease-out, opacity 200ms ease-out' : 'none'
-      area.style.transform = ''
-      area.style.opacity = ''
+    if (moving) {
+      moving.style.transition = animate && !reduceMotion.matches ? 'transform 200ms ease-out, opacity 200ms ease-out' : 'none'
+      moving.style.transform = ''
+      moving.style.opacity = ''
     }
     hint.style.transition = reduceMotion.matches ? 'none' : 'opacity 150ms ease-out'
     hint.style.opacity = '0'
     area = null
+    moving = null
     mode = 'pending'
   }
 
@@ -322,10 +324,11 @@ function setupSwipeFeedback() {
     if (e.touches.length !== 1) { if (area) reset(true); return }
     area = e.target.closest ? e.target.closest(AREA) : null
     if (!area) return
+    moving = area.querySelector('[data-swipe-content]') || area
     startX = e.touches[0].clientX
     startY = e.touches[0].clientY
     mode = 'pending'
-    area.style.transition = 'none'
+    moving.style.transition = 'none'
   }, { passive: true })
 
   document.addEventListener('touchmove', function (e) {
@@ -349,8 +352,8 @@ function setupSwipeFeedback() {
     const committed = Math.abs(dx) >= COMMIT_DISTANCE
     const shift = Math.sign(dx) * Math.min(Math.abs(dx) * 0.5, MAX_SHIFT)
     if (!reduceMotion.matches) {
-      area.style.transform = `translateX(${shift}px)`
-      area.style.opacity = committed ? '0.6' : '0.85'
+      moving.style.transform = `translateX(${shift}px)`
+      moving.style.opacity = committed ? '0.6' : '0.85'
     }
     // Swiping right shows the previous month, so the chevron points left.
     hint.innerHTML = chevron(dx > 0 ? 'M15 18l-6-6 6-6' : 'M9 18l6-6-6-6')

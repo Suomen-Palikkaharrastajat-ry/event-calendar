@@ -47,35 +47,37 @@ view lang contactEmail authState page =
                         [ text (t lang SubmitByEmailLinkText) ]
                     ]
         , viewCalendarNav lang page
-        , case page.viewMode of
-            MonthGrid ->
-                LoadState.view
-                    { loadingLabel = t lang Loading
-                    , errorMessage = Api.httpErrorToString lang
-                    , onRetry = Just (CalendarSetMonth page.year page.month)
-                    , retryLabel = t lang Retry
-                    }
-                    (fromRemoteData page.events)
-                    (\events ->
-                        div []
-                            [ div [ attribute "data-testid" "month-grid", class "hidden md:block" ]
-                                [ viewMonthGrid lang page events ]
-                            , div [ attribute "data-testid" "mobile-calendar", class "md:hidden" ]
-                                [ viewMonthStrip lang page events
-                                , viewAgenda lang page events
+        , div [ attribute "data-swipe-content" "" ]
+            [ case page.viewMode of
+                MonthGrid ->
+                    LoadState.view
+                        { loadingLabel = t lang Loading
+                        , errorMessage = Api.httpErrorToString lang
+                        , onRetry = Just (CalendarSetMonth page.year page.month)
+                        , retryLabel = t lang Retry
+                        }
+                        (fromRemoteData page.events)
+                        (\events ->
+                            div []
+                                [ div [ attribute "data-testid" "month-grid", class "hidden md:block" ]
+                                    [ viewMonthGrid lang page events ]
+                                , div [ attribute "data-testid" "mobile-calendar", class "md:hidden" ]
+                                    [ viewMonthStrip lang page events
+                                    , viewAgenda lang page events
+                                    ]
                                 ]
-                            ]
-                    )
+                        )
 
-            ListView ->
-                LoadState.view
-                    { loadingLabel = t lang Loading
-                    , errorMessage = Api.httpErrorToString lang
-                    , onRetry = Just (CalendarSetMonth page.year page.month)
-                    , retryLabel = t lang Retry
-                    }
-                    (fromRemoteData page.events)
-                    (viewListView lang page)
+                ListView ->
+                    LoadState.view
+                        { loadingLabel = t lang Loading
+                        , errorMessage = Api.httpErrorToString lang
+                        , onRetry = Just (CalendarSetMonth page.year page.month)
+                        , retryLabel = t lang Retry
+                        }
+                        (fromRemoteData page.events)
+                        (viewListView lang page)
+            ]
         ]
 
 
