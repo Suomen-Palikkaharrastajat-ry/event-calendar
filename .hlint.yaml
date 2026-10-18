@@ -4,3 +4,7 @@
 - warn: {hint: Use explicit imports}
 - warn: {hint: Avoid lambda}
 - warn: {hint: Reduce duplication}
+
+# hlint does not know aeson's fixities; without this it calls the brackets in
+# `"k" .= (a ++ b)` redundant, though GHC needs them.
+- fixity: infixr 8 .=

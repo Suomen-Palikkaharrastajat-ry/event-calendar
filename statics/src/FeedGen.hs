@@ -400,7 +400,7 @@ jsonFeedDocument ctx title file extra events =
                         [ "version" .= ("https://jsonfeed.org/version/1" :: String)
                         , "title" .= title
                         , "home_page_url" .= feedLink
-                        , "feed_url" .= feedSelf ++ file
+                        , "feed_url" .= (feedSelf ++ file)
                         , "description" .= feedDescription
                         , "icon" .= feedLogoUrl
                         , "author"
