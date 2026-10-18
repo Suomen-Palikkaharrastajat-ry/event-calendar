@@ -266,6 +266,106 @@ function setupPullToRefresh() {
 
 setupPullToRefresh()
 
+// ── Swipe feedback ────────────────────────────────────────────────────────────
+// Elm decides the month change on touchend. This only makes the gesture visible:
+// once a swipe is clearly horizontal it locks vertical scrolling, moves the
+// content with the finger and shows a chevron that firms up past the threshold.
+
+function setupSwipeFeedback() {
+  const AREA = '[data-swipe-area]'
+  const LOCK_DISTANCE = 8
+  const COMMIT_DISTANCE = 40 // keep in sync with Page.Calendar
+  const MAX_SHIFT = 96
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+  const hint = document.createElement('div')
+  hint.setAttribute('aria-hidden', 'true')
+  hint.style.cssText = [
+    'position:fixed',
+    'top:50%',
+    'width:48px',
+    'height:48px',
+    'margin-top:-24px',
+    'display:flex',
+    'align-items:center',
+    'justify-content:center',
+    'border-radius:9999px',
+    'background:var(--color-brand, currentColor)',
+    'color:var(--color-white, #fff)',
+    'pointer-events:none',
+    'z-index:9999',
+    'opacity:0',
+  ].join(';')
+  const chevron = (d) =>
+    '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="' + d + '"/></svg>'
+  document.documentElement.appendChild(hint)
+
+  let area = null
+  let startX = 0
+  let startY = 0
+  let mode = 'pending' // 'pending' | 'horizontal' | 'vertical'
+
+  function reset(animate) {
+    if (area) {
+      area.style.transition = animate && !reduceMotion.matches ? 'transform 200ms ease-out, opacity 200ms ease-out' : 'none'
+      area.style.transform = ''
+      area.style.opacity = ''
+    }
+    hint.style.transition = reduceMotion.matches ? 'none' : 'opacity 150ms ease-out'
+    hint.style.opacity = '0'
+    area = null
+    mode = 'pending'
+  }
+
+  document.addEventListener('touchstart', function (e) {
+    if (e.touches.length !== 1) { if (area) reset(true); return }
+    area = e.target.closest ? e.target.closest(AREA) : null
+    if (!area) return
+    startX = e.touches[0].clientX
+    startY = e.touches[0].clientY
+    mode = 'pending'
+    area.style.transition = 'none'
+  }, { passive: true })
+
+  document.addEventListener('touchmove', function (e) {
+    if (!area || mode === 'vertical') return
+    const dx = e.touches[0].clientX - startX
+    const dy = e.touches[0].clientY - startY
+
+    if (mode === 'pending') {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < LOCK_DISTANCE) return
+      if (Math.abs(dx) > Math.abs(dy) * 1.5) {
+        mode = 'horizontal'
+      } else {
+        mode = 'vertical'
+        reset(false)
+        return
+      }
+    }
+
+    if (e.cancelable) e.preventDefault()
+
+    const committed = Math.abs(dx) >= COMMIT_DISTANCE
+    const shift = Math.sign(dx) * Math.min(Math.abs(dx) * 0.5, MAX_SHIFT)
+    if (!reduceMotion.matches) {
+      area.style.transform = `translateX(${shift}px)`
+      area.style.opacity = committed ? '0.6' : '0.85'
+    }
+    // Swiping right shows the previous month, so the chevron points left.
+    hint.innerHTML = chevron(dx > 0 ? 'M15 18l-6-6 6-6' : 'M9 18l6-6-6-6')
+    hint.style.transition = 'none'
+    hint.style.left = dx > 0 ? '8px' : 'auto'
+    hint.style.right = dx > 0 ? 'auto' : '8px'
+    hint.style.opacity = committed ? '1' : String(0.25 + 0.5 * (Math.abs(dx) / COMMIT_DISTANCE))
+  }, { passive: false })
+
+  document.addEventListener('touchend', function () { if (area) reset(true) }, { passive: true })
+  document.addEventListener('touchcancel', function () { if (area) reset(true) }, { passive: true })
+}
+
+setupSwipeFeedback()
+
 // ── KML ───────────────────────────────────────────────────────────────────────
 
 app.ports.parseKml.subscribe((kmlContent) => {
