@@ -25,7 +25,13 @@ import View.Icons exposing (featherIcon)
 
 view : Lang -> String -> AuthState -> CalendarPage -> Html Msg
 view lang contactEmail authState page =
-    div [ class "p-4" ]
+    div
+        [ class "p-4 touch-pan-y touch-pinch-zoom"
+        , attribute "data-swipe-area" ""
+        , onTouchStart
+        , onTouchEnd
+        , onTouchCancel
+        ]
         [ case authState of
             Authenticated _ ->
                 text ""
@@ -148,11 +154,7 @@ viewCalendarNav lang page =
             nextMonth page.year page.month
     in
     div
-        [ class "flex items-center gap-2 sm:gap-4 mb-4 flex-wrap touch-pan-y touch-pinch-zoom"
-        , onTouchStart
-        , onTouchEnd
-        , onTouchCancel
-        ]
+        [ class "flex items-center gap-2 sm:gap-4 mb-4 flex-wrap" ]
         [ button
             [ type_ "button"
             , onClick (CalendarSetMonth prevY prevM)
