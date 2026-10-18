@@ -1,5 +1,6 @@
 module Main (main) where
 
+import qualified Archive
 import qualified FeedGen
 import qualified GeoJsonGen
 import qualified HtmlGen
@@ -9,8 +10,7 @@ import qualified PocketBase
 
 import Control.Exception (SomeException, try)
 import qualified Data.Map.Strict as Map
-import Data.Maybe (fromMaybe)
-import Data.Time (Day, LocalTime (..), UTCTime (..), ZonedTime (..), getCurrentTime, utctDay)
+import Data.Time (LocalTime (..), UTCTime (..), ZonedTime (..), getCurrentTime, utctDay)
 import qualified DateUtils as DU
 import GHC.IO.Encoding (setLocaleEncoding, utf8)
 import System.Directory (createDirectoryIfMissing)
@@ -57,7 +57,8 @@ run = do
     now <- getCurrentTime
     let todayUtc = UTCTime (utctDay now) 0
         todayHki = localDay (zonedTimeToLocalTime (DU.toHelsinki now))
-        upcomingEvents = filter (isUpcoming todayHki todayUtc) events
+        upcomingEvents = filter (Archive.isUpcoming todayHki todayUtc) events
+        pastByYear = Archive.pastEventsByYear (filter (not . Archive.isUpcoming todayHki todayUtc) events)
 
     -- Generate per-event ICS for ALL events (needed for event HTML pages)
     putStrLn "Generating iCal feeds..."
@@ -85,10 +86,19 @@ run = do
     putStrLn "Generating feeds..."
     rss <- FeedGen.generateRss genCtx upcomingEvents
     atom <- FeedGen.generateAtom genCtx upcomingEvents
-    json <- FeedGen.generateJsonFeed upcomingEvents
+    json <- FeedGen.generateJsonFeed genCtx (reverse (Map.keys pastByYear)) upcomingEvents
     writeStaticFile "assets/kalenteri.rss" rss
     writeStaticFile "assets/kalenteri.atom" atom
     writeStaticFile "assets/kalenteri.json" json
+
+    -- Yearly archives of past events, read by the SPA when nobody is signed in
+    putStrLn "Generating yearly archives..."
+    mapM_
+        ( \(year, yearEvents) -> do
+            yearJson <- FeedGen.generateJsonFeedYear genCtx year yearEvents
+            writeStaticFile ("assets/kalenteri-" ++ show year ++ ".json") yearJson
+        )
+        (Map.toList pastByYear)
 
     -- Generate GeoJSON (upcoming events only)
     putStrLn "Generating GeoJSON..."
@@ -109,14 +119,3 @@ run = do
 -- | Write a file to assets/ (and dist/ if it exists).
 writeStaticFile :: FilePath -> String -> IO ()
 writeStaticFile = writeFile
-
-{- | True if an event's effective end (end_date if set, else start_date) is today or later.
-All-day events compare by Helsinki calendar date (their dates are stored as Helsinki midnight
-converted to UTC, so UTC midnight comparison would incorrectly exclude events ending "today").
--}
-isUpcoming :: Day -> UTCTime -> PocketBase.Event -> Bool
-isUpcoming todayHki todayUtc ev =
-    let effective = fromMaybe (PocketBase.eventStartDate ev) (PocketBase.eventEndDate ev)
-     in if PocketBase.eventAllDay ev
-            then localDay (zonedTimeToLocalTime (DU.toHelsinki effective)) >= todayHki
-            else effective >= todayUtc

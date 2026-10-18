@@ -25,12 +25,29 @@ jobs:
       - name: Setup vendor
         run: make vendor
 
+      # Only the binary built from this commit will do: the SPA reads the generator's
+      # JSON output when signed out, so an older binary could publish a feed it cannot read.
       - name: Restore Native Binary
+        id: native-bin
         uses: actions/cache/restore@v4
         with:
           path: .bin
           key: statics-native-bin-${{ github.sha }}
-          restore-keys: statics-native-bin-
+
+      - name: Setup Native Haskell
+        if: steps.native-bin.outputs.cache-hit != 'true'
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.6.7'
+          cabal-version: '3.10.3.0'
+          update-index: false
+
+      - name: Build Native Binary
+        if: steps.native-bin.outputs.cache-hit != 'true'
+        run: |
+          rm -f cabal.project.freeze
+          bash -c "cd /tmp && cabal update"
+          cabal install statics --installdir=.bin --install-method=copy
 
       - name: Restore Elm cache
         uses: actions/cache/restore@v4

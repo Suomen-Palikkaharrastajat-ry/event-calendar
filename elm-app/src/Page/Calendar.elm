@@ -14,16 +14,20 @@ import CalendarAgenda
 import FinnishTime
 import Html exposing (Html)
 import Lang exposing (Lang)
-import PocketBaseAuth exposing (AuthState)
+import PocketBaseAuth exposing (AuthState(..))
 import RemoteData
+import Set
 import Task
 import Time
 import Types exposing (CalendarPage, CalendarViewMode(..), Msg(..))
 import View.Calendar
 
 
-init : String -> Maybe String -> Time.Posix -> ( CalendarPage, Cmd Msg )
-init pbBaseUrl maybeDate now =
+{-| Signed in, the calendar reads every published event from PocketBase. Signed out, it reads
+`kalenteri.json`, then the yearly archives of the months shown (see `requestYears`).
+-}
+init : AuthState -> String -> String -> Maybe String -> Time.Posix -> ( CalendarPage, Cmd Msg )
+init authState pbBaseUrl staticBaseUrl maybeDate now =
     let
         -- Use Helsinki timezone so the calendar opens on the correct month
         -- near midnight instead of the UTC date, which can differ by ±1 day.
@@ -44,19 +48,103 @@ init pbBaseUrl maybeDate now =
       , todayDay = Time.toDay helsinkiZone now
       , viewMode = MonthGrid
       , touchStart = Nothing
+      , archive =
+            case authState of
+                Authenticated _ ->
+                    Nothing
+
+                NotAuthenticated ->
+                    -- The years are known once kalenteri.json has arrived.
+                    Just { baseUrl = staticBaseUrl, years = [], requested = Set.empty }
       }
-    , Api.fetchPublishedEvents pbBaseUrl CalendarGotEvents
+    , case authState of
+        Authenticated _ ->
+            Api.fetchPublishedEvents pbBaseUrl CalendarGotEvents
+
+        NotAuthenticated ->
+            Api.staticFeedTask staticBaseUrl
+                |> Task.attempt CalendarGotFeed
     )
 
 
 update : Msg -> CalendarPage -> ( CalendarPage, Cmd Msg )
 update msg page =
+    let
+        ( newPage, cmd ) =
+            step msg page
+
+        ( loadedPage, yearsCmd ) =
+            requestYears newPage
+    in
+    ( loadedPage, Cmd.batch [ cmd, yearsCmd ] )
+
+
+{-| Fetch the archives of the shown month's year and of its neighbour months, whose days the
+month grid also shows, unless they were already fetched. Does nothing when signed in.
+-}
+requestYears : CalendarPage -> ( CalendarPage, Cmd Msg )
+requestYears page =
+    case page.archive of
+        Nothing ->
+            ( page, Cmd.none )
+
+        Just archive ->
+            let
+                shownYears =
+                    [ FinnishTime.prevMonth page.year page.month
+                    , ( page.year, page.month )
+                    , FinnishTime.nextMonth page.year page.month
+                    ]
+                        |> List.map Tuple.first
+
+                missing =
+                    archive.years
+                        |> List.filter (\year -> List.member year shownYears && not (Set.member year archive.requested))
+            in
+            ( { page | archive = Just { archive | requested = Set.union archive.requested (Set.fromList missing) } }
+            , missing
+                |> List.map (\year -> Api.staticYearTask archive.baseUrl year |> Task.attempt (CalendarGotYear year))
+                |> Cmd.batch
+            )
+
+
+{-| Forget a year's request so that showing the year again retries it.
+-}
+forgetYear : Int -> CalendarPage -> CalendarPage
+forgetYear year page =
+    { page | archive = Maybe.map (\archive -> { archive | requested = Set.remove year archive.requested }) page.archive }
+
+
+step : Msg -> CalendarPage -> ( CalendarPage, Cmd Msg )
+step msg page =
     case msg of
         CalendarGotEvents (Ok events) ->
             ( { page | events = RemoteData.Success events }, Cmd.none )
 
         CalendarGotEvents (Err err) ->
             ( { page | events = RemoteData.Failure err }, Cmd.none )
+
+        CalendarGotFeed (Ok feed) ->
+            ( { page
+                | events = RemoteData.Success feed.events
+                , archive = Maybe.map (\archive -> { archive | years = feed.archiveYears }) page.archive
+              }
+            , Cmd.none
+            )
+
+        CalendarGotFeed (Err err) ->
+            ( { page | events = RemoteData.Failure err }, Cmd.none )
+
+        CalendarGotYear year (Ok events) ->
+            case page.events of
+                RemoteData.Success shown ->
+                    ( { page | events = RemoteData.Success (Api.mergeEvents shown events) }, Cmd.none )
+
+                _ ->
+                    ( forgetYear year page, Cmd.none )
+
+        CalendarGotYear year (Err _) ->
+            ( forgetYear year page, Cmd.none )
 
         CalendarSetMonth year month ->
             ( { page | year = year, month = month, touchStart = Nothing }, Cmd.none )

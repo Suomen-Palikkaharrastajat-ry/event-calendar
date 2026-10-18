@@ -6,10 +6,12 @@ module CalendarTest exposing (suite)
 import DateUtils exposing (formatEventDateDisplay)
 import Expect
 import FinnishTime exposing (firstDayOfWeek, formDateTimeToUtc, utcStringToHelsinkiDateInput, utcStringToHelsinkiTimeInput)
+import Http
 import Lang
 import Page.Calendar as PageCalendar
 import RemoteData
 import Route exposing (toHref)
+import Set
 import Test exposing (Test, describe, test)
 import Time
 import Types exposing (CalendarPage, CalendarViewMode(..), Event, EventState(..), Msg(..))
@@ -215,6 +217,78 @@ suite =
                     formDateTimeToUtc "bad-date" "10:00" False
                         |> Expect.equal Nothing
             ]
+        , describe "static archive (signed out)"
+            [ test "the feed's arrival requests the shown year and its neighbour months' years" <|
+                \_ ->
+                    let
+                        ( page, _ ) =
+                            PageCalendar.update
+                                (CalendarGotFeed (Ok { events = [], archiveYears = [ 2026, 2025 ] }))
+                                (staticPage 2026 1)
+                    in
+                    Expect.equal (Maybe.map (.requested >> Set.toList) page.archive) (Just [ 2025, 2026 ])
+            , test "a year without an archive file is not requested" <|
+                \_ ->
+                    let
+                        ( page, _ ) =
+                            PageCalendar.update
+                                (CalendarGotFeed (Ok { events = [], archiveYears = [ 2025 ] }))
+                                (staticPage 2026 6)
+                    in
+                    Expect.equal (Maybe.map (.requested >> Set.toList) page.archive) (Just [])
+            , test "moving to a month of another year requests that year" <|
+                \_ ->
+                    let
+                        ( withFeed, _ ) =
+                            PageCalendar.update
+                                (CalendarGotFeed (Ok { events = [], archiveYears = [ 2026, 2025, 2024 ] }))
+                                (staticPage 2026 6)
+
+                        ( moved, _ ) =
+                            PageCalendar.update (CalendarSetMonth 2024 6) withFeed
+                    in
+                    Expect.equal (Maybe.map (.requested >> Set.toList) moved.archive) (Just [ 2024, 2026 ])
+            , test "a year's events are merged into the shown events" <|
+                \_ ->
+                    let
+                        upcoming =
+                            makeEvent { start = "2026-11-01 10:00:00.000Z", end = Nothing, allDay = False }
+
+                        past =
+                            { upcoming | id = "past", startDate = "2025-11-01 10:00:00.000Z" }
+
+                        ( page, _ ) =
+                            PageCalendar.update
+                                (CalendarGotYear 2025 (Ok [ past ]))
+                                { staticPageBase | events = RemoteData.Success [ upcoming ] }
+                    in
+                    Expect.equal (RemoteData.map (List.map .id) page.events) (RemoteData.Success [ "past", "test" ])
+            , test "a failed year is forgotten so that it is retried" <|
+                \_ ->
+                    let
+                        ( page, _ ) =
+                            PageCalendar.update
+                                (CalendarGotYear 2025 (Err Http.NetworkError))
+                                { staticPageBase | archive = Just { baseUrl = "", years = [ 2025 ], requested = Set.fromList [ 2025 ] } }
+                    in
+                    Expect.equal (Maybe.map (.requested >> Set.toList) page.archive) (Just [])
+            , test "a year arriving before the shown events is forgotten so that it is retried" <|
+                \_ ->
+                    let
+                        ( page, _ ) =
+                            PageCalendar.update
+                                (CalendarGotYear 2025 (Ok []))
+                                { staticPageBase | archive = Just { baseUrl = "", years = [ 2025 ], requested = Set.fromList [ 2025 ] } }
+                    in
+                    Expect.equal (Maybe.map (.requested >> Set.toList) page.archive) (Just [])
+            , test "signed in, no archive is ever requested" <|
+                \_ ->
+                    let
+                        ( page, _ ) =
+                            PageCalendar.update (CalendarSetMonth 2024 6) { staticPageBase | archive = Nothing }
+                    in
+                    Expect.equal page.archive Nothing
+            ]
         , describe "swipe support"
             [ test "swipe left navigates to next month" <|
                 \_ ->
@@ -229,6 +303,7 @@ suite =
                             , todayDay = 16
                             , viewMode = MonthGrid
                             , touchStart = Nothing
+                            , archive = Nothing
                             }
 
                         ( pageWithTouch, _ ) =
@@ -252,6 +327,7 @@ suite =
                             , todayDay = 16
                             , viewMode = MonthGrid
                             , touchStart = Nothing
+                            , archive = Nothing
                             }
 
                         ( pageWithTouch, _ ) =
@@ -275,6 +351,7 @@ suite =
                             , todayDay = 16
                             , viewMode = MonthGrid
                             , touchStart = Nothing
+                            , archive = Nothing
                             }
 
                         ( pageWithTouch, _ ) =
@@ -298,6 +375,7 @@ suite =
                             , todayDay = 16
                             , viewMode = MonthGrid
                             , touchStart = Nothing
+                            , archive = Nothing
                             }
 
                         ( pageWithTouch, _ ) =
@@ -321,6 +399,7 @@ suite =
                             , todayDay = 16
                             , viewMode = MonthGrid
                             , touchStart = Nothing
+                            , archive = Nothing
                             }
 
                         ( pageWithTouch, _ ) =
@@ -343,6 +422,7 @@ suite =
                             , todayDay = 16
                             , viewMode = MonthGrid
                             , touchStart = Nothing
+                            , archive = Nothing
                             }
 
                         ( pageWithTouch, _ ) =
@@ -366,6 +446,7 @@ suite =
                             , todayDay = 16
                             , viewMode = MonthGrid
                             , touchStart = Nothing
+                            , archive = Nothing
                             }
 
                         ( pageWithTouch, _ ) =
@@ -389,6 +470,7 @@ suite =
                             , todayDay = 16
                             , viewMode = MonthGrid
                             , touchStart = Nothing
+                            , archive = Nothing
                             }
 
                         ( finalPage, _ ) =
@@ -409,6 +491,7 @@ suite =
                             , todayDay = 16
                             , viewMode = MonthGrid
                             , touchStart = Just ( 100, 100 )
+                            , archive = Nothing
                             }
 
                         ( finalPage, _ ) =
@@ -421,3 +504,24 @@ suite =
                         |> Expect.equal "2026-05-01"
             ]
         ]
+
+
+{-| A signed-out calendar page before kalenteri.json has arrived.
+-}
+staticPage : Int -> Int -> CalendarPage
+staticPage year month =
+    { staticPageBase | year = year, month = month }
+
+
+staticPageBase : CalendarPage
+staticPageBase =
+    { events = RemoteData.Loading
+    , year = 2026
+    , month = 11
+    , todayYear = 2026
+    , todayMonth = 10
+    , todayDay = 18
+    , viewMode = MonthGrid
+    , touchStart = Nothing
+    , archive = Just { baseUrl = "", years = [], requested = Set.empty }
+    }

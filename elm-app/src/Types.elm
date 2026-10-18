@@ -17,6 +17,8 @@ module Types exposing
     , Msg(..)
     , Page(..)
     , PbList
+    , StaticArchive
+    , StaticFeed
     , Toast
     , ToastKind(..)
     , displayTitle
@@ -40,6 +42,7 @@ import Lang exposing (Lang)
 import PocketBaseAuth exposing (AuthState)
 import RemoteData exposing (RemoteData)
 import Route exposing (Route)
+import Set exposing (Set)
 import SiteSettings exposing (SiteSettings)
 import Time
 import Url exposing (Url)
@@ -54,6 +57,7 @@ type alias Flags =
     , authModel : Maybe String
     , now : Int
     , pbBaseUrl : String
+    , staticBaseUrl : String
     , siteConfig : Json.Value
     , requestedLang : Maybe String
     }
@@ -260,6 +264,26 @@ type alias CalendarPage =
     , todayDay : Int
     , viewMode : CalendarViewMode
     , touchStart : Maybe ( Float, Float )
+    , archive : Maybe StaticArchive
+    }
+
+
+{-| Signed-out calendars read the static files: `kalenteri.json` for upcoming events and one
+`kalenteri-YYYY.json` per year of past events, fetched when a month of that year is shown.
+`requested` holds the years already fetched or on their way.
+-}
+type alias StaticArchive =
+    { baseUrl : String
+    , years : List Int
+    , requested : Set Int
+    }
+
+
+{-| `kalenteri.json`: the upcoming events and the years that have an archive file.
+-}
+type alias StaticFeed =
+    { events : List Event
+    , archiveYears : List Int
     }
 
 
@@ -350,6 +374,7 @@ type alias Model =
     , nextToastId : Int
     , now : Time.Posix
     , pbBaseUrl : String
+    , staticBaseUrl : String
     , menuOpen : Bool
     , site : SiteSettings
     , lang : Lang
@@ -393,6 +418,8 @@ type
     | EventListGotEvents (Result Http.Error (List Event))
       -- Calendar page
     | CalendarGotEvents (Result Http.Error (List Event))
+    | CalendarGotFeed (Result Http.Error StaticFeed)
+    | CalendarGotYear Int (Result Http.Error (List Event))
     | CalendarSetMonth Int Int
     | CalendarSetView CalendarViewMode
     | CalendarClickEvent String

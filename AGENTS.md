@@ -15,13 +15,13 @@ elm-app/          Elm 0.19 SPA (Vite + vite-plugin-elm + Tailwind CSS 4)
   src/            Elm source modules (Main, Types, Route, Api, Ports, I18n, DateUtils)
   src/Page/       Page-level Elm modules (Calendar, Events, EventDetail, EventEdit)
   src/View/       View helpers (Layout, Calendar, Events, EventForm, EventDetail, EventList)
-  tests/          Elm unit tests — elm-explorations/test (189 tests)
+  tests/          Elm unit tests — elm-explorations/test (211 tests)
   public/         App-own static files (icons, logos and fonts come from the hub)
   packages/       Symlink to shared Elm packages in vendor/master-builder
 statics/          Haskell static generator (Cabal)
-  src/            Library modules (PocketBase, DateUtils, ICalGen, FeedGen, GeoJsonGen, HtmlGen)
+  src/            Library modules (PocketBase, DateUtils, Archive, ICalGen, FeedGen, GeoJsonGen, HtmlGen)
   app/Main.hs     Executable entry point
-  tests/Main.hs   Haskell tests — tasty (72 tests)
+  tests/Main.hs   Haskell tests — tasty (96 tests)
 review/           elm-review config (shared LlmAgent rules via vendor/master-builder)
 assets/           Files copied verbatim into dist/ (e.g. .nojekyll)
 pkgs/             Nix-managed npm packages (vite, elm-test, Tailwind, etc.)
@@ -117,12 +117,24 @@ All commands are defined in the `Makefile`. Run them from the repo root:
 - Maps use **Leaflet** via Elm ports (`elm-app/src/Ports.elm`). Geocoding uses Nominatim.
 - Auth is OAuth2/OIDC via PocketBase. `requireAuth` takes a `Browser.Navigation.Key`.
 - PocketBase URL comes from `[app] pocketbase_url` in `config.toml`. For local dev, set `VITE_POCKETBASE_URL`.
+- **Signed-out visitors never call PocketBase.** They read the generator's JSON Feeds from the
+  site root: `kalenteri.json` (upcoming events) and `kalenteri-YYYY.json` (past events, one file
+  per year, listed in `kalenteri.json` under `_palikkakalenteri.archive`). Each feed item holds
+  the PocketBase record under `_palikkakalenteri`, so `Api.decodeEvent` reads both sources.
+  The calendar fetches a year's archive only when a month of that year is shown; images come
+  from `/images/{id}_{filename}`. Signed-in users read live PocketBase data, drafts included.
+  `VITE_STATIC_BASE_URL` overrides the origin of these files (default: same origin; give it
+  without a trailing slash); the Vite
+  dev server serves them from `assets/` (run `make statics` first).
 - `RemoteData` (krisajenkins/remotedata) is used for async API state.
 - Pagination uses a custom `PbList a` wrapper (not plain `List a`).
 
 ### Haskell Static Generator
 - Fetches live events from PocketBase REST API (`statics/src/PocketBase.hs`).
 - Generates: iCal (ICalGen), RSS/Atom/JSON Feed (FeedGen), GeoJSON (GeoJsonGen), printable HTML + per-event pages (HtmlGen), event images (ImageFetcher).
+- The JSON Feeds double as the signed-out SPA's data: `kalenteri.json` plus the yearly
+  archives `kalenteri-YYYY.json` (`Archive.pastEventsByYear`; an event crossing New Year is in
+  both years). Keep the `_palikkakalenteri` record in PocketBase's field names and date format.
 - ICS files embedded in feeds as `text/calendar` enclosures (base64-encoded).
 - `statics/app/Main.hs` calls `setLocaleEncoding utf8` — required because the devcontainer locale ≠ UTF-8.
 - `iCalendar` Haskell library is unmaintained; ICalGen.hs uses manual RFC 5545 text generation instead.
@@ -165,6 +177,7 @@ Run these checks in a real browser before releasing. Automated Elm/Haskell unit 
 - [ ] `dist/kalenteri.rss` validates at https://validator.w3.org/feed/
 - [ ] `dist/kalenteri.atom` validates at https://validator.w3.org/feed/
 - [ ] `dist/kalenteri.html` renders correctly in a browser
+- [ ] Signed out, the calendar, event list and event details load with no requests to PocketBase (browser network tab), including months of past years
 
 ## Style Guide
 

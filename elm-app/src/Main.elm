@@ -135,7 +135,7 @@ init flags url key =
                     Cmd.none
 
         ( page, cmd ) =
-            initPage lang flags.pbBaseUrl key route authState url now
+            initPage lang { pbBaseUrl = flags.pbBaseUrl, staticBaseUrl = flags.staticBaseUrl } key route authState url now
     in
     ( { key = key
       , url = url
@@ -145,6 +145,7 @@ init flags url key =
       , nextToastId = 0
       , now = now
       , pbBaseUrl = flags.pbBaseUrl
+      , staticBaseUrl = flags.staticBaseUrl
       , menuOpen = False
       , site = site
       , lang = lang
@@ -157,19 +158,37 @@ init flags url key =
     )
 
 
-initPage : Lang -> String -> Nav.Key -> Route -> AuthState -> Url -> Time.Posix -> ( Page, Cmd Msg )
-initPage lang pbBaseUrl key route authState url now =
+{-| Where events are read from: PocketBase when signed in, the static feed files when not.
+-}
+type alias DataUrls =
+    { pbBaseUrl : String
+    , staticBaseUrl : String
+    }
+
+
+dataUrls : Model -> DataUrls
+dataUrls model =
+    { pbBaseUrl = model.pbBaseUrl, staticBaseUrl = model.staticBaseUrl }
+
+
+initPage : Lang -> DataUrls -> Nav.Key -> Route -> AuthState -> Url -> Time.Posix -> ( Page, Cmd Msg )
+initPage lang { pbBaseUrl, staticBaseUrl } key route authState url now =
     case route of
         RouteCalendar maybeDate ->
             let
                 ( calPage, calCmd ) =
-                    Page.Calendar.init pbBaseUrl maybeDate now
+                    Page.Calendar.init authState pbBaseUrl staticBaseUrl maybeDate now
             in
             ( PageCalendar calPage, calCmd )
 
         RouteEvents ->
             ( PageEventList { events = RemoteData.Loading }
-            , Api.fetchEventsForList pbBaseUrl (getToken authState) EventListGotEvents
+            , case authState of
+                Authenticated user ->
+                    Api.fetchEventsForList pbBaseUrl (Just user.token) EventListGotEvents
+
+                NotAuthenticated ->
+                    Api.fetchStaticEvents staticBaseUrl EventListGotEvents
             )
 
         RouteEventNew ->
@@ -205,7 +224,7 @@ initPage lang pbBaseUrl key route authState url now =
         RouteEventDetail id ->
             let
                 ( detPage, detCmd ) =
-                    Page.EventDetail.init pbBaseUrl (getToken authState) id
+                    Page.EventDetail.init authState pbBaseUrl staticBaseUrl id
             in
             ( PageEventDetail id detPage, detCmd )
 
@@ -262,21 +281,26 @@ update msg model =
                     let
                         targetMonth =
                             Page.Calendar.dateQueryToYearMonth model.now maybeDate
+
+                        -- After logout the page still holds PocketBase data; reload it
+                        -- from the static files (the archive marks a static page).
+                        sameSource =
+                            PocketBaseAuth.isAuthenticated model.authState == (calPage.archive == Nothing)
                     in
-                    if targetMonth == ( calPage.year, calPage.month ) then
+                    if targetMonth == ( calPage.year, calPage.month ) && sameSource then
                         ( { model | url = url }, Cmd.none )
 
                     else
                         let
                             ( page, cmd ) =
-                                initPage model.lang model.pbBaseUrl model.key route model.authState url model.now
+                                initPage model.lang (dataUrls model) model.key route model.authState url model.now
                         in
                         ( { model | url = url, page = page }, cmd )
 
                 _ ->
                     let
                         ( page, cmd ) =
-                            initPage model.lang model.pbBaseUrl model.key route model.authState url model.now
+                            initPage model.lang (dataUrls model) model.key route model.authState url model.now
                     in
                     ( { model | url = url, page = page, menuOpen = False }, Cmd.batch [ mapCleanupCmd, cmd, menuClosedCmd model ] )
 
@@ -358,6 +382,25 @@ update msg model =
         -- ── Calendar page ────────────────────────────────────────────────────────
         CalendarGotEvents _ ->
             updateCalendarPage msg model
+
+        CalendarGotFeed _ ->
+            updateCalendarPage msg model
+
+        CalendarGotYear _ result ->
+            let
+                ( model1, calCmd ) =
+                    updateCalendarPage msg model
+            in
+            case result of
+                Ok _ ->
+                    ( model1, calCmd )
+
+                Err err ->
+                    let
+                        ( model2, toastCmd ) =
+                            addToast model1 ToastError (Api.httpErrorToString model.lang err)
+                    in
+                    ( model2, Cmd.batch [ calCmd, toastCmd ] )
 
         CalendarSetMonth year month ->
             let
@@ -1469,7 +1512,7 @@ viewPage model =
             Page.Events.view model.lang model.authState model.now evPage
 
         PageEventDetail id detPage ->
-            View.EventDetail.view model.lang model.pbBaseUrl model.authState id detPage
+            View.EventDetail.view model.lang (Api.eventImageUrl model.authState (dataUrls model)) model.authState id detPage
 
         PageEventEdit _ editPage ->
             View.EventForm.viewEdit model.lang editPage

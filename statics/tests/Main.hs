@@ -8,6 +8,7 @@ import qualified Data.ByteString.Lazy.Char8 as BLC
 import Data.List (isInfixOf)
 import Data.Time (UTCTime (..), ZonedTime, fromGregorian, secondsToDiffTime)
 
+import qualified Archive
 import qualified Data.Map.Strict as Map
 import qualified DateUtils as DU
 import qualified FeedGen
@@ -161,6 +162,7 @@ main =
             , testGroup "ICalGen" icalGenTests
             , testGroup "GeoJsonGen" geoJsonTests
             , testGroup "FeedGen" feedGenTests
+            , testGroup "Archive" archiveTests
             , testGroup "HtmlGen" htmlGenTests
             ]
 
@@ -455,27 +457,85 @@ feedGenTests =
         assertBool "special chars escaped" ("&lt;script&gt;&quot;&apos;&amp;&lt;/script&gt;" `isInfixOf` atom)
     , -- JSON Feed 1.0
       testCase "JSON Feed has version field" $ do
-        jf <- FeedGen.generateJsonFeed [timedEvent]
+        jf <- FeedGen.generateJsonFeed emptyCtx [] [timedEvent]
         assertBool "jsonfeed version" ("jsonfeed.org/version/1" `isInfixOf` jf)
     , testCase "JSON Feed has title" $ do
-        jf <- FeedGen.generateJsonFeed [timedEvent]
+        jf <- FeedGen.generateJsonFeed emptyCtx [] [timedEvent]
         assertBool "title field" ("Palikkakalenteri" `isInfixOf` jf)
     , testCase "JSON Feed has items array" $ do
-        jf <- FeedGen.generateJsonFeed [timedEvent]
+        jf <- FeedGen.generateJsonFeed emptyCtx [] [timedEvent]
         assertBool "items" ("\"items\"" `isInfixOf` jf)
     , testCase "JSON Feed item has event id" $ do
-        jf <- FeedGen.generateJsonFeed [timedEvent]
+        jf <- FeedGen.generateJsonFeed emptyCtx [] [timedEvent]
         assertBool "abc123" ("abc123" `isInfixOf` jf)
     , testCase "JSON Feed item has event title" $ do
-        jf <- FeedGen.generateJsonFeed [timedEvent]
+        jf <- FeedGen.generateJsonFeed emptyCtx [] [timedEvent]
         assertBool "Parkour Jam" ("Parkour Jam" `isInfixOf` jf)
     , testCase "JSON Feed empty events has empty items" $ do
-        jf <- FeedGen.generateJsonFeed []
+        jf <- FeedGen.generateJsonFeed emptyCtx [] []
         assertBool "empty items" ("\"items\":[]" `isInfixOf` jf)
     , testCase "JSON Feed content_html uses <br/> and escapes HTML" $ do
-        jf <- FeedGen.generateJsonFeed [multilineDescEvent]
+        jf <- FeedGen.generateJsonFeed emptyCtx [] [multilineDescEvent]
         assertBool "line breaks converted" ("Rivi 1<br/><br/>Rivi 2" `isInfixOf` jf)
         assertBool "special chars escaped" ("&lt;script&gt;&quot;&apos;&amp;&lt;/script&gt;" `isInfixOf` jf)
+    , testCase "JSON Feed item carries the PocketBase record" $ do
+        jf <- FeedGen.generateJsonFeed emptyCtx [] [timedEvent]
+        assertBool "extension" ("\"_palikkakalenteri\":{" `isInfixOf` jf)
+        assertBool "PocketBase date format" ("\"start_date\":\"2026-05-05 11:00:00.000Z\"" `isInfixOf` jf)
+        assertBool "end_date" ("\"end_date\":\"2026-05-05 14:00:00.000Z\"" `isInfixOf` jf)
+        assertBool "point" ("\"point\":{\"lat\":60.1699,\"lon\":24.9384}" `isInfixOf` jf)
+        assertBool "raw description" ("\"description\":\"Fun event\"" `isInfixOf` jf)
+    , testCase "JSON Feed record omits a missing end_date and point" $ do
+        jf <- FeedGen.generateJsonFeed emptyCtx [] [allDayEvent]
+        assertBool "no end_date" (not ("end_date" `isInfixOf` jf))
+        assertBool "no point" (not ("\"point\"" `isInfixOf` jf))
+    , testCase "JSON Feed record names the image only when it was downloaded" $ do
+        let ev = eventWithImage "kuva.jpg"
+            ctx = emptyCtx{FeedGen.imageMap = Map.fromList [("abc123", "assets/images/abc123_kuva.jpg")]}
+        withImage <- FeedGen.generateJsonFeed ctx [] [ev]
+        withoutImage <- FeedGen.generateJsonFeed emptyCtx [] [ev]
+        assertBool "image set" ("\"image\":\"kuva.jpg\"" `isInfixOf` withImage)
+        assertBool "image empty" ("\"image\":\"\"" `isInfixOf` withoutImage)
+    , testCase "JSON Feed lists the archive years" $ do
+        jf <- FeedGen.generateJsonFeed emptyCtx [2026, 2025] []
+        assertBool "archive index" ("\"archive\":[2026,2025]" `isInfixOf` jf)
+        assertBool "feed_url" ("\"feed_url\":\"https://kalenteri.palikkaharrastajat.fi/kalenteri.json\"" `isInfixOf` jf)
+    , testCase "JSON Feed year archive has the year in its title" $ do
+        jf <- FeedGen.generateJsonFeedYear emptyCtx 2025 [timedEvent]
+        assertBool "title" ("Palikkakalenteri 2025\"" `isInfixOf` jf)
+        assertBool "item" ("abc123" `isInfixOf` jf)
+    ]
+
+-- ---------------------------------------------------------------------------
+-- Archive tests
+-- ---------------------------------------------------------------------------
+
+-- | Timed event from 2025-12-31 20:00 to 2026-01-01 02:00 Helsinki (EET).
+newYearEvent :: PB.Event
+newYearEvent =
+    timedEvent
+        { PB.eventId = "newyear"
+        , PB.eventStartDate = UTCTime (fromGregorian 2025 12 31) (secondsToDiffTime (18 * 3600))
+        , PB.eventEndDate = Just (UTCTime (fromGregorian 2026 1 1) 0)
+        }
+
+archiveTests :: [TestTree]
+archiveTests =
+    [ testCase "groups events by Helsinki year" $ do
+        let groups = Archive.pastEventsByYear [timedEvent, allDayEvent]
+        Map.keys groups @?= [2026]
+        map PB.eventId (Map.findWithDefault [] 2026 groups) @?= ["abc123", "def456"]
+    , testCase "an event crossing New Year is in both years" $ do
+        let groups = Archive.pastEventsByYear [newYearEvent]
+        Map.keys groups @?= [2025, 2026]
+    , testCase "all-day event ending today is upcoming" $ do
+        -- allDayEvent is June 16 2026 in Helsinki, stored as June 15 21:00 UTC
+        let todayUtc = UTCTime (fromGregorian 2026 6 16) 0
+        Archive.isUpcoming (fromGregorian 2026 6 16) todayUtc allDayEvent @?= True
+        Archive.isUpcoming (fromGregorian 2026 6 17) todayUtc allDayEvent @?= False
+    , testCase "timed event that ended before today is past" $ do
+        let todayUtc = UTCTime (fromGregorian 2026 5 6) 0
+        Archive.isUpcoming (fromGregorian 2026 5 6) todayUtc timedEvent @?= False
     ]
 
 -- ---------------------------------------------------------------------------

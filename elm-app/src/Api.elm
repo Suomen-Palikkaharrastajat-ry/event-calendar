@@ -1,17 +1,32 @@
 module Api exposing
     ( createEvent
     , decodeEvent
+    , decodeStaticEvents
+    , decodeStaticFeed
+    , eventImageUrl
     , fetchAllEvents
     , fetchEvent
     , fetchEventsForList
     , fetchPublishedEvents
+    , fetchStaticEvent
+    , fetchStaticEvents
     , httpErrorToString
     , imageUrl
+    , mergeEvents
+    , staticFeedTask
+    , staticImageUrl
+    , staticYearTask
     , updateEvent
     , updateEventState
     )
 
 {-| PocketBase REST API client: request builders, JSON decoders/encoders and image URL helpers.
+
+Signed-out visitors never call PocketBase: they read the JSON Feeds the static generator
+publishes next to the app (`kalenteri.json` and the yearly `kalenteri-YYYY.json` archives).
+Each feed item carries the PocketBase record under `_palikkakalenteri`, so `decodeEvent`
+decodes both sources.
+
 -}
 
 import File exposing (File)
@@ -22,13 +37,35 @@ import Json.Decode as Json exposing (Decoder)
 import Json.Encode as Encode
 import Lang exposing (Lang)
 import PocketBaseAuth exposing (AuthState(..))
-import Types exposing (Event, EventFormData, EventState, GeoPoint, Msg(..), PbList, eventStateFromString, eventStateToString)
+import Set
+import Task exposing (Task)
+import Types exposing (Event, EventFormData, EventState, GeoPoint, Msg(..), PbList, StaticFeed, eventStateFromString, eventStateToString)
 import Url
 
 
 imageUrl : String -> String -> String -> String
 imageUrl pbBaseUrl eventId filename =
     pbBaseUrl ++ "/api/files/events/" ++ eventId ++ "/" ++ filename
+
+
+{-| The copy of an event image that the static generator downloaded.
+-}
+staticImageUrl : String -> String -> String -> String
+staticImageUrl staticBaseUrl eventId filename =
+    staticBaseUrl ++ "/images/" ++ eventId ++ "_" ++ filename
+
+
+{-| Where to load an event image from: PocketBase when signed in, else the static copy, which
+matches where the event itself was read from.
+-}
+eventImageUrl : AuthState -> { pbBaseUrl : String, staticBaseUrl : String } -> String -> String -> String
+eventImageUrl authState urls =
+    case authState of
+        Authenticated _ ->
+            imageUrl urls.pbBaseUrl
+
+        NotAuthenticated ->
+            staticImageUrl urls.staticBaseUrl
 
 
 authHeader : AuthState -> List Http.Header
@@ -134,6 +171,33 @@ decodePbList itemDecoder =
         (Json.field "perPage" Json.int)
 
 
+{-| The events of a static JSON Feed.
+-}
+decodeStaticEvents : Decoder (List Event)
+decodeStaticEvents =
+    Json.field "items" (Json.list (Json.field "_palikkakalenteri" decodeEvent))
+
+
+{-| `kalenteri.json`: its events and the years listed in `_palikkakalenteri.archive`.
+-}
+decodeStaticFeed : Decoder StaticFeed
+decodeStaticFeed =
+    Json.map2 StaticFeed
+        decodeStaticEvents
+        (Json.maybe (Json.field "_palikkakalenteri" Json.value)
+            |> Json.andThen
+                (\extension ->
+                    case extension of
+                        -- A feed from before the archives existed has no index.
+                        Nothing ->
+                            Json.succeed []
+
+                        Just _ ->
+                            Json.at [ "_palikkakalenteri", "archive" ] (Json.list Json.int)
+                )
+        )
+
+
 
 -- FETCH
 
@@ -222,6 +286,120 @@ fetchEvent pbBaseUrl maybeToken id toMsg =
         , timeout = Nothing
         , tracker = Nothing
         }
+
+
+
+-- STATIC FILES
+
+
+staticTask : String -> Decoder a -> Task Http.Error a
+staticTask url decoder =
+    Http.task
+        { method = "GET"
+        , headers = []
+        , url = url
+        , body = Http.emptyBody
+        , resolver = Http.stringResolver (resolveJson decoder)
+        , timeout = Nothing
+        }
+
+
+resolveJson : Decoder a -> Http.Response String -> Result Http.Error a
+resolveJson decoder response =
+    case response of
+        Http.BadUrl_ url ->
+            Err (Http.BadUrl url)
+
+        Http.Timeout_ ->
+            Err Http.Timeout
+
+        Http.NetworkError_ ->
+            Err Http.NetworkError
+
+        Http.BadStatus_ metadata _ ->
+            Err (Http.BadStatus metadata.statusCode)
+
+        Http.GoodStatus_ _ body ->
+            Json.decodeString decoder body
+                |> Result.mapError (Json.errorToString >> Http.BadBody)
+
+
+{-| `kalenteri.json`: upcoming events and the list of archive years.
+-}
+staticFeedTask : String -> Task Http.Error StaticFeed
+staticFeedTask staticBaseUrl =
+    staticTask (staticBaseUrl ++ "/kalenteri.json") decodeStaticFeed
+
+
+{-| `kalenteri-YYYY.json`: the past events of one year.
+-}
+staticYearTask : String -> Int -> Task Http.Error (List Event)
+staticYearTask staticBaseUrl year =
+    staticTask (staticBaseUrl ++ "/kalenteri-" ++ String.fromInt year ++ ".json") decodeStaticEvents
+
+
+{-| Every published event: the upcoming feed and all yearly archives. A year file that fails
+to load (e.g. mid-deploy) is left out rather than failing the whole list.
+-}
+fetchStaticEvents : String -> (Result Http.Error (List Event) -> Msg) -> Cmd Msg
+fetchStaticEvents staticBaseUrl toMsg =
+    staticFeedTask staticBaseUrl
+        |> Task.andThen
+            (\feed ->
+                feed.archiveYears
+                    |> List.map (\year -> staticYearTask staticBaseUrl year |> Task.onError (\_ -> Task.succeed []))
+                    |> Task.sequence
+                    |> Task.map (List.concat >> mergeEvents feed.events)
+            )
+        |> Task.attempt toMsg
+
+
+{-| One event: from the upcoming feed, else from the archives, newest year first, one file at
+a time (old events are rarely opened, so most lookups stop at the first file or two).
+An event in no file fails with `BadStatus 404`, like a missing PocketBase record.
+-}
+fetchStaticEvent : String -> String -> (Result Http.Error Event -> Msg) -> Cmd Msg
+fetchStaticEvent staticBaseUrl id toMsg =
+    let
+        search years =
+            case years of
+                [] ->
+                    Task.fail (Http.BadStatus 404)
+
+                year :: rest ->
+                    staticYearTask staticBaseUrl year
+                        |> Task.andThen (findOr (search rest))
+
+        findOr notFound events =
+            case List.filter (\event -> event.id == id) events of
+                event :: _ ->
+                    Task.succeed event
+
+                [] ->
+                    notFound
+    in
+    staticFeedTask staticBaseUrl
+        |> Task.andThen (\feed -> findOr (search feed.archiveYears) feed.events)
+        |> Task.attempt toMsg
+
+
+{-| Combine event lists, keeping one copy of each event (an event spanning New Year is in
+two archives), sorted by start date. PocketBase dates sort correctly as strings.
+-}
+mergeEvents : List Event -> List Event -> List Event
+mergeEvents first second =
+    (first ++ second)
+        |> List.foldl
+            (\event ( seen, kept ) ->
+                if Set.member event.id seen then
+                    ( seen, kept )
+
+                else
+                    ( Set.insert event.id seen, event :: kept )
+            )
+            ( Set.empty, [] )
+        |> Tuple.second
+        |> List.sortBy .startDate
 
 
 

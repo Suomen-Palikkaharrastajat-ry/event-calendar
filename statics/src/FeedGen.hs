@@ -7,15 +7,16 @@ module FeedGen (
     generateRss,
     generateAtom,
     generateJsonFeed,
+    generateJsonFeedYear,
 ) where
 
 import qualified Config
 import Control.Exception (SomeException, try)
-import Data.Aeson (Value, encode, object, (.=))
+import Data.Aeson (Key, Value, encode, object, (.=))
 import Data.Char (toLower)
 import Data.Either (fromRight)
 import qualified Data.Map.Strict as Map
-import Data.Maybe (maybeToList)
+import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
@@ -24,9 +25,9 @@ import Data.Time.Format (defaultTimeLocale, formatTime)
 import qualified DateUtils as DU
 import qualified DescriptionHtml as DH
 import qualified PocketBase as PB
+import qualified SiteConfig as SC
 import System.Directory (getFileSize)
 import System.FilePath (takeExtension)
-import qualified SiteConfig as SC
 
 -- ---------------------------------------------------------------------------
 -- Feed metadata
@@ -299,7 +300,11 @@ generateAtom ctx events = do
             , "  " ++ xmlEl "logo" feedLogoUrl
             , "  " ++ xmlEl "icon" (Config.siteBaseUrl ++ "/favicon.ico")
             , "  " ++ xmlText "generator" "Emmet"
-            , "  <author>" ++ xmlText "name" (SC.author SC.defaultLang) ++ xmlText "email" (SC.appContactEmail SC.defaultLang) ++ xmlText "uri" (SC.appOrganisationUrl SC.defaultLang) ++ "</author>"
+            , "  <author>"
+                ++ xmlText "name" (SC.author SC.defaultLang)
+                ++ xmlText "email" (SC.appContactEmail SC.defaultLang)
+                ++ xmlText "uri" (SC.appOrganisationUrl SC.defaultLang)
+                ++ "</author>"
             , concat entries
             , "</feed>"
             ]
@@ -308,8 +313,8 @@ generateAtom ctx events = do
 -- JSON Feed 1.0
 -- ---------------------------------------------------------------------------
 
-jsonFeedItem :: PB.Event -> Value
-jsonFeedItem ev =
+jsonFeedItem :: GeneratorContext -> PB.Event -> Value
+jsonFeedItem ctx ev =
     let contentHtml =
             DH.descriptionWithDateHtml (PB.eventDescription ev) (DU.formatEventDate ev)
         baseFields =
@@ -319,6 +324,7 @@ jsonFeedItem ev =
             , "date_published" .= formatRfc3339Ms (PB.eventCreated ev)
             , "date_modified" .= formatRfc3339Ms (PB.eventUpdated ev)
             , "author" .= object ["name" .= SC.author SC.defaultLang]
+            , "_palikkakalenteri" .= eventRecordJson ctx ev
             ]
         urlField = case PB.eventUrl ev of
             Just u -> ["url" .= T.unpack u]
@@ -328,17 +334,73 @@ jsonFeedItem ev =
             Nothing -> []
      in object (baseFields ++ urlField ++ imgField)
 
--- | Generate a JSON Feed 1.0 document.
-generateJsonFeed :: [PB.Event] -> IO String
-generateJsonFeed events =
+{- | The event as a PocketBase record (same field names and date format), so the SPA decodes
+static and live data with one decoder. @image@ is set only when the image was downloaded, as
+the SPA then loads it from @/images/@.
+-}
+eventRecordJson :: GeneratorContext -> PB.Event -> Value
+eventRecordJson ctx ev =
+    object $
+        [ "about" .= extensionAbout
+        , "id" .= PB.eventId ev
+        , "title" .= PB.eventTitle ev
+        , "description" .= orEmpty (PB.eventDescription ev)
+        , "start_date" .= formatPbDate (PB.eventStartDate ev)
+        , "all_day" .= PB.eventAllDay ev
+        , "url" .= orEmpty (PB.eventUrl ev)
+        , "location" .= orEmpty (PB.eventLocation ev)
+        , "state" .= PB.eventState ev
+        , "cancelled" .= PB.eventCancelled ev
+        , "image" .= (if hasImage then orEmpty (PB.eventImage ev) else "")
+        , "image_description" .= orEmpty (PB.eventImageDesc ev)
+        , "tags" .= PB.eventTags ev
+        , "created" .= formatPbDate (PB.eventCreated ev)
+        , "updated" .= formatPbDate (PB.eventUpdated ev)
+        ]
+            ++ ["end_date" .= formatPbDate end | Just end <- [PB.eventEndDate ev]]
+            ++ [ "point" .= object ["lat" .= PB.geoLat p, "lon" .= PB.geoLon p]
+               | Just p <- [PB.eventPoint ev]
+               ]
+  where
+    hasImage = Map.member (PB.eventId ev) (imageMap ctx)
+    orEmpty = fromMaybe ""
+
+-- | Format a UTCTime the way PocketBase does (e.g. @2026-10-17 07:00:00.000Z@).
+formatPbDate :: UTCTime -> String
+formatPbDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S.000Z"
+
+{- | Generate a JSON Feed 1.0 document. The top-level @_palikkakalenteri.archive@ lists the
+years that have a @kalenteri-YYYY.json@ archive, newest first.
+-}
+generateJsonFeed :: GeneratorContext -> [Integer] -> [PB.Event] -> IO String
+generateJsonFeed ctx archiveYears =
+    jsonFeedDocument
+        ctx
+        feedTitle
+        "kalenteri.json"
+        ["_palikkakalenteri" .= object ["about" .= extensionAbout, "archive" .= archiveYears]]
+
+-- | Generate the JSON Feed archive of one year's past events (@kalenteri-YYYY.json@).
+generateJsonFeedYear :: GeneratorContext -> Integer -> [PB.Event] -> IO String
+generateJsonFeedYear ctx year =
+    jsonFeedDocument ctx (feedTitle ++ " " ++ show year) ("kalenteri-" ++ show year ++ ".json") []
+
+-- | Where the @_palikkakalenteri@ extension is documented, as JSON Feed asks extensions to say.
+extensionAbout :: String
+extensionAbout = "https://github.com/Suomen-Palikkaharrastajat-ry/event-calendar"
+
+jsonFeedDocument
+    :: GeneratorContext -> String -> FilePath -> [(Key, Value)] -> [PB.Event] -> IO String
+jsonFeedDocument ctx title file extra events =
     return $
         TL.unpack $
             TLE.decodeUtf8 $
                 encode $
-                    object
+                    object $
                         [ "version" .= ("https://jsonfeed.org/version/1" :: String)
-                        , "title" .= feedTitle
+                        , "title" .= title
                         , "home_page_url" .= feedLink
+                        , "feed_url" .= feedSelf ++ file
                         , "description" .= feedDescription
                         , "icon" .= feedLogoUrl
                         , "author"
@@ -346,5 +408,6 @@ generateJsonFeed events =
                                 [ "name" .= SC.author SC.defaultLang
                                 , "url" .= SC.appOrganisationUrl SC.defaultLang
                                 ]
-                        , "items" .= map jsonFeedItem events
+                        , "items" .= map (jsonFeedItem ctx) events
                         ]
+                            ++ extra

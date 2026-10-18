@@ -24,6 +24,9 @@ L.Icon.Default.mergeOptions({
 // App settings come from [app] in ../config.toml, in the language being shown.
 const settings = appSettings(siteConfig, pickLang(siteConfig))
 const pbBaseUrl = import.meta.env.VITE_POCKETBASE_URL || settings.pocketbase_url
+// Signed-out visitors read the feed files published with the app (kalenteri.json and
+// kalenteri-YYYY.json), not PocketBase. Empty means the same origin as the app.
+const staticBaseUrl = import.meta.env.VITE_STATIC_BASE_URL || ''
 
 const initAuth = await resolveInitAuth(pbBaseUrl, { PocketBase })
 
@@ -32,6 +35,7 @@ const flags = {
   authModel: initAuth.authModel,
   now: Date.now(),
   pbBaseUrl,
+  staticBaseUrl,
   siteConfig,
   requestedLang: requestedLang(siteConfig),
 }

@@ -11,21 +11,29 @@ View.EventDetail. The update logic for Detail\* messages is in Main.elm
 import Api
 import Html exposing (Html)
 import Lang exposing (Lang)
-import PocketBaseAuth exposing (AuthState)
+import PocketBaseAuth exposing (AuthState(..))
 import RemoteData
 import Types exposing (EventDetailPage, Msg(..))
 import View.EventDetail
 
 
-init : String -> Maybe String -> String -> ( EventDetailPage, Cmd Msg )
-init pbBaseUrl maybeToken id =
+{-| Signed in, the event comes from PocketBase (drafts included); signed out, from the static
+feed files.
+-}
+init : AuthState -> String -> String -> String -> ( EventDetailPage, Cmd Msg )
+init authState pbBaseUrl staticBaseUrl id =
     ( { event = RemoteData.Loading
       , deleteConfirm = False
       }
-    , Api.fetchEvent pbBaseUrl maybeToken id DetailGotEvent
+    , case authState of
+        Authenticated user ->
+            Api.fetchEvent pbBaseUrl (Just user.token) id DetailGotEvent
+
+        NotAuthenticated ->
+            Api.fetchStaticEvent staticBaseUrl id DetailGotEvent
     )
 
 
-view : Lang -> String -> AuthState -> String -> EventDetailPage -> Html Msg
+view : Lang -> (String -> String -> String) -> AuthState -> String -> EventDetailPage -> Html Msg
 view lang =
     View.EventDetail.view lang

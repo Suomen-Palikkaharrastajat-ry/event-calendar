@@ -3,11 +3,12 @@ module ApiTest exposing (suite)
 {-| Unit tests for the Api module.
 -}
 
-import Api exposing (decodeEvent, httpErrorToString, imageUrl)
+import Api exposing (decodeEvent, decodeStaticEvents, decodeStaticFeed, eventImageUrl, httpErrorToString, imageUrl, mergeEvents, staticImageUrl)
 import Expect
 import Http
 import Json.Decode as Json
 import Lang
+import PocketBaseAuth exposing (AuthState(..))
 import Test exposing (Test, describe, test)
 import Types exposing (EventState(..))
 
@@ -60,6 +61,23 @@ allDayEventJson =
         "point":null,
         "created":"2026-01-01T00:00:00.000Z",
         "updated":"2026-01-02T00:00:00.000Z"}"""
+
+
+{-| A static JSON Feed (as written by the statics generator) holding both events.
+-}
+staticFeedJson : String
+staticFeedJson =
+    """{"version":"https://jsonfeed.org/version/1",
+        "title":"Palikkakalenteri",
+        "items":[
+          {"id":"https://kalenteri.palikkaharrastajat.fi/#/events/abc123","title":"5.5. Parkour Jam","_palikkakalenteri":"""
+        ++ timedEventJson
+        ++ """},
+          {"id":"https://kalenteri.palikkaharrastajat.fi/#/events/def456","title":"ti 16.6. Kaupunkifestivaal","_palikkakalenteri":"""
+        ++ allDayEventJson
+        ++ """}
+        ],
+        "_palikkakalenteri":{"archive":[2026,2025]}}"""
 
 
 suite : Test
@@ -178,6 +196,47 @@ suite =
                     imageUrl "http://127.0.0.1:8090" "abc123" "photo.jpg"
                         |> Expect.equal
                             "http://127.0.0.1:8090/api/files/events/abc123/photo.jpg"
+            ]
+        , describe "static feeds"
+            [ test "decodes the PocketBase records of the items" <|
+                \_ ->
+                    decodeJson decodeStaticEvents staticFeedJson
+                        |> Result.map (List.map .id)
+                        |> Expect.equal (Ok [ "abc123", "def456" ])
+            , test "decodes the archive years" <|
+                \_ ->
+                    decodeJson decodeStaticFeed staticFeedJson
+                        |> Result.map .archiveYears
+                        |> Expect.equal (Ok [ 2026, 2025 ])
+            , test "a feed without the archive index has no archive years" <|
+                \_ ->
+                    decodeJson decodeStaticFeed """{"items":[]}"""
+                        |> Result.map .archiveYears
+                        |> Expect.equal (Ok [])
+            , test "a malformed archive index is an error, not an empty archive" <|
+                \_ ->
+                    decodeJson decodeStaticFeed """{"items":[],"_palikkakalenteri":{"archive":"2025"}}"""
+                        |> Result.map .archiveYears
+                        |> Result.toMaybe
+                        |> Expect.equal Nothing
+            , test "mergeEvents keeps one copy of each event, sorted by start date" <|
+                \_ ->
+                    case decodeJson decodeStaticEvents staticFeedJson of
+                        Ok [ timed, allDay ] ->
+                            mergeEvents [ allDay, timed ] [ timed ]
+                                |> List.map .id
+                                |> Expect.equal [ "abc123", "def456" ]
+
+                        _ ->
+                            Expect.fail "Expected two decoded events"
+            , test "staticImageUrl points at the downloaded copy" <|
+                \_ ->
+                    staticImageUrl "" "abc123" "photo.jpg"
+                        |> Expect.equal "/images/abc123_photo.jpg"
+            , test "eventImageUrl uses the static copy when signed out" <|
+                \_ ->
+                    eventImageUrl NotAuthenticated { pbBaseUrl = "https://data.palikkaharrastajat.fi", staticBaseUrl = "" } "abc123" "photo.jpg"
+                        |> Expect.equal "/images/abc123_photo.jpg"
             ]
         , describe "httpErrorToString"
             [ test "BadUrl returns Finnish message" <|

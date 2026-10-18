@@ -53,6 +53,7 @@ october events =
     , todayDay = 12
     , viewMode = MonthGrid
     , touchStart = Nothing
+    , archive = Nothing
     }
 
 

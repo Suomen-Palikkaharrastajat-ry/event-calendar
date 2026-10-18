@@ -10,7 +10,7 @@ The project combines:
 - an Elm frontend in [`elm-app/`](/workspaces/web/event-calendar/elm-app) for the public calendar, event views, and authenticated editing
 - a Haskell static generator in [`statics/`](/workspaces/web/event-calendar/statics) for feeds, printable pages, and exported assets
 
-Features include calendar and list views, event detail pages, authenticated CRUD, KML import, Leaflet maps, and static exports such as iCal, RSS, Atom, JSON Feed, and GeoJSON.
+Features include calendar and list views, event detail pages, authenticated CRUD, KML import, Leaflet maps, and static exports such as iCal, RSS, Atom, JSON Feed, and GeoJSON. Signed-out visitors read events only from the published JSON Feeds (`kalenteri.json` and the yearly `kalenteri-YYYY.json` archives), so the public site is fully static; only signed-in users talk to PocketBase.
 
 ## Development Environment
 

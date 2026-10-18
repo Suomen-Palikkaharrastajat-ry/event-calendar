@@ -25,6 +25,7 @@ library
     Config
     SiteConfig
     PocketBase
+    Archive
     DateUtils
     ICalGen
     FeedGen

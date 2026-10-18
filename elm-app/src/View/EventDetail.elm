@@ -22,8 +22,10 @@ import Types exposing (EventDetailPage, Msg(..))
 import View.Icons exposing (featherIcon)
 
 
-view : Lang -> String -> AuthState -> String -> EventDetailPage -> Html Msg
-view lang pbBaseUrl authState _ detPage =
+{-| `toImageUrl eventId filename` gives the image's address, see `Api.eventImageUrl`.
+-}
+view : Lang -> (String -> String -> String) -> AuthState -> String -> EventDetailPage -> Html Msg
+view lang toImageUrl authState _ detPage =
     div [ class "max-w-2xl mx-auto p-4" ]
         [ div []
             [ case detPage.event of
@@ -139,7 +141,7 @@ view lang pbBaseUrl authState _ detPage =
                             Just filename ->
                                 div [ class "mb-4" ]
                                     [ img
-                                        [ src (Api.imageUrl pbBaseUrl event.id filename)
+                                        [ src (toImageUrl event.id filename)
                                         , alt (Maybe.withDefault "" event.imageDescription)
                                         , class "max-w-full rounded shadow"
                                         ]

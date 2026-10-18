@@ -28,6 +28,7 @@ elm-app/.vite/
 
 # --- Generated static files ---
 assets/kalenteri.json
+assets/kalenteri-*.json
 assets/kalenteri.geo.json
 assets/*.ics
 assets/*.rss
