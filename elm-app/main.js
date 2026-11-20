@@ -59,6 +59,12 @@ wirePocketBaseAuthPorts(app, { PocketBase })
 /** Registry of active Leaflet maps: containerId → { map, marker } */
 const maps = {}
 
+// OpenStreetMap raster tile URL for the location picker.
+// Per OSM Foundation Tile Usage Policy, use the standard tile.openstreetmap.org
+// domain (not the legacy a./b./c. subdomains) and allow switching via
+// VITE_OSM_TILE_URL without code changes.
+const osmTileUrl = import.meta.env.VITE_OSM_TILE_URL || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+
 app.ports.initMap.subscribe(({ containerId, lat, lon, zoom, markerLat, markerLon, draggable }) => {
   // Defer until after Elm renders the container element into the DOM
   requestAnimationFrame(() => {
@@ -73,7 +79,7 @@ app.ports.initMap.subscribe(({ containerId, lat, lon, zoom, markerLat, markerLon
     L.control
       .zoom({ zoomInTitle: settings.strings.zoom_in, zoomOutTitle: settings.strings.zoom_out })
       .addTo(map)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer(osmTileUrl, {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map)
 

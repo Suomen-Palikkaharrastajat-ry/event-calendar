@@ -219,7 +219,7 @@ viewGeocodeSection lang msgs form =
                     (Form.defaultField (msgs.mapContainerId ++ "-lat") (t lang FormLat))
                     { value = form.lat
                     , onInput = msgs.onFieldChanged "lat"
-                    , inputType = Form.Number { step = "0.000001" }
+                    , inputType = Form.Number { step = "any" }
                     , placeholder = Nothing
                     }
                 ]
@@ -228,7 +228,7 @@ viewGeocodeSection lang msgs form =
                     (Form.defaultField (msgs.mapContainerId ++ "-lon") (t lang FormLon))
                     { value = form.lon
                     , onInput = msgs.onFieldChanged "lon"
-                    , inputType = Form.Number { step = "0.000001" }
+                    , inputType = Form.Number { step = "any" }
                     , placeholder = Nothing
                     }
                 ]

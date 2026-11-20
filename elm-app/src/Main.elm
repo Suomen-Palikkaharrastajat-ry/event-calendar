@@ -549,7 +549,7 @@ update msg model =
                     let
                         ( model1, _ ) =
                             updateEventsForm model
-                                (\form -> { form | lat = String.fromFloat pt.lat, lon = String.fromFloat pt.lon })
+                                (\form -> { form | lat = formatCoordinate pt.lat, lon = formatCoordinate pt.lon })
                     in
                     ( model1, Ports.setMapMarker { lat = pt.lat, lon = pt.lon } )
 
@@ -1042,7 +1042,7 @@ update msg model =
                     let
                         ( model1, _ ) =
                             updateEditForm model
-                                (\form -> { form | lat = String.fromFloat pt.lat, lon = String.fromFloat pt.lon })
+                                (\form -> { form | lat = formatCoordinate pt.lat, lon = formatCoordinate pt.lon })
                     in
                     ( model1, Ports.setMapMarker { lat = pt.lat, lon = pt.lon } )
 
@@ -1123,7 +1123,7 @@ update msg model =
                         form =
                             evPage.form
                     in
-                    ( { model | page = PageEvents { evPage | form = { form | lat = String.fromFloat lat, lon = String.fromFloat lon } } }
+                    ( { model | page = PageEvents { evPage | form = { form | lat = formatCoordinate lat, lon = formatCoordinate lon } } }
                     , Geocoding.reverseGeocode lat lon GotReverseGeocode
                     )
 
@@ -1132,7 +1132,7 @@ update msg model =
                         form =
                             editPage.form
                     in
-                    ( { model | page = PageEventEdit id { editPage | form = { form | lat = String.fromFloat lat, lon = String.fromFloat lon } } }
+                    ( { model | page = PageEventEdit id { editPage | form = { form | lat = formatCoordinate lat, lon = formatCoordinate lon } } }
                     , Geocoding.reverseGeocode lat lon GotReverseGeocode
                     )
 
@@ -1603,3 +1603,18 @@ formKeyDecoder saveMsg =
                 else
                     Json.fail "not handled"
             )
+
+
+{-| Format a picker-sourced coordinate (geocode result or dragged marker) with at
+most 6 decimals (~0.1 m), so the lat/lon inputs stay readable and valid.
+-}
+formatCoordinate : Float -> String
+formatCoordinate val =
+    let
+        factor =
+            1000000.0
+
+        rounded =
+            toFloat (round (val * factor)) / factor
+    in
+    String.fromFloat rounded
